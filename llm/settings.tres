@@ -1,7 +1,0 @@
-[gd_resource type="Resource" script_class="LLMSettings" load_steps=2 format=3 uid="uid://c0rouyeqfdmi2"]
-
-[ext_resource type="Script" uid="uid://b5meax6kngg8x" path="res://llm/LLMSettings.gd" id="1_gbe7x"]
-
-[resource]
-script = ExtResource("1_gbe7x")
-metadata/_custom_type_script = "uid://b5meax6kngg8x"
