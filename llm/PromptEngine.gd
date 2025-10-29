@@ -1,0 +1,138 @@
+extends RefCounted
+class_name PromptEngine
+
+## Builds prompts, parses JSON, hot-reload capable
+
+var llm_client: LLMClient
+var world_db: WorldDB
+
+const NARRATOR_SYSTEM_PROMPT = """You are the Narrator, the invisible voice of the world. You describe scenes, state changes, and consequences in evocative prose. You do not speak as a character or DM—you are the world itself.
+
+Guidelines:
+- Write in third person, present tense
+- Be concise but atmospheric
+- Highlight sensory details
+- When state changes occur, describe them naturally
+- Never break character or address the player directly"""
+
+const DIRECTOR_SYSTEM_PROMPT = """You are the Director, arbitrating actions and maintaining world consistency. You resolve player actions, enforce scene rules, and update world state.
+
+Given an ActionRequest, respond with a JSON object containing:
+{
+  "narration": [{"style": "world", "text": "..."}],
+  "patches": [{"op": "replace", "path": "/entities/{id}/props/{key}", "value": "..."}],
+  "ui_choices": [{"verb": "...", "target": "...", "label": "..."}]
+}
+
+Rules:
+- Only include verbs available in the current scene
+- Patches must follow JSON Patch format
+- Narration should reflect the action's consequences"""
+
+func _init(p_llm_client: LLMClient, p_world_db: WorldDB):
+	llm_client = p_llm_client
+	world_db = p_world_db
+
+func build_narrator_prompt(scene_context: Dictionary) -> Array[Dictionary]:
+	return [
+		{"role": "system", "content": NARRATOR_SYSTEM_PROMPT},
+		{"role": "user", "content": "Describe this scene: " + JSON.stringify(scene_context)}
+	]
+
+func build_director_prompt(action: ActionRequest, scene: SceneGraph) -> Array[Dictionary]:
+	var scene_info = {
+		"scene_id": scene.scene_id,
+		"description": scene.description,
+		"entities": _serialize_entities(scene.entities),
+		"rules": scene.rules
+	}
+	
+	var prompt = DIRECTOR_SYSTEM_PROMPT + "\n\n"
+	prompt += "Current Scene:\n" + JSON.stringify(scene_info, "\t") + "\n\n"
+	prompt += "Action Request:\n" + JSON.stringify({
+		"actor": action.actor,
+		"verb": action.verb,
+		"target": action.target,
+		"context": action.context
+	}, "\t") + "\n\n"
+	prompt += "Respond with a valid JSON object matching the ResolutionEnvelope format."
+	
+	return [
+		{"role": "system", "content": prompt}
+	]
+
+func process_action(action: ActionRequest) -> ResolutionEnvelope:
+	var scene = world_db.get_scene(action.scene)
+	if not scene:
+		push_error("Scene not found: " + action.scene)
+		return _create_error_envelope("Scene not found")
+	
+	var messages = build_director_prompt(action, scene)
+	var response_text = await _make_llm_request(messages)
+	
+	if response_text == "":
+		return _create_error_envelope("LLM request failed")
+	
+	return _parse_response(response_text)
+
+func process_narrator_request(context: Dictionary) -> String:
+	var messages = build_narrator_prompt(context)
+	return await _make_llm_request(messages)
+
+func _make_llm_request(messages: Array[Dictionary]) -> String:
+	return await llm_client.make_request(messages)
+
+func _parse_response(json_text: String) -> ResolutionEnvelope:
+	var json = JSON.new()
+	var parse_error = json.parse(json_text)
+	if parse_error != OK:
+		push_error("Failed to parse LLM response: " + json_text)
+		return _create_error_envelope("Invalid JSON response")
+	
+	var data = json.data
+	var envelope = ResolutionEnvelope.new()
+	
+	# Parse narration
+	if data.has("narration") and data.narration is Array:
+		for narr_data in data.narration:
+			var narr = NarrationEvent.new()
+			narr.style = narr_data.get("style", "world")
+			narr.text = narr_data.get("text", "")
+			narr.speaker = narr_data.get("speaker", "")
+			envelope.narration.append(narr)
+	
+	# Parse patches
+	if data.has("patches") and data.patches is Array:
+		envelope.patches = data.patches
+	
+	# Parse UI choices
+	if data.has("ui_choices") and data.ui_choices is Array:
+		for choice_data in data.ui_choices:
+			var choice = UIChoice.new()
+			choice.verb = choice_data.get("verb", "")
+			choice.target = choice_data.get("target", "")
+			choice.label = choice_data.get("label", "")
+			envelope.ui_choices.append(choice)
+	
+	return envelope
+
+func _serialize_entities(entities: Array[Entity]) -> Array[Dictionary]:
+	var result = []
+	for entity in entities:
+		result.append({
+			"id": entity.id,
+			"type_name": entity.type_name,
+			"verbs": entity.verbs,
+			"tags": entity.tags,
+			"props": entity.props
+		})
+	return result
+
+func _create_error_envelope(message: String) -> ResolutionEnvelope:
+	var envelope = ResolutionEnvelope.new()
+	var narr = NarrationEvent.new()
+	narr.style = "world"
+	narr.text = "[Error: " + message + "]"
+	envelope.narration.append(narr)
+	return envelope
+

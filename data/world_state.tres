@@ -1,0 +1,22 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://data/types/WorldDB.gd" id="1"]
+
+[resource]
+script = ExtResource(1)
+scenes = {
+	"tavern_common": "res://data/scenes/tavern_common.tres"
+}
+entities = {
+	"barkeep": {"type": "npc", "seen": true, "notes": ["Gives discounts if flattered."]},
+	"mug": {"type": "item", "props": {"liquid": "ale"}},
+	"fool": {"type": "npc", "seen": false},
+	"archer": {"type": "npc", "seen": false}
+}
+npc_states = {
+	"fool": "res://data/types/npc_states/fool.tres",
+	"archer": "res://data/types/npc_states/archer.tres"
+}
+history = []
+flags = {}
+
