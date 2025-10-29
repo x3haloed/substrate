@@ -1,19 +1,16 @@
 [gd_scene load_steps=6 format=3 uid="uid://cd1mol72gjb2g"]
 
-[ext_resource type="Script" path="res://main/Game.gd" id="1"]
+[ext_resource type="Script" uid="uid://bsglhg25j1uqv" path="res://main/Game.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://b8vwcq7x3kp4f" path="res://ui/ChatWindow.tscn" id="2"]
 [ext_resource type="PackedScene" uid="uid://c5xn8k2v7m3p4" path="res://ui/ChoicePanel.tscn" id="3"]
-[ext_resource type="PackedScene" uid="uid://d6yw9l3z8n4q5" path="res://ui/LorePanel.tscn" id="4"]
-[ext_resource type="PackedScene" uid="uid://e7zx0m4a9o5r6" path="res://ui/SettingsPanel.tscn" id="5"]
-
-[sub_resource type="StyleBoxFlat" id="1"]
-bg_color = Color(0.1, 0.1, 0.1, 1)
+[ext_resource type="PackedScene" uid="uid://ck2oj6rog80e" path="res://ui/LorePanel.tscn" id="4"]
+[ext_resource type="PackedScene" uid="uid://bdl3fk61pia1f" path="res://ui/SettingsPanel.tscn" id="5"]
 
 [node name="Game" type="Node"]
 script = ExtResource("1")
 
 [node name="UI" type="Control" parent="."]
-layout_mode = 1
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -29,17 +26,22 @@ offset_left = 40.0
 offset_top = 8.0
 offset_right = -8.0
 offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
 split_offset = 600
 
 [node name="ChatWindow" parent="UI/MainSplit" instance=ExtResource("2")]
+layout_mode = 2
 
 [node name="ChoicePanel" parent="UI/MainSplit" instance=ExtResource("3")]
 layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="LorePanel" parent="UI" instance=ExtResource("4")]
+layout_mode = 1
 
 [node name="SettingsPanel" parent="UI" instance=ExtResource("5")]
+layout_mode = 1
 
 [node name="SettingsButton" type="Button" parent="UI"]
 layout_mode = 1
@@ -52,5 +54,6 @@ offset_left = -120.0
 offset_top = -40.0
 offset_right = -8.0
 offset_bottom = -8.0
+grow_horizontal = 0
+grow_vertical = 0
 text = "Settings"
-
