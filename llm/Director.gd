@@ -141,23 +141,59 @@ func _apply_patches(patches: Array):
 		if patch is Dictionary:
 			# Apply to world DB entities
 			var path = patch.get("path", "")
-			if path.begins_with("/entities/"):
+			if path.begins_with("/"):
+				path = path.substr(1)
+			if path.begins_with("entities/"):
 				var parts = path.split("/")
-				if parts.size() >= 4:
-					var entity_id = parts[2]
-					var _prop_key = parts[3]
-					
+				if parts.size() >= 3:
+					var entity_id = parts[1]
 					var scene = world_db.get_scene(current_scene_id)
 					if scene:
 						var entity = scene.get_entity(entity_id)
 						if entity:
-							JsonPatch.apply_patch(entity.props, patch)
-							
-							# Also update world DB cache
-							if world_db.entities.has(entity_id):
-								var entity_data = world_db.entities[entity_id]
-								if entity_data is Dictionary:
-									JsonPatch.apply_patch(entity_data, patch)
+							# Route patches by sub-root (props/state/lore supported). Arrays like verbs/tags are ignored for now.
+							if parts.size() >= 4:
+								var sub_root = parts[2]
+								match sub_root:
+									"props":
+										var rel_path = "/" + "/".join(parts.slice(3))
+										var rel_patch = {
+											"op": patch.get("op", ""),
+											"path": rel_path,
+											"value": patch.get("value")
+										}
+										JsonPatch.apply_patch(entity.props, rel_patch)
+										# Also update world DB cache copy if present
+										if world_db.entities.has(entity_id):
+											var entity_data = world_db.entities[entity_id]
+											if entity_data is Dictionary and entity_data.has("props") and entity_data.props is Dictionary:
+												JsonPatch.apply_patch(entity_data.props, rel_patch)
+									"state":
+										var rel_path_s = "/" + "/".join(parts.slice(3))
+										var rel_patch_s = {
+											"op": patch.get("op", ""),
+											"path": rel_path_s,
+											"value": patch.get("value")
+										}
+										JsonPatch.apply_patch(entity.state, rel_patch_s)
+										if world_db.entities.has(entity_id):
+											var entity_data_s = world_db.entities[entity_id]
+											if entity_data_s is Dictionary and entity_data_s.has("state") and entity_data_s.state is Dictionary:
+												JsonPatch.apply_patch(entity_data_s.state, rel_patch_s)
+									"lore":
+										var rel_path_l = "/" + "/".join(parts.slice(3))
+										var rel_patch_l = {
+											"op": patch.get("op", ""),
+											"path": rel_path_l,
+											"value": patch.get("value")
+										}
+										JsonPatch.apply_patch(entity.lore, rel_patch_l)
+										if world_db.entities.has(entity_id):
+											var entity_data_l = world_db.entities[entity_id]
+											if entity_data_l is Dictionary and entity_data_l.has("lore") and entity_data_l.lore is Dictionary:
+												JsonPatch.apply_patch(entity_data_l.lore, rel_patch_l)
+									_:
+										push_warning("Unsupported patch target: " + sub_root + ", supported: props/state/lore")
 
 func _generate_ui_choices(scene: SceneGraph) -> Array[UIChoice]:
 	var choices: Array[UIChoice] = []

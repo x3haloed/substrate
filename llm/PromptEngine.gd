@@ -103,7 +103,11 @@ func _parse_response(json_text: String) -> ResolutionEnvelope:
 	
 	# Parse patches
 	if data.has("patches") and data.patches is Array:
-		envelope.patches = data.patches
+		var patch_list: Array[Dictionary] = []
+		for patch in data.patches:
+			if patch is Dictionary:
+				patch_list.append(patch)
+		envelope.patches = patch_list
 	
 	# Parse UI choices
 	if data.has("ui_choices") and data.ui_choices is Array:
@@ -117,7 +121,7 @@ func _parse_response(json_text: String) -> ResolutionEnvelope:
 	return envelope
 
 func _serialize_entities(entities: Array[Entity]) -> Array[Dictionary]:
-	var result = []
+	var result: Array[Dictionary] = []
 	for entity in entities:
 		result.append({
 			"id": entity.id,

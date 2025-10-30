@@ -54,4 +54,3 @@ static func apply_patches(target: Dictionary, patches: Array) -> int:
 			if apply_patch(target, patch):
 				applied += 1
 	return applied
-
