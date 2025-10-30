@@ -43,11 +43,60 @@ layout_mode = 2
 text = "Entity Lore"
 horizontal_alignment = 1
 
-[node name="ScrollContainer" type="ScrollContainer" parent="VBox"]
+[node name="TabContainer" type="TabContainer" parent="VBox"]
 layout_mode = 2
 size_flags_vertical = 3
+current_tab = 0
 
-[node name="ContentLabel" type="RichTextLabel" parent="VBox/ScrollContainer"]
+[node name="Lore" type="Control" parent="VBox/TabContainer"]
+layout_mode = 2
+metadata/_tab_index = 0
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBox/TabContainer/Lore"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ContentLabel" type="RichTextLabel" parent="VBox/TabContainer/Lore/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+bbcode_enabled = true
+
+[node name="Timeline" type="Control" parent="VBox/TabContainer"]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBox/TabContainer/Timeline"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ContentLabel" type="RichTextLabel" parent="VBox/TabContainer/Timeline/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+bbcode_enabled = true
+
+[node name="Relationships" type="Control" parent="VBox/TabContainer"]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBox/TabContainer/Relationships"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ContentLabel" type="RichTextLabel" parent="VBox/TabContainer/Relationships/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 bbcode_enabled = true

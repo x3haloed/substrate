@@ -15,6 +15,8 @@ var llm_client: LLMClient
 var prompt_engine: PromptEngine
 var world_db: WorldDB
 var director: Director
+var autosave_timer: Timer
+var autosave_interval: float = 300.0  # 5 minutes
 
 func _ready():
 	# Load or create LLM settings
@@ -46,6 +48,9 @@ func _ready():
 	lore_panel.set_world_db(world_db)
 	settings_panel.settings_saved.connect(_on_settings_saved)
 	settings_button.pressed.connect(_on_settings_button_pressed)
+	
+	# Setup autosave
+	_setup_autosave()
 	
 	# Start the game
 	_start_game()
@@ -126,3 +131,22 @@ func _on_settings_saved():
 	add_child(llm_client)
 	prompt_engine.llm_client = llm_client
 	chat_window.add_message("Settings saved. Restart to apply changes.", "world")
+
+func _setup_autosave():
+	autosave_timer = Timer.new()
+	autosave_timer.wait_time = autosave_interval
+	autosave_timer.timeout.connect(_on_autosave_timer)
+	autosave_timer.autostart = true
+	add_child(autosave_timer)
+
+func _on_autosave_timer():
+	if world_db:
+		world_db.autosave()
+		print("Autosave completed")
+
+func _notification(what):
+	# Save on exit
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		if world_db:
+			world_db.autosave()
+		get_tree().quit()

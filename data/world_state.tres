@@ -21,4 +21,5 @@ npc_states = {
 }
 history = []
 flags = {}
+relationships = {}
 

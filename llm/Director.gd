@@ -65,7 +65,7 @@ func process_player_action(action: ActionRequest) -> ResolutionEnvelope:
 		return _create_error_envelope("No active scene")
 	
 	# Check for NPC interjections before player action
-	var interjections = await _check_interjections()
+	var interjections = _check_interjections()
 	if interjections.size() > 0:
 		# Process interjections first
 		for interjection in interjections:
@@ -80,6 +80,9 @@ func process_player_action(action: ActionRequest) -> ResolutionEnvelope:
 	var target_entity = scene.get_entity(action.target)
 	if not target_entity or not action.verb in target_entity.verbs:
 		return _create_error_envelope("Invalid action: " + action.verb + " on " + action.target)
+	
+	# Record entity discovery if this is first interaction
+	world_db.record_entity_discovery(action.target, action.actor, current_scene_id)
 	
 	# Handle scene navigation for exit entities
 	if action.verb == "move" and target_entity.type_name == "exit":
@@ -187,9 +190,26 @@ func _apply_patches(patches: Array):
 							# Route patches by sub-root (props/state/lore supported). Arrays like verbs/tags are ignored for now.
 							if parts.size() >= 4:
 								var sub_root = parts[2]
+								var old_value = null
+								var change_type = ""
+								var rel_path = ""
+								
 								match sub_root:
 									"props":
-										var rel_path = "/" + "/".join(parts.slice(3))
+										change_type = "prop"
+										rel_path = "/" + "/".join(parts.slice(3))
+										# Get old value for history
+										var prop_path_parts = rel_path.trim_prefix("/").split("/")
+										var dict = entity.props
+										for i in range(prop_path_parts.size() - 1):
+											if dict.has(prop_path_parts[i]) and dict[prop_path_parts[i]] is Dictionary:
+												dict = dict[prop_path_parts[i]]
+											else:
+												dict = null
+												break
+										if dict != null and prop_path_parts.size() > 0:
+											old_value = dict.get(prop_path_parts[-1])
+										
 										var rel_patch = {
 											"op": patch.get("op", ""),
 											"path": rel_path,
@@ -201,8 +221,24 @@ func _apply_patches(patches: Array):
 											var entity_data = world_db.entities[entity_id]
 											if entity_data is Dictionary and entity_data.has("props") and entity_data.props is Dictionary:
 												JsonPatch.apply_patch(entity_data.props, rel_patch)
+										
+										# Record change in history
+										world_db.record_entity_change(entity_id, change_type, path, old_value, patch.get("value"), "player")
 									"state":
+										change_type = "state"
 										var rel_path_s = "/" + "/".join(parts.slice(3))
+										# Get old value for history
+										var state_path_parts = rel_path_s.trim_prefix("/").split("/")
+										var state_dict = entity.state
+										for i in range(state_path_parts.size() - 1):
+											if state_dict.has(state_path_parts[i]) and state_dict[state_path_parts[i]] is Dictionary:
+												state_dict = state_dict[state_path_parts[i]]
+											else:
+												state_dict = null
+												break
+										if state_dict != null and state_path_parts.size() > 0:
+											old_value = state_dict.get(state_path_parts[-1])
+										
 										var rel_patch_s = {
 											"op": patch.get("op", ""),
 											"path": rel_path_s,
@@ -213,8 +249,24 @@ func _apply_patches(patches: Array):
 											var entity_data_s = world_db.entities[entity_id]
 											if entity_data_s is Dictionary and entity_data_s.has("state") and entity_data_s.state is Dictionary:
 												JsonPatch.apply_patch(entity_data_s.state, rel_patch_s)
+										
+										# Record change in history
+										world_db.record_entity_change(entity_id, change_type, path, old_value, patch.get("value"), "player")
 									"lore":
+										change_type = "lore"
 										var rel_path_l = "/" + "/".join(parts.slice(3))
+										# Get old value for history
+										var lore_path_parts = rel_path_l.trim_prefix("/").split("/")
+										var lore_dict = entity.lore
+										for i in range(lore_path_parts.size() - 1):
+											if lore_dict.has(lore_path_parts[i]) and lore_dict[lore_path_parts[i]] is Dictionary:
+												lore_dict = lore_dict[lore_path_parts[i]]
+											else:
+												lore_dict = null
+												break
+										if lore_dict != null and lore_path_parts.size() > 0:
+											old_value = lore_dict.get(lore_path_parts[-1])
+										
 										var rel_patch_l = {
 											"op": patch.get("op", ""),
 											"path": rel_path_l,
@@ -225,6 +277,9 @@ func _apply_patches(patches: Array):
 											var entity_data_l = world_db.entities[entity_id]
 											if entity_data_l is Dictionary and entity_data_l.has("lore") and entity_data_l.lore is Dictionary:
 												JsonPatch.apply_patch(entity_data_l.lore, rel_patch_l)
+										
+										# Record change in history
+										world_db.record_entity_change(entity_id, change_type, path, old_value, patch.get("value"), "player")
 									_:
 										push_warning("Unsupported patch target: " + sub_root + ", supported: props/state/lore")
 
