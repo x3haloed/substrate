@@ -135,4 +135,3 @@ func _create_error_envelope(message: String) -> ResolutionEnvelope:
 	narr.text = "[Error: " + message + "]"
 	envelope.narration.append(narr)
 	return envelope
-
