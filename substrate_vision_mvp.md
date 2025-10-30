@@ -105,25 +105,34 @@ contents = []
 lore = {"discovered_by": [], "notes": []}
 ```
 
-### 2.4 NPC State Vector (Emotions & Agency)
+### 2.4 CharacterProfile (Substrate Card v1)
 ```ini
-[gd_resource type="Resource" format=3]
+[gd_resource type="Resource" script_class="CharacterProfile" format=3]
 
-[ext_resource type="Script" path="res://data/types/NPCState.gd" id=1]
+[ext_resource type="Script" path="res://data/types/CharacterProfile.gd" id=1]
+[ext_resource type="Script" path="res://data/types/TriggerDef.gd" id=2]
+
+[sub_resource type="Resource" id="T1"]
+script = ExtResource(2)
+id = "scan_on_arrival"
+namespace = "global"
+when = "scene.enter"
+action = {"verb":"scan","target":"scene"}
+narration = "Riona scans the room for threats, eyes narrowed."
+priority = 50
+cooldown = 0
 
 [resource]
 script = ExtResource(1)
-id = "cleric_riona"
-mood = "content"
-bond_with_player = 0.74
-assertiveness = 0.2
-conviction = 0.6
-goals = ["protect_player", "seek_relic"]
-triggers = {
-    "on_low_health_ally": "cast_heal",
-    "on_arrival": "scan_scene_for_threats"
-}
-flags = {"depressed": false}
+name = "Cleric Riona"
+description = "A devoted cleric seeking a lost relic."
+personality = "Calm, resolute, compassionate."
+first_mes = "May the light guide our steps."
+mes_example = "I will tend to your wounds."
+stats = {"mood":"content","bond_with_player":0.74}
+traits = ["protective","faithful"]
+style = {"voice":"soothing"}
+triggers = [SubResource(T1)]
 ```
 
 ### 2.5 Action Request (UI → Director)

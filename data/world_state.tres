@@ -34,7 +34,3 @@ characters = {
 "archer": "res://data/characters/archer.tres",
 "fool": "res://data/characters/fool.tres"
 }
-npc_states = {
-"archer": "res://data/types/npc_states/archer.tres",
-"fool": "res://data/types/npc_states/fool.tres"
-}

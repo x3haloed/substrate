@@ -5,14 +5,12 @@ class_name WorldDB
 @export var scenes: Dictionary = {}  # scene_id -> SceneGraph resource path
 @export var entities: Dictionary = {}  # entity_id -> Entity data
 @export var characters: Dictionary = {}  # character_id -> CharacterProfile resource path
-@export var npc_states: Dictionary = {}  # npc_id -> NPCState resource path (deprecated, use characters)
 @export var history: Array[Dictionary] = []
 @export var flags: Dictionary = {}  # Global world flags
 @export var relationships: Dictionary = {}  # entity_id -> {related_entity_id: relationship_type}
 
 var _loaded_scenes: Dictionary = {}
 var _loaded_characters: Dictionary = {}
-var _loaded_npc_states: Dictionary = {}  # Deprecated
 
 func get_scene(scene_id: String) -> SceneGraph:
 	if _loaded_scenes.has(scene_id):
@@ -84,34 +82,6 @@ func merge_character_overlay(character_id: String, overlay: Dictionary) -> Chara
 					merged.triggers.append(trigger)
 	
 	return merged
-
-## Get NPC state (deprecated - use get_character instead)
-func get_npc_state(npc_id: String) -> NPCState:
-	# Try characters first for backward compatibility
-	var character = get_character(npc_id)
-	if character:
-		# Convert to legacy NPCState format for compatibility
-		var state = NPCState.new()
-		state.id = npc_id
-		state.mood = character.get_stat("mood", "neutral")
-		state.bond_with_player = character.get_stat("bond_with_player", 0.5)
-		# Map old assertiveness/conviction if they exist, otherwise use defaults
-		state.assertiveness = character.get_stat("assertiveness", 0.1)
-		state.conviction = character.get_stat("conviction", 0.5)
-		return state
-	
-	# Fall back to old npc_states dict
-	if _loaded_npc_states.has(npc_id):
-		return _loaded_npc_states[npc_id]
-	
-	if npc_states.has(npc_id):
-		var path = npc_states[npc_id]
-		if path is String:
-			var state = load(path) as NPCState
-			if state:
-				_loaded_npc_states[npc_id] = state
-				return state
-	return null
 
 func add_history_entry(event: Dictionary):
 	event["ts"] = Time.get_datetime_string_from_system()
