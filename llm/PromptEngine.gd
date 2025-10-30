@@ -94,10 +94,56 @@ func process_action(action: ActionRequest, emotional_context: Dictionary = {}) -
 
 func process_narrator_request(context: Dictionary) -> String:
 	var messages = build_narrator_prompt(context)
-	return await _make_llm_request(messages)
+	var response_text = await _make_llm_request(messages)
+	return _extract_narration_text(response_text)
 
 func _make_llm_request(messages: Array[Dictionary]) -> String:
 	return await llm_client.make_request(messages)
+
+func _extract_narration_text(raw_text: String) -> String:
+	# Remove code fences if present
+	var cleaned = _strip_code_fences(raw_text)
+	var trimmed = cleaned.strip_edges()
+	
+	# Try to parse JSON-shaped responses and extract a narration field
+	if trimmed.begins_with("{") or trimmed.begins_with("["):
+		var json = JSON.new()
+		var err = json.parse(trimmed)
+		if err == OK:
+			var data = json.data
+			if data is Dictionary:
+				if data.has("narrative"):
+					return str(data.get("narrative"))
+				if data.has("text"):
+					return str(data.get("text"))
+				if data.has("narration"):
+					var narr_val = data.get("narration")
+					if narr_val is String:
+						return narr_val
+					if narr_val is Array and narr_val.size() > 0:
+						var first = narr_val[0]
+						if first is Dictionary and first.has("text"):
+							return str(first.get("text"))
+			# If it's an array, just fall through and return cleaned text
+	
+	# Fallback: return the cleaned raw text
+	return cleaned
+
+func _strip_code_fences(text: String) -> String:
+	var t = text.strip_edges()
+	if t.begins_with("```"):
+		var start = t.find("```")
+		var end = t.rfind("```")
+		if end > start:
+			var inner = t.substr(start + 3, end - (start + 3))
+			# Remove leading language hint if present (e.g., json, gdscript)
+			inner = inner.strip_edges()
+			if inner.begins_with("json") or inner.begins_with("JSON") or inner.begins_with("gdscript"):
+				var nl = inner.find("\n")
+				if nl != -1:
+					inner = inner.substr(nl + 1)
+			return inner.strip_edges()
+	return t
 
 func _parse_response(json_text: String) -> ResolutionEnvelope:
 	var json = JSON.new()
