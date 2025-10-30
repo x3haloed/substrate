@@ -1,37 +1,63 @@
-[gd_resource type="Resource" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="SceneGraph" load_steps=8 format=3 uid="uid://ohuvkhemrg1g"]
 
-[ext_resource type="Script" path="res://data/types/SceneGraph.gd" id="1"]
-[ext_resource type="Script" path="res://data/types/Entity.gd" id="2"]
+[ext_resource type="Script" uid="uid://bob3h8crx0mvt" path="res://data/types/SceneGraph.gd" id="1"]
+[ext_resource type="Script" uid="uid://bj7txe8h7f83x" path="res://data/types/Entity.gd" id="2"]
 
 [sub_resource type="Resource" id="1"]
-script = ExtResource(2)
+script = ExtResource("2")
 id = "barkeep"
 type_name = "npc"
-verbs = ["talk", "buy_drink"]
-tags = ["human", "barkeep"]
-props = {"description": "A weathered barkeep watching the room with mild interest"}
-
-[sub_resource type="Resource" id="2"]
-script = ExtResource(2)
-id = "mug"
-type_name = "item"
-verbs = ["examine", "take"]
-props = {"liquid": "ale", "description": "A wooden mug with stale foam"}
-
-[sub_resource type="Resource" id="3"]
-script = ExtResource(2)
-id = "side_door"
-type_name = "exit"
-verbs = ["move"]
-props = {"leads": "cobblestone_alley", "description": "A door leading to the alley"}
-
-[resource]
-script = ExtResource(1)
-scene_id = "tavern_common"
-description = "A warm room of timber and smoke; murmured talk; a watchful barkeep."
-entities = [SubResource(1), SubResource(2), SubResource(3)]
-rules = {
-	"on_enter": ["npc_assertive_fool_trip"],
-	"combat_allowed": false
+verbs = Array[String](["talk", "buy_drink"])
+tags = Array[String](["human", "barkeep"])
+props = {
+"description": "A weathered barkeep watching the room with mild interest"
 }
 
+[sub_resource type="Resource" id="2"]
+script = ExtResource("2")
+id = "mug"
+type_name = "item"
+verbs = Array[String](["examine", "take"])
+props = {
+"description": "A wooden mug with stale foam",
+"liquid": "ale"
+}
+
+[sub_resource type="Resource" id="3"]
+script = ExtResource("2")
+id = "side_door"
+type_name = "exit"
+verbs = Array[String](["move"])
+props = {
+"description": "A door leading to the alley",
+"leads": "cobblestone_alley"
+}
+
+[sub_resource type="Resource" id="4"]
+script = ExtResource("2")
+id = "fool"
+type_name = "npc"
+verbs = Array[String](["talk"])
+tags = Array[String](["human", "companion"])
+props = {
+"description": "A clumsy fool who brings chaos wherever they go"
+}
+
+[sub_resource type="Resource" id="5"]
+script = ExtResource("2")
+id = "archer"
+type_name = "npc"
+verbs = Array[String](["talk"])
+tags = Array[String](["human", "companion"])
+props = {
+"description": "A vigilant archer who watches over allies"
+}
+
+[resource]
+script = ExtResource("1")
+scene_id = "tavern_common"
+description = "A warm room of timber and smoke; murmured talk; a watchful barkeep."
+entities = Array[ExtResource("2")]([SubResource("1"), SubResource("2"), SubResource("3"), SubResource("4"), SubResource("5")])
+rules = {
+"combat_allowed": false
+}

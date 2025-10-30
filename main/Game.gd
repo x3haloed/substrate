@@ -104,17 +104,43 @@ func _on_action_selected(verb: String, target: String):
 	_display_envelope(envelope)
 
 func _on_message_sent(text: String):
-	# For MVP, parse simple commands like "cover me" -> supportive action
-	if text.to_lower().contains("cover"):
-		var action = ActionRequest.new()
-		action.actor = "archer"
-		action.verb = "cover"
-		action.target = "player"
-		action.scene = world_db.flags.get("current_scene", "")
-		action.context = {"command": "cover_me"}
+	# Parse simple commands and emit player.command.* events
+	var command = text.to_lower().strip_edges()
+	
+	if command.contains("cover"):
+		# Emit player.command.cover_me event
+		var scene = world_db.get_scene(world_db.flags.get("current_scene", ""))
+		if scene:
+			var npc_entities = scene.get_entities_by_type("npc")
+			for npc_entity in npc_entities:
+				var character = world_db.get_character(npc_entity.id)
+				if character:
+					var context = {
+						"scene_id": world_db.flags.get("current_scene", ""),
+						"world": {"flags": world_db.flags},
+						"scene": {"id": scene.scene_id}
+					}
+					var trigger = director.companion_ai.should_act(npc_entity.id, "player.command.cover_me", "global", context)
+					if trigger:
+						# Execute trigger action
+						var action = ActionRequest.new()
+						action.actor = npc_entity.id
+						action.verb = trigger.get_verb()
+						action.target = trigger.get_target()
+						action.scene = world_db.flags.get("current_scene", "")
+						
+						var envelope = await director.process_player_action(action)
+						
+						# Override narration if trigger provides it
+						if trigger.narration != "" and envelope.narration.size() > 0:
+							envelope.narration[0].text = trigger.narration
+							envelope.narration[0].speaker = npc_entity.id
+						
+						_display_envelope(envelope)
+						return
 		
-		var envelope = await director.process_companion_action("archer", "cover", "player", "The archer steps back, bow drawn, eyes scanning for threats.")
-		_display_envelope(envelope)
+		# Fallback if no trigger matched
+		chat_window.add_message("(No companion available to cover you)", "world")
 	else:
 		# Just acknowledge chat messages for now
 		chat_window.add_message("(Chat not yet fully implemented - use action buttons)", "world")

@@ -59,7 +59,7 @@ static func format_scene_brief(scene_context: Dictionary) -> String:
 	
 	return "\n".join(lines)
 
-func build_director_prompt(action: ActionRequest, scene: SceneGraph, emotional_context: Dictionary = {}) -> Array[Dictionary]:
+func build_director_prompt(action: ActionRequest, scene: SceneGraph, character_context: Dictionary = {}) -> Array[Dictionary]:
 	var scene_info = {
 		"scene_id": scene.scene_id,
 		"description": scene.description,
@@ -74,23 +74,48 @@ func build_director_prompt(action: ActionRequest, scene: SceneGraph, emotional_c
 		"context": action.context
 	}
 	
-	# Add emotional context if actor is an NPC
-	if emotional_context.size() > 0:
-		action_info["emotional_state"] = emotional_context
-	
 	var prompt = DIRECTOR_SYSTEM_PROMPT + "\n\n"
 	prompt += "Current Scene:\n" + JSON.stringify(scene_info, "\t") + "\n\n"
 	prompt += "Action Request:\n" + JSON.stringify(action_info, "\t") + "\n\n"
 	
-	# Add emotional context guidance for NPCs
-	if emotional_context.size() > 0:
-		prompt += "Actor Emotional Context:\n"
-		prompt += "- Mood: " + emotional_context.get("mood", "neutral") + "\n"
-		prompt += "- Bond with player: " + str(emotional_context.get("bond", 0.5)) + "\n"
-		prompt += "- Conviction: " + str(emotional_context.get("conviction", 0.5)) + "\n"
-		if emotional_context.has("goals"):
-			prompt += "- Goals: " + str(emotional_context.get("goals", [])) + "\n"
-		prompt += "Narration should reflect this emotional state.\n\n"
+	# Add character context if actor is an NPC
+	if character_context.size() > 0:
+		prompt += "Actor Character Context:\n"
+		
+		# Character core
+		if character_context.has("name"):
+			prompt += "- Name: " + str(character_context.name) + "\n"
+		if character_context.has("description"):
+			prompt += "- Description: " + str(character_context.description) + "\n"
+		if character_context.has("personality"):
+			prompt += "- Personality: " + str(character_context.personality) + "\n"
+		
+		# Traits
+		if character_context.has("traits") and character_context.traits is Array:
+			if character_context.traits.size() > 0:
+				prompt += "- Traits: " + ", ".join(character_context.traits) + "\n"
+		
+		# Style
+		if character_context.has("style") and character_context.style is Dictionary:
+			var style_parts: Array[String] = []
+			for key in character_context.style:
+				style_parts.append(key + ": " + str(character_context.style[key]))
+			if style_parts.size() > 0:
+				prompt += "- Style: " + ", ".join(style_parts) + "\n"
+		
+		# Stats
+		if character_context.has("stats") and character_context.stats is Dictionary:
+			var stats_parts: Array[String] = []
+			for key in character_context.stats:
+				stats_parts.append(key + ": " + str(character_context.stats[key]))
+			if stats_parts.size() > 0:
+				prompt += "- Current Stats: " + ", ".join(stats_parts) + "\n"
+		
+		# Character book entries (simplified - just mention if present)
+		if character_context.has("has_book") and character_context.has_book:
+			prompt += "- Character has knowledge lorebook available\n"
+		
+		prompt += "\nNarration should reflect this character's personality, traits, style, and current emotional state.\n\n"
 	
 	prompt += "Respond with a valid JSON object matching the ResolutionEnvelope format."
 	
@@ -98,19 +123,56 @@ func build_director_prompt(action: ActionRequest, scene: SceneGraph, emotional_c
 		{"role": "system", "content": prompt}
 	]
 
-func process_action(action: ActionRequest, emotional_context: Dictionary = {}) -> ResolutionEnvelope:
+func process_action(action: ActionRequest, character_context: Dictionary = {}) -> ResolutionEnvelope:
 	var scene = world_db.get_scene(action.scene)
 	if not scene:
 		push_error("Scene not found: " + action.scene)
 		return _create_error_envelope("Scene not found")
 	
-	var messages = build_director_prompt(action, scene, emotional_context)
+	# Build full character context if actor is an NPC
+	var full_context = character_context.duplicate()
+	if action.actor != "player":
+		var character = world_db.get_character(action.actor)
+		if character:
+			full_context["name"] = character.name
+			full_context["description"] = character.description
+			full_context["personality"] = character.personality
+			full_context["traits"] = character.traits
+			full_context["style"] = character.style
+			full_context["stats"] = character.stats
+			full_context["has_book"] = character.character_book != null
+			
+			# Include character book content if available (simplified for now)
+			if character.character_book:
+				var book_summary = _summarize_character_book(character.character_book)
+				if book_summary != "":
+					full_context["book_summary"] = book_summary
+	
+	var messages = build_director_prompt(action, scene, full_context)
 	var response_text = await _make_llm_request(messages, true)
 	
 	if response_text == "":
 		return _create_error_envelope("LLM request failed")
 	
 	return _parse_response(response_text)
+
+## Summarize character book for prompt inclusion
+func _summarize_character_book(book: CharacterBook) -> String:
+	if not book or book.entries.is_empty():
+		return ""
+	
+	var enabled = book.get_enabled_entries()
+	if enabled.is_empty():
+		return ""
+	
+	var summaries: Array[String] = []
+	for entry in enabled:
+		if entry.content != "":
+			summaries.append(entry.content)
+	
+	if summaries.size() > 0:
+		return "\n".join(summaries)
+	return ""
 
 func process_narrator_request(context: Dictionary) -> String:
 	var messages = build_narrator_prompt(context)

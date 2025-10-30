@@ -4,13 +4,15 @@ class_name WorldDB
 ## Canonical world state database
 @export var scenes: Dictionary = {}  # scene_id -> SceneGraph resource path
 @export var entities: Dictionary = {}  # entity_id -> Entity data
-@export var npc_states: Dictionary = {}  # npc_id -> NPCState resource path
+@export var characters: Dictionary = {}  # character_id -> CharacterProfile resource path
+@export var npc_states: Dictionary = {}  # npc_id -> NPCState resource path (deprecated, use characters)
 @export var history: Array[Dictionary] = []
 @export var flags: Dictionary = {}  # Global world flags
 @export var relationships: Dictionary = {}  # entity_id -> {related_entity_id: relationship_type}
 
 var _loaded_scenes: Dictionary = {}
-var _loaded_npc_states: Dictionary = {}
+var _loaded_characters: Dictionary = {}
+var _loaded_npc_states: Dictionary = {}  # Deprecated
 
 func get_scene(scene_id: String) -> SceneGraph:
 	if _loaded_scenes.has(scene_id):
@@ -25,7 +27,80 @@ func get_scene(scene_id: String) -> SceneGraph:
 				return scene
 	return null
 
+## Get character profile (preferred method)
+func get_character(character_id: String) -> CharacterProfile:
+	if _loaded_characters.has(character_id):
+		return _loaded_characters[character_id]
+	
+	if characters.has(character_id):
+		var path = characters[character_id]
+		if path is String:
+			var character = load(path) as CharacterProfile
+			if character:
+				_loaded_characters[character_id] = character
+				return character
+	return null
+
+## Get character stats as dictionary for trigger context
+func get_character_stats(character_id: String) -> Dictionary:
+	var character = get_character(character_id)
+	if character:
+		return character.stats.duplicate()
+	return {}
+
+## Merge scenario overlay into character (for scenario-specific stats/triggers)
+func merge_character_overlay(character_id: String, overlay: Dictionary) -> CharacterProfile:
+	var base = get_character(character_id)
+	if not base:
+		return null
+	
+	# Create a copy (shallow for now)
+	var merged = base.duplicate()
+	
+	# Merge stats
+	if overlay.has("stats") and overlay.stats is Dictionary:
+		for key in overlay.stats:
+			merged.stats[key] = overlay.stats[key]
+	
+	# Merge triggers (scenario triggers override global with same id)
+	if overlay.has("triggers") and overlay.triggers is Array:
+		# Remove existing triggers with same id from scenario namespace
+		var scenario_namespace = overlay.get("namespace", "scenario.default")
+		var existing_ids = {}
+		for trigger in merged.triggers:
+			if trigger.namespace == scenario_namespace:
+				existing_ids[trigger.id] = true
+		
+		# Add new triggers
+		for trigger in overlay.triggers:
+			if trigger is TriggerDef:
+				if existing_ids.has(trigger.id):
+					# Replace existing
+					for i in range(merged.triggers.size()):
+						if merged.triggers[i].id == trigger.id and merged.triggers[i].namespace == scenario_namespace:
+							merged.triggers[i] = trigger
+							break
+				else:
+					merged.triggers.append(trigger)
+	
+	return merged
+
+## Get NPC state (deprecated - use get_character instead)
 func get_npc_state(npc_id: String) -> NPCState:
+	# Try characters first for backward compatibility
+	var character = get_character(npc_id)
+	if character:
+		# Convert to legacy NPCState format for compatibility
+		var state = NPCState.new()
+		state.id = npc_id
+		state.mood = character.get_stat("mood", "neutral")
+		state.bond_with_player = character.get_stat("bond_with_player", 0.5)
+		# Map old assertiveness/conviction if they exist, otherwise use defaults
+		state.assertiveness = character.get_stat("assertiveness", 0.1)
+		state.conviction = character.get_stat("conviction", 0.5)
+		return state
+	
+	# Fall back to old npc_states dict
 	if _loaded_npc_states.has(npc_id):
 		return _loaded_npc_states[npc_id]
 	

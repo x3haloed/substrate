@@ -1,25 +1,40 @@
-[gd_resource type="Resource" format=3]
+[gd_resource type="Resource" script_class="WorldDB" load_steps=2 format=3 uid="uid://drafdbyjrtrmg"]
 
-[ext_resource type="Script" path="res://data/types/WorldDB.gd" id="1"]
+[ext_resource type="Script" uid="uid://sjamv0rbdg8e" path="res://data/types/WorldDB.gd" id="1"]
 
 [resource]
-script = ExtResource(1)
+script = ExtResource("1")
 scenes = {
-	"tavern_common": "res://data/scenes/tavern_common.tres",
-	"cobblestone_alley": "res://data/scenes/cobblestone_alley.tres",
-	"tavern_back_room": "res://data/scenes/tavern_back_room.tres"
+"cobblestone_alley": "res://data/scenes/cobblestone_alley.tres",
+"tavern_back_room": "res://data/scenes/tavern_back_room.tres",
+"tavern_common": "res://data/scenes/tavern_common.tres"
 }
 entities = {
-	"barkeep": {"type": "npc", "seen": true, "notes": ["Gives discounts if flattered."]},
-	"mug": {"type": "item", "props": {"liquid": "ale"}},
-	"fool": {"type": "npc", "seen": false},
-	"archer": {"type": "npc", "seen": false}
+"archer": {
+"seen": false,
+"type": "npc"
+},
+"barkeep": {
+"notes": ["Gives discounts if flattered."],
+"seen": true,
+"type": "npc"
+},
+"fool": {
+"seen": false,
+"type": "npc"
+},
+"mug": {
+"props": {
+"liquid": "ale"
+},
+"type": "item"
+}
+}
+characters = {
+"archer": "res://data/characters/archer.tres",
+"fool": "res://data/characters/fool.tres"
 }
 npc_states = {
-	"fool": "res://data/types/npc_states/fool.tres",
-	"archer": "res://data/types/npc_states/archer.tres"
+"archer": "res://data/types/npc_states/archer.tres",
+"fool": "res://data/types/npc_states/fool.tres"
 }
-history = []
-flags = {}
-relationships = {}
-

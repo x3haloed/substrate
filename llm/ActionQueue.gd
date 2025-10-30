@@ -22,6 +22,16 @@ func add_actor(actor_id: String, priority: int = 0, can_interject: bool = false)
 	queue.append(QueuedAction.new(actor_id, priority, can_interject))
 	_sort_queue()
 
+func set_actor_priority(actor_id: String, priority: int):
+	# Update priority for existing actor
+	for action in queue:
+		if action.actor_id == actor_id:
+			action.priority = priority
+			_sort_queue()
+			return
+	# If not found, add with new priority
+	add_actor(actor_id, priority, false)
+
 func remove_actor(actor_id: String):
 	for i in range(queue.size() - 1, -1, -1):
 		if queue[i].actor_id == actor_id:

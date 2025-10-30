@@ -9,13 +9,15 @@ signal action_queue_updated(queue_preview: Array[String], current_actor: String)
 var prompt_engine: PromptEngine
 var world_db: WorldDB
 var companion_ai: CompanionAI
+var trigger_registry: TriggerRegistry
 var current_scene_id: String = ""
 var action_queue: ActionQueue = ActionQueue.new()
 
 func _init(p_prompt_engine: PromptEngine, p_world_db: WorldDB):
 	prompt_engine = p_prompt_engine
 	world_db = p_world_db
-	companion_ai = CompanionAI.new(world_db)
+	trigger_registry = TriggerRegistry.new()
+	companion_ai = CompanionAI.new(world_db, trigger_registry)
 
 func enter_scene(scene_id: String) -> ResolutionEnvelope:
 	current_scene_id = scene_id
@@ -44,12 +46,8 @@ func enter_scene(scene_id: String) -> ResolutionEnvelope:
 	narr.text = narration_text if narration_text != "" else scene.description
 	envelope.narration.append(narr)
 	
-	# Check for on_enter triggers
-	if scene.rules.has("on_enter"):
-		var trigger_ids = scene.rules.on_enter
-		if trigger_ids is Array:
-			for trigger_id in trigger_ids:
-				await _process_trigger(trigger_id, envelope)
+	# Emit scene.enter event and evaluate character triggers
+	await _evaluate_scene_enter_triggers(scene, envelope)
 	
 	# Generate initial UI choices
 	envelope.ui_choices = _generate_ui_choices(scene)
@@ -64,17 +62,14 @@ func process_player_action(action: ActionRequest) -> ResolutionEnvelope:
 	if not scene:
 		return _create_error_envelope("No active scene")
 	
-	# Check for NPC interjections before player action
+	# Check for NPC interjections before player action (event-driven)
 	var interjections = _check_interjections()
 	if interjections.size() > 0:
 		# Process interjections first
 		for interjection in interjections:
-			await process_companion_action(
-				interjection.actor_id,
-				interjection.verb,
-				interjection.target,
-				interjection.narration
-			)
+			var trigger = interjection.get("trigger")
+			if trigger:
+				await _execute_trigger_action(trigger, interjection.get("character_id", ""))
 	
 	# Validate verb is available
 	var target_entity = scene.get_entity(action.target)
@@ -91,13 +86,13 @@ func process_player_action(action: ActionRequest) -> ResolutionEnvelope:
 			# Transition to new scene
 			return await enter_scene(destination_scene_id)
 	
-	# Get emotional context if actor is an NPC
-	var emotional_context = {}
+	# Get character context if actor is an NPC
+	var character_context = {}
 	if action.actor != "player":
-		emotional_context = companion_ai.get_npc_line_influence(action.actor)
+		character_context = companion_ai.get_character_influence(action.actor)
 	
-	# Process through PromptEngine with emotional context
-	var envelope = await prompt_engine.process_action(action, emotional_context)
+	# Process through PromptEngine with character context
+	var envelope = await prompt_engine.process_action(action, character_context)
 	
 	# Apply patches to world DB
 	_apply_patches(envelope.patches)
@@ -110,8 +105,9 @@ func process_player_action(action: ActionRequest) -> ResolutionEnvelope:
 		"target": action.target
 	})
 	
-	# Advance turn in action queue
+	# Advance turn in action queue and trigger registry
 	action_queue.advance_turn()
+	trigger_registry.advance_turn()
 	_emit_queue_update()
 	
 	# Generate new UI choices from scene
@@ -136,41 +132,68 @@ func process_companion_action(npc_id: String, verb: String, target: String, narr
 	
 	return envelope
 
-func _process_trigger(trigger_id: String, envelope: ResolutionEnvelope):
-	# Parse trigger_id format: "npc_assertive_{action}"
-	if trigger_id.begins_with("npc_assertive_"):
-		var parts = trigger_id.split("_")
-		if parts.size() >= 3:
-			var npc_action = parts[2]  # e.g., "fool_trip"
-			# Look up trigger data
-			var trigger_data = _get_trigger_data(npc_action)
-			if trigger_data.size() > 0:
-				var narr = NarrationEvent.new()
-				narr.style = "world"
-				narr.text = trigger_data.get("narration", "")
-				envelope.narration.append(narr)
-				
-				# Perform the action
-				if trigger_data.has("verb") and trigger_data.has("target"):
-					await process_companion_action(
-						trigger_data.get("npc_id", ""),
-						trigger_data.verb,
-						trigger_data.target,
-						trigger_data.narration
-					)
+## Evaluate scene.enter triggers for all characters in scene
+func _evaluate_scene_enter_triggers(scene: SceneGraph, _envelope: ResolutionEnvelope):
+	var npc_entities = scene.get_entities_by_type("npc")
+	if npc_entities.is_empty():
+		return
+	
+	# Build context for trigger evaluation
+	var context = {
+		"scene_id": current_scene_id,
+		"world": {
+			"flags": world_db.flags
+		},
+		"scene": {
+			"id": scene.scene_id,
+			"description": scene.description,
+			"tags": scene.rules.get("tags", [])
+		}
+	}
+	
+	# Check each NPC for matching triggers
+	for npc_entity in npc_entities:
+		var character = world_db.get_character(npc_entity.id)
+		if not character:
+			continue
+		
+		# Get matching triggers for scene.enter event
+		var triggers = trigger_registry.get_matching_triggers(character, "scene.enter", "global", context)
+		
+		# Execute highest priority trigger
+		if triggers.size() > 0:
+			var trigger = triggers[0]
+			await _execute_trigger_action(trigger, npc_entity.id)
+			trigger_registry.record_trigger_used(trigger)
 
-func _get_trigger_data(trigger_key: String) -> Dictionary:
-	# MVP: Hardcoded triggers
-	match trigger_key:
-		"fool_trip":
-			return {
-				"npc_id": "fool",
-				"verb": "blunder",
-				"target": "mug",
-				"narration": "The fool stumbles forward, knocking a mug off the counter with a clatter."
-			}
-		_:
-			return {}
+## Execute a trigger action
+func _execute_trigger_action(trigger: TriggerDef, character_id: String):
+	if not trigger.is_valid():
+		return
+	
+	# Validate action
+	if not trigger_registry.validate_action(trigger.action):
+		push_warning("Invalid action for trigger " + trigger.id)
+		return
+	
+	var action = ActionRequest.new()
+	action.actor = character_id
+	action.verb = trigger.get_verb()
+	action.target = trigger.get_target()
+	action.scene = current_scene_id
+	
+	# Use trigger params if present
+	var params = trigger.get_params()
+	if params.size() > 0:
+		action.context = params
+	
+	# Process action
+	var envelope = await process_player_action(action)
+	
+	# Override narration if trigger provides it
+	if trigger.narration != "" and envelope.narration.size() > 0:
+		envelope.narration[0].text = trigger.narration
+		envelope.narration[0].speaker = character_id
 
 func _apply_patches(patches: Array):
 	for patch in patches:
@@ -312,14 +335,16 @@ func _initialize_action_queue(scene: SceneGraph):
 	# Add player first (always priority 0)
 	action_queue.add_actor("player", 0, false)
 	
-	# Add NPCs from scene (they can interject)
+	# Add NPCs from scene using initiative for priority
 	var npc_entities = scene.get_entities_by_type("npc")
 	for npc_entity in npc_entities:
-		var npc_state = world_db.get_npc_state(npc_entity.id)
-		if npc_state:
-			# Priority based on assertiveness (higher assertiveness = earlier priority)
-			var priority = int((1.0 - npc_state.assertiveness) * 10)
-			var can_interject = npc_state.assertiveness > 0.3
+		var character = world_db.get_character(npc_entity.id)
+		if character:
+			# Use initiative, invert to queue priority (lower priority = earlier turn)
+			var initiative = companion_ai.get_initiative(npc_entity.id)
+			var priority = clamp(100 - initiative, 0, 100)
+			# Characters with triggers can interject
+			var can_interject = character.triggers.size() > 0
 			action_queue.add_actor(npc_entity.id, priority, can_interject)
 	
 	_emit_queue_update()
@@ -328,23 +353,34 @@ func _check_interjections() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	var interjecting_actors = action_queue.get_interjecting_actors()
 	
+	if interjecting_actors.is_empty():
+		return result
+	
+	var scene = world_db.get_scene(current_scene_id)
+	if not scene:
+		return result
+	
+	# Build context for trigger evaluation
+	var context = {
+		"scene_id": current_scene_id,
+		"world": {
+			"flags": world_db.flags
+		},
+		"scene": {
+			"id": scene.scene_id,
+			"description": scene.description
+		}
+	}
+	
+	# Check each interjecting actor for matching triggers
 	for actor_id in interjecting_actors:
-		if companion_ai.should_act_assertively(actor_id):
-			# Check for available interjection actions
-			var scene = world_db.get_scene(current_scene_id)
-			if scene:
-				var npc_state = world_db.get_npc_state(actor_id)
-				if npc_state:
-					# Simple interjection: NPC might make a comment or minor action
-					# For now, check triggers for context-appropriate actions
-					var trigger_result = companion_ai.check_triggers(current_scene_id, actor_id)
-					if trigger_result.size() > 0:
-						result.append({
-							"actor_id": actor_id,
-							"verb": trigger_result.get("verb", ""),
-							"target": trigger_result.get("target", ""),
-							"narration": trigger_result.get("narration", "")
-						})
+		# Check for tick.turn triggers (for interjections)
+		var trigger = companion_ai.should_act(actor_id, "tick.turn", "global", context)
+		if trigger:
+			result.append({
+				"character_id": actor_id,
+				"trigger": trigger
+			})
 	
 	return result
 

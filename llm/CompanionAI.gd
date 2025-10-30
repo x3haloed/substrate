@@ -1,119 +1,131 @@
 extends RefCounted
 class_name CompanionAI
 
-## NPC state vectors, triggers, and delegation
+## Character trigger evaluation and initiative calculation
+## Uses CharacterProfile and TriggerRegistry instead of legacy NPCState
 
 var world_db: WorldDB
+var trigger_registry: TriggerRegistry
 
-func _init(p_world_db: WorldDB):
+func _init(p_world_db: WorldDB, p_trigger_registry: TriggerRegistry):
 	world_db = p_world_db
+	trigger_registry = p_trigger_registry
 
-func check_triggers(scene_id: String, npc_id: String) -> Dictionary:
-	var npc_state = world_db.get_npc_state(npc_id)
-	if not npc_state:
-		return {}
+## Check if character should act based on triggers for an event
+## Returns best matching trigger or null
+func should_act(character_id: String, event: String, ns: String, context: Dictionary) -> TriggerDef:
+	var character = world_db.get_character(character_id)
+	if not character:
+		return null
 	
-	# Check for trigger conditions
-	for trigger_key in npc_state.triggers.keys():
-		var action = npc_state.triggers[trigger_key]
-		
-		# Simple trigger matching for MVP
-		if trigger_key == "on_arrival" and scene_id == world_db.flags.get("current_scene", ""):
-			return {
-				"verb": action if action is String else action.get("verb", ""),
-				"target": action.get("target", "") if action is Dictionary else "",
-				"narration": action.get("narration", "") if action is Dictionary else ""
-			}
+	# Build full context with character stats
+	var full_context = context.duplicate()
+	full_context["stats"] = world_db.get_character_stats(character_id)
+	full_context["character"] = {
+		"id": character_id,
+		"name": character.name,
+		"traits": character.traits,
+		"style": character.style
+	}
 	
-	return {}
+	# Get matching triggers
+	var triggers = trigger_registry.get_matching_triggers(character, event, ns, full_context)
+	if triggers.is_empty():
+		return null
+	
+	# Return highest priority trigger (already sorted by registry)
+	return triggers[0]
 
-func should_act_assertively(npc_id: String) -> bool:
-	var npc_state = world_db.get_npc_state(npc_id)
-	if not npc_state:
-		return false
+## Get character initiative for action queue ordering
+## Reads stats.initiative or derives from mood/bond if not present
+func get_initiative(character_id: String) -> int:
+	var character = world_db.get_character(character_id)
+	if not character:
+		return 50  # Default middle priority
 	
-	# Calculate dynamic assertiveness based on mood and bond
-	var dynamic_assertiveness = _calculate_dynamic_assertiveness(npc_state)
+	# Check for explicit initiative stat
+	if character.stats.has("initiative"):
+		var explicit_initiative = character.stats.initiative
+		if explicit_initiative is int or explicit_initiative is float:
+			return int(clamp(explicit_initiative, 0, 100))
 	
-	# Roll based on dynamic assertiveness value
-	var roll = randf()
-	return roll < dynamic_assertiveness
-
-func _calculate_dynamic_assertiveness(npc_state: NPCState) -> float:
-	# base assertiveness modified by mood and bond
-	var base = npc_state.assertiveness
+	# Derive from mood and bond_with_player
+	var mood = character.get_stat("mood", "neutral")
+	var bond = character.get_stat("bond_with_player", 0.5)
 	
-	# Mood modifiers (affect willingness to act)
-	var mood_modifier = 0.0
-	match npc_state.mood:
+	var base_priority = 50  # Middle of 0-100 range
+	
+	# Mood modifiers
+	var mood_modifier = 0
+	match mood:
 		"cheerful", "alert", "determined":
-			mood_modifier = 0.2
+			mood_modifier = 20
 		"content", "neutral":
-			mood_modifier = 0.0
+			mood_modifier = 0
 		"depressed", "tired", "frightened":
-			mood_modifier = -0.3
+			mood_modifier = -20
 		"angry", "hostile":
-			mood_modifier = 0.3  # High assertiveness when hostile
+			mood_modifier = 15  # Higher initiative when hostile
 	
-	# Bond modifier (higher bond = more willing to act assertively to help)
-	var bond_modifier = (npc_state.bond_with_player - 0.5) * 0.2
+	# Bond modifier (stronger bond = slightly higher initiative for helping)
+	var bond_modifier = int((bond - 0.5) * 10)
 	
-	return clamp(base + mood_modifier + bond_modifier, 0.0, 1.0)
+	var initiative = base_priority + mood_modifier + bond_modifier
+	return clamp(initiative, 0, 100)
 
-func get_supportive_action(npc_id: String, context: Dictionary) -> Dictionary:
-	var npc_state = world_db.get_npc_state(npc_id)
-	if not npc_state:
+## Get character emotional context for prompts
+func get_character_influence(character_id: String) -> Dictionary:
+	var character = world_db.get_character(character_id)
+	if not character:
 		return {}
 	
-	# Check if specific command trigger exists
-	if context.has("command") and npc_state.triggers.has("on_command_" + context.command):
-		var action = npc_state.triggers["on_command_" + context.command]
-		var narration = action.get("narration", "")
-		
-		# Enhance narration with emotional context
-		if narration != "":
-			narration = _add_emotional_flavor(narration, npc_state)
-		
+	var stats = world_db.get_character_stats(character_id)
+	
+	return {
+		"stats": stats,
+		"traits": character.traits,
+		"style": character.style,
+		"mood": stats.get("mood", "neutral"),
+		"bond": stats.get("bond_with_player", 0.5)
+	}
+
+## Legacy compatibility: check triggers (deprecated)
+func check_triggers(scene_id: String, npc_id: String) -> Dictionary:
+	var character = world_db.get_character(npc_id)
+	if not character:
+		return {}
+	
+	# Build context
+	var context = {
+		"scene_id": scene_id,
+		"world": {
+			"flags": world_db.flags
+		}
+	}
+	
+	# Check for scene.enter trigger
+	var trigger = should_act(npc_id, "scene.enter", "global", context)
+	if trigger:
 		return {
-			"verb": action.get("verb", ""),
-			"target": action.get("target", ""),
-			"narration": narration
+			"verb": trigger.get_verb(),
+			"target": trigger.get_target(),
+			"narration": trigger.narration
 		}
 	
 	return {}
 
-func _add_emotional_flavor(text: String, npc_state: NPCState) -> String:
-	# Add emotional flavor based on mood and bond
-	var flavor_prefix = ""
-	
-	if npc_state.bond_with_player > 0.7:
-		match npc_state.mood:
-			"cheerful":
-				flavor_prefix = "Eagerly, "
-			"alert":
-				flavor_prefix = "Without hesitation, "
-			"determined":
-				flavor_prefix = "Resolutely, "
-	elif npc_state.bond_with_player < 0.3:
-		match npc_state.mood:
-			"depressed":
-				flavor_prefix = "Slowly, "
-			"tired":
-				flavor_prefix = "Wearily, "
-			"neutral":
-				flavor_prefix = "Reluctantly, "
-	
-	return flavor_prefix + text
-
-func get_npc_line_influence(npc_id: String) -> Dictionary:
-	# Returns emotional context for use in LLM prompts
-	var npc_state = world_db.get_npc_state(npc_id)
-	if not npc_state:
+## Legacy compatibility: get supportive action (deprecated)
+func get_supportive_action(npc_id: String, context: Dictionary) -> Dictionary:
+	if not context.has("command"):
 		return {}
 	
-	return {
-		"mood": npc_state.mood,
-		"bond": npc_state.bond_with_player,
-		"conviction": npc_state.conviction,
-		"goals": npc_state.goals
-	}
+	var event = "player.command." + str(context.command)
+	var trigger = should_act(npc_id, event, "global", context)
+	if trigger:
+		return {
+			"verb": trigger.get_verb(),
+			"target": trigger.get_target(),
+			"narration": trigger.narration
+		}
+	
+	return {}
