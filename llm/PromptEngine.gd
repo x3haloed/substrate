@@ -34,10 +34,30 @@ func _init(p_llm_client: LLMClient, p_world_db: WorldDB):
 	world_db = p_world_db
 
 func build_narrator_prompt(scene_context: Dictionary) -> Array[Dictionary]:
+	var brief := format_scene_brief(scene_context)
 	return [
-		{"role": "system", "content": NARRATOR_SYSTEM_PROMPT},
-		{"role": "user", "content": "Describe this scene: " + JSON.stringify(scene_context)}
+		{"role": "system", "content": NARRATOR_SYSTEM_PROMPT + "\n\n" + "Respond only with prose. Do not output JSON or code fences."},
+		{"role": "user", "content": "Scene brief:\n" + brief + "\n\nWrite a concise atmospheric paragraph (3-5 sentences)."}
 	]
+
+## Convert scene context JSON into a human-friendly brief to nudge prose outputs
+static func format_scene_brief(scene_context: Dictionary) -> String:
+	var lines: Array[String] = []
+	if scene_context.has("description") and typeof(scene_context.get("description")) == TYPE_STRING:
+		lines.append("Setting: " + str(scene_context.get("description")))
+	
+	if scene_context.has("entities") and scene_context.entities is Array:
+		var entity_lines: Array[String] = []
+		for e in scene_context.entities:
+			if e is Dictionary and e.has("description") and str(e.get("description", "")) != "":
+				var etype := str(e.get("type", e.get("type_name", "")))
+				var edesc := str(e.get("description", ""))
+				var piece := "- " + edesc + " (" + etype + ")"
+				entity_lines.append(piece)
+		if entity_lines.size() > 0:
+			lines.append("Entities in the scene:\n" + "\n".join(entity_lines))
+	
+	return "\n".join(lines)
 
 func build_director_prompt(action: ActionRequest, scene: SceneGraph, emotional_context: Dictionary = {}) -> Array[Dictionary]:
 	var scene_info = {
@@ -85,7 +105,7 @@ func process_action(action: ActionRequest, emotional_context: Dictionary = {}) -
 		return _create_error_envelope("Scene not found")
 	
 	var messages = build_director_prompt(action, scene, emotional_context)
-	var response_text = await _make_llm_request(messages)
+	var response_text = await _make_llm_request(messages, true)
 	
 	if response_text == "":
 		return _create_error_envelope("LLM request failed")
@@ -94,56 +114,11 @@ func process_action(action: ActionRequest, emotional_context: Dictionary = {}) -
 
 func process_narrator_request(context: Dictionary) -> String:
 	var messages = build_narrator_prompt(context)
-	var response_text = await _make_llm_request(messages)
-	return _extract_narration_text(response_text)
+	var response_text = await _make_llm_request(messages, false)
+	return response_text
 
-func _make_llm_request(messages: Array[Dictionary]) -> String:
-	return await llm_client.make_request(messages)
-
-func _extract_narration_text(raw_text: String) -> String:
-	# Remove code fences if present
-	var cleaned = _strip_code_fences(raw_text)
-	var trimmed = cleaned.strip_edges()
-	
-	# Try to parse JSON-shaped responses and extract a narration field
-	if trimmed.begins_with("{") or trimmed.begins_with("["):
-		var json = JSON.new()
-		var err = json.parse(trimmed)
-		if err == OK:
-			var data = json.data
-			if data is Dictionary:
-				if data.has("narrative"):
-					return str(data.get("narrative"))
-				if data.has("text"):
-					return str(data.get("text"))
-				if data.has("narration"):
-					var narr_val = data.get("narration")
-					if narr_val is String:
-						return narr_val
-					if narr_val is Array and narr_val.size() > 0:
-						var first = narr_val[0]
-						if first is Dictionary and first.has("text"):
-							return str(first.get("text"))
-			# If it's an array, just fall through and return cleaned text
-	
-	# Fallback: return the cleaned raw text
-	return cleaned
-
-func _strip_code_fences(text: String) -> String:
-	var t = text.strip_edges()
-	if t.begins_with("```"):
-		var start = t.find("```")
-		var end = t.rfind("```")
-		if end > start:
-			var inner = t.substr(start + 3, end - (start + 3))
-			# Remove leading language hint if present (e.g., json, gdscript)
-			inner = inner.strip_edges()
-			if inner.begins_with("json") or inner.begins_with("JSON") or inner.begins_with("gdscript"):
-				var nl = inner.find("\n")
-				if nl != -1:
-					inner = inner.substr(nl + 1)
-			return inner.strip_edges()
-	return t
+func _make_llm_request(messages: Array[Dictionary], expect_json: bool = false) -> String:
+	return await llm_client.make_request(messages, "", expect_json)
 
 func _parse_response(json_text: String) -> ResolutionEnvelope:
 	var json = JSON.new()

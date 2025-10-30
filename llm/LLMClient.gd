@@ -16,15 +16,16 @@ func _init(p_settings: LLMSettings):
 	add_child(http_request)
 	http_request.request_completed.connect(_on_request_completed)
 
-func make_request(messages: Array[Dictionary], model_override: String = "") -> String:
+func make_request(messages: Array[Dictionary], model_override: String = "", expect_json: bool = false) -> String:
 	var url = settings.get_api_url() + "/chat/completions"
 	
 	var request_body = {
 		"model": model_override if model_override != "" else settings.model,
 		"messages": messages,
 		"temperature": 0.7,
-		"response_format": {"type": "json_object"}  # Force JSON output
 	}
+	if expect_json:
+		request_body["response_format"] = {"type": "json_object"}
 	
 	var headers = [
 		"Content-Type: application/json"
