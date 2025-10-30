@@ -17,7 +17,7 @@ props = {
 script = ExtResource("2")
 id = "mug"
 type_name = "item"
-verbs = Array[String](["examine", "take"])
+verbs = Array[String](["examine", "take", "blunder"])
 props = {
 "description": "A wooden mug with stale foam",
 "liquid": "ale"

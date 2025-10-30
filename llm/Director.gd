@@ -239,11 +239,6 @@ func _apply_patches(patches: Array):
 											"value": patch.get("value")
 										}
 										JsonPatch.apply_patch(entity.props, rel_patch)
-										# Also update world DB cache copy if present
-										if world_db.entities.has(entity_id):
-											var entity_data = world_db.entities[entity_id]
-											if entity_data is Dictionary and entity_data.has("props") and entity_data.props is Dictionary:
-												JsonPatch.apply_patch(entity_data.props, rel_patch)
 										
 										# Record change in history
 										world_db.record_entity_change(entity_id, change_type, path, old_value, patch.get("value"), "player")
@@ -268,10 +263,6 @@ func _apply_patches(patches: Array):
 											"value": patch.get("value")
 										}
 										JsonPatch.apply_patch(entity.state, rel_patch_s)
-										if world_db.entities.has(entity_id):
-											var entity_data_s = world_db.entities[entity_id]
-											if entity_data_s is Dictionary and entity_data_s.has("state") and entity_data_s.state is Dictionary:
-												JsonPatch.apply_patch(entity_data_s.state, rel_patch_s)
 										
 										# Record change in history
 										world_db.record_entity_change(entity_id, change_type, path, old_value, patch.get("value"), "player")
@@ -296,15 +287,37 @@ func _apply_patches(patches: Array):
 											"value": patch.get("value")
 										}
 										JsonPatch.apply_patch(entity.lore, rel_patch_l)
-										if world_db.entities.has(entity_id):
-											var entity_data_l = world_db.entities[entity_id]
-											if entity_data_l is Dictionary and entity_data_l.has("lore") and entity_data_l.lore is Dictionary:
-												JsonPatch.apply_patch(entity_data_l.lore, rel_patch_l)
 										
 										# Record change in history
 										world_db.record_entity_change(entity_id, change_type, path, old_value, patch.get("value"), "player")
 									_:
 										push_warning("Unsupported patch target: " + sub_root + ", supported: props/state/lore")
+			elif path.begins_with("characters/"):
+				var cparts = path.split("/")
+				if cparts.size() >= 3:
+					var char_id = cparts[1]
+					var sub = cparts[2]
+					match sub:
+						"stats":
+							var rel_path_c = "/" + "/".join(cparts.slice(3))
+							var state = world_db.get_character_state(char_id)
+							if state.has("stats") and state.stats is Dictionary:
+								var rel_patch_c = {
+									"op": patch.get("op", ""),
+									"path": rel_path_c,
+									"value": patch.get("value")
+								}
+								JsonPatch.apply_patch(state.stats, rel_patch_c)
+								# Record in global history
+								world_db.add_history_entry({
+									"event": "character_stat_change",
+									"character_id": char_id,
+									"path": rel_path_c,
+									"op": patch.get("op", ""),
+									"value": patch.get("value")
+								})
+						_:
+							push_warning("Unsupported character patch target: " + sub + ", supported: stats")
 
 func _generate_ui_choices(scene: SceneGraph) -> Array[UIChoice]:
 	var choices: Array[UIChoice] = []

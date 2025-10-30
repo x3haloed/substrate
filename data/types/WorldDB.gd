@@ -5,6 +5,7 @@ class_name WorldDB
 @export var scenes: Dictionary = {}  # scene_id -> SceneGraph resource path
 @export var entities: Dictionary = {}  # entity_id -> Entity data
 @export var characters: Dictionary = {}  # character_id -> CharacterProfile resource path
+@export var characters_state: Dictionary = {}  # character_id -> { stats: Dictionary, flags: Dictionary }
 @export var history: Array[Dictionary] = []
 @export var flags: Dictionary = {}  # Global world flags
 @export var relationships: Dictionary = {}  # entity_id -> {related_entity_id: relationship_type}
@@ -40,11 +41,41 @@ func get_character(character_id: String) -> CharacterProfile:
 	return null
 
 ## Get character stats as dictionary for trigger context
+func get_character_state(character_id: String) -> Dictionary:
+	# Ensure runtime state exists; initialize from template on first access
+	if not characters_state.has(character_id) or not (characters_state[character_id] is Dictionary):
+		var character = get_character(character_id)
+		var initial_stats: Dictionary = {}
+		if character:
+			initial_stats = character.stats.duplicate()
+		characters_state[character_id] = {
+			"stats": initial_stats,
+			"flags": {}
+		}
+	return characters_state[character_id]
+
 func get_character_stats(character_id: String) -> Dictionary:
-	var character = get_character(character_id)
-	if character:
-		return character.stats.duplicate()
+	var state = get_character_state(character_id)
+	if state.has("stats") and state.stats is Dictionary:
+		return state.stats.duplicate()
 	return {}
+
+func get_character_stat(character_id: String, key: String, default_value = null):
+	var stats = get_character_stats(character_id)
+	return stats.get(key, default_value)
+
+func set_character_stat(character_id: String, key: String, value) -> void:
+	var state = get_character_state(character_id)
+	if not state.has("stats") or not (state.stats is Dictionary):
+		state["stats"] = {}
+	state.stats[key] = value
+	# Record in global history
+	add_history_entry({
+		"event": "character_stat_change",
+		"character_id": character_id,
+		"key": key,
+		"value": value
+	})
 
 ## Merge scenario overlay into character (for scenario-specific stats/triggers)
 func merge_character_overlay(character_id: String, overlay: Dictionary) -> CharacterProfile:

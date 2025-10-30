@@ -25,8 +25,10 @@ Given an ActionRequest, respond with a JSON object containing:
 }
 
 Rules:
-- Only include verbs available in the current scene
-- Patches must follow JSON Patch format
+- Only include verbs available in the current scene for player actions. NPC/trigger actions may use verbs not listed on entities if validated by the engine.
+- Patches must follow JSON Patch format exactly. Use op=add when creating a new key; use op=replace only when the key already exists.
+- Entity patches are restricted to these domains: /entities/{id}/props, /entities/{id}/state, /entities/{id}/lore.
+- Character stat changes must use: /characters/{id}/stats/{path}. Do not modify character stats via /entities.
 - Narration should reflect the action's consequences"""
 
 func _init(p_llm_client: LLMClient, p_world_db: WorldDB):

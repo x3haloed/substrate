@@ -10,10 +10,11 @@ when = "player.command.cover_me"
 conditions = Array[Dictionary]([{
 "left": "stats.bond_with_player",
 "op": ">=",
-"string": 0.5
+"right": 0.5
 }])
 action = {
-"verb": "cover"
+"verb": "cover",
+"target": "player"
 }
 narration = "The archer steps back, bow drawn, eyes scanning for threats."
 priority = 50
