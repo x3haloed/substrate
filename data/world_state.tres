@@ -5,7 +5,9 @@
 [resource]
 script = ExtResource(1)
 scenes = {
-	"tavern_common": "res://data/scenes/tavern_common.tres"
+	"tavern_common": "res://data/scenes/tavern_common.tres",
+	"cobblestone_alley": "res://data/scenes/cobblestone_alley.tres",
+	"tavern_back_room": "res://data/scenes/tavern_back_room.tres"
 }
 entities = {
 	"barkeep": {"type": "npc", "seen": true, "notes": ["Gives discounts if flattered."]},

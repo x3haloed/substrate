@@ -19,4 +19,3 @@ func set_choices(choices: Array[UIChoice]):
 		button.text = choice.get_display_label()
 		button.pressed.connect(func(): action_selected.emit(choice.verb, choice.target))
 		choice_container.add_child(button)
-

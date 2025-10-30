@@ -4,11 +4,13 @@ class_name Director
 ## Turn phases, arbitration, patches
 
 signal action_resolved(envelope: ResolutionEnvelope)
+signal action_queue_updated(queue_preview: Array[String], current_actor: String)
 
 var prompt_engine: PromptEngine
 var world_db: WorldDB
 var companion_ai: CompanionAI
 var current_scene_id: String = ""
+var action_queue: ActionQueue = ActionQueue.new()
 
 func _init(p_prompt_engine: PromptEngine, p_world_db: WorldDB):
 	prompt_engine = p_prompt_engine
@@ -23,6 +25,9 @@ func enter_scene(scene_id: String) -> ResolutionEnvelope:
 	var scene = world_db.get_scene(scene_id)
 	if not scene:
 		return _create_error_envelope("Scene not found: " + scene_id)
+	
+	# Initialize action queue for this scene
+	_initialize_action_queue(scene)
 	
 	# Frame initial narration
 	var context = {
@@ -59,13 +64,37 @@ func process_player_action(action: ActionRequest) -> ResolutionEnvelope:
 	if not scene:
 		return _create_error_envelope("No active scene")
 	
+	# Check for NPC interjections before player action
+	var interjections = await _check_interjections()
+	if interjections.size() > 0:
+		# Process interjections first
+		for interjection in interjections:
+			await process_companion_action(
+				interjection.actor_id,
+				interjection.verb,
+				interjection.target,
+				interjection.narration
+			)
+	
 	# Validate verb is available
 	var target_entity = scene.get_entity(action.target)
 	if not target_entity or not action.verb in target_entity.verbs:
 		return _create_error_envelope("Invalid action: " + action.verb + " on " + action.target)
 	
-	# Process through PromptEngine
-	var envelope = await prompt_engine.process_action(action)
+	# Handle scene navigation for exit entities
+	if action.verb == "move" and target_entity.type_name == "exit":
+		var destination_scene_id = target_entity.props.get("leads", "")
+		if destination_scene_id != "":
+			# Transition to new scene
+			return await enter_scene(destination_scene_id)
+	
+	# Get emotional context if actor is an NPC
+	var emotional_context = {}
+	if action.actor != "player":
+		emotional_context = companion_ai.get_npc_line_influence(action.actor)
+	
+	# Process through PromptEngine with emotional context
+	var envelope = await prompt_engine.process_action(action, emotional_context)
 	
 	# Apply patches to world DB
 	_apply_patches(envelope.patches)
@@ -77,6 +106,10 @@ func process_player_action(action: ActionRequest) -> ResolutionEnvelope:
 		"verb": action.verb,
 		"target": action.target
 	})
+	
+	# Advance turn in action queue
+	action_queue.advance_turn()
+	_emit_queue_update()
 	
 	# Generate new UI choices from scene
 	envelope.ui_choices = _generate_ui_choices(scene)
@@ -217,6 +250,53 @@ func _get_entity_summaries(scene: SceneGraph) -> Array[Dictionary]:
 			"description": entity.props.get("description", "")
 		})
 	return result
+
+func _initialize_action_queue(scene: SceneGraph):
+	action_queue.clear()
+	
+	# Add player first (always priority 0)
+	action_queue.add_actor("player", 0, false)
+	
+	# Add NPCs from scene (they can interject)
+	var npc_entities = scene.get_entities_by_type("npc")
+	for npc_entity in npc_entities:
+		var npc_state = world_db.get_npc_state(npc_entity.id)
+		if npc_state:
+			# Priority based on assertiveness (higher assertiveness = earlier priority)
+			var priority = int((1.0 - npc_state.assertiveness) * 10)
+			var can_interject = npc_state.assertiveness > 0.3
+			action_queue.add_actor(npc_entity.id, priority, can_interject)
+	
+	_emit_queue_update()
+
+func _check_interjections() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var interjecting_actors = action_queue.get_interjecting_actors()
+	
+	for actor_id in interjecting_actors:
+		if companion_ai.should_act_assertively(actor_id):
+			# Check for available interjection actions
+			var scene = world_db.get_scene(current_scene_id)
+			if scene:
+				var npc_state = world_db.get_npc_state(actor_id)
+				if npc_state:
+					# Simple interjection: NPC might make a comment or minor action
+					# For now, check triggers for context-appropriate actions
+					var trigger_result = companion_ai.check_triggers(current_scene_id, actor_id)
+					if trigger_result.size() > 0:
+						result.append({
+							"actor_id": actor_id,
+							"verb": trigger_result.get("verb", ""),
+							"target": trigger_result.get("target", ""),
+							"narration": trigger_result.get("narration", "")
+						})
+	
+	return result
+
+func _emit_queue_update():
+	var preview = action_queue.get_queue_preview(3)
+	var current = action_queue.get_next_actor()
+	action_queue_updated.emit(preview, current)
 
 func _create_error_envelope(message: String) -> ResolutionEnvelope:
 	var envelope = ResolutionEnvelope.new()

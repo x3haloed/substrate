@@ -51,4 +51,3 @@ func _on_input_submitted(_text: String):
 
 func _on_meta_clicked(meta: Variant):
 	entity_clicked.emit(str(meta))
-

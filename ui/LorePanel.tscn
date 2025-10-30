@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://ck2oj6rog80e"]
 
-[ext_resource type="Script" path="res://ui/LorePanel.gd" id="1_1"]
+[ext_resource type="Script" uid="uid://v7fvfps2l6ik" path="res://ui/LorePanel.gd" id="1_1"]
 
 [node name="LorePanel" type="Control"]
 layout_mode = 3
@@ -22,6 +22,8 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 color = Color(0.1, 0.1, 0.1, 0.95)
 
 [node name="VBox" type="VBoxContainer" parent="."]
@@ -33,6 +35,8 @@ offset_left = 12.0
 offset_top = 12.0
 offset_right = -12.0
 offset_bottom = -12.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="TitleLabel" type="Label" parent="VBox"]
 layout_mode = 2
@@ -46,10 +50,8 @@ size_flags_vertical = 3
 [node name="ContentLabel" type="RichTextLabel" parent="VBox/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = ""
 bbcode_enabled = true
 
 [node name="CloseButton" type="Button" parent="VBox"]
 layout_mode = 2
 text = "Close"
-

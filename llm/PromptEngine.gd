@@ -39,7 +39,7 @@ func build_narrator_prompt(scene_context: Dictionary) -> Array[Dictionary]:
 		{"role": "user", "content": "Describe this scene: " + JSON.stringify(scene_context)}
 	]
 
-func build_director_prompt(action: ActionRequest, scene: SceneGraph) -> Array[Dictionary]:
+func build_director_prompt(action: ActionRequest, scene: SceneGraph, emotional_context: Dictionary = {}) -> Array[Dictionary]:
 	var scene_info = {
 		"scene_id": scene.scene_id,
 		"description": scene.description,
@@ -47,27 +47,44 @@ func build_director_prompt(action: ActionRequest, scene: SceneGraph) -> Array[Di
 		"rules": scene.rules
 	}
 	
-	var prompt = DIRECTOR_SYSTEM_PROMPT + "\n\n"
-	prompt += "Current Scene:\n" + JSON.stringify(scene_info, "\t") + "\n\n"
-	prompt += "Action Request:\n" + JSON.stringify({
+	var action_info = {
 		"actor": action.actor,
 		"verb": action.verb,
 		"target": action.target,
 		"context": action.context
-	}, "\t") + "\n\n"
+	}
+	
+	# Add emotional context if actor is an NPC
+	if emotional_context.size() > 0:
+		action_info["emotional_state"] = emotional_context
+	
+	var prompt = DIRECTOR_SYSTEM_PROMPT + "\n\n"
+	prompt += "Current Scene:\n" + JSON.stringify(scene_info, "\t") + "\n\n"
+	prompt += "Action Request:\n" + JSON.stringify(action_info, "\t") + "\n\n"
+	
+	# Add emotional context guidance for NPCs
+	if emotional_context.size() > 0:
+		prompt += "Actor Emotional Context:\n"
+		prompt += "- Mood: " + emotional_context.get("mood", "neutral") + "\n"
+		prompt += "- Bond with player: " + str(emotional_context.get("bond", 0.5)) + "\n"
+		prompt += "- Conviction: " + str(emotional_context.get("conviction", 0.5)) + "\n"
+		if emotional_context.has("goals"):
+			prompt += "- Goals: " + str(emotional_context.get("goals", [])) + "\n"
+		prompt += "Narration should reflect this emotional state.\n\n"
+	
 	prompt += "Respond with a valid JSON object matching the ResolutionEnvelope format."
 	
 	return [
 		{"role": "system", "content": prompt}
 	]
 
-func process_action(action: ActionRequest) -> ResolutionEnvelope:
+func process_action(action: ActionRequest, emotional_context: Dictionary = {}) -> ResolutionEnvelope:
 	var scene = world_db.get_scene(action.scene)
 	if not scene:
 		push_error("Scene not found: " + action.scene)
 		return _create_error_envelope("Scene not found")
 	
-	var messages = build_director_prompt(action, scene)
+	var messages = build_director_prompt(action, scene, emotional_context)
 	var response_text = await _make_llm_request(messages)
 	
 	if response_text == "":

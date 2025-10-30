@@ -69,4 +69,3 @@ func _format_entity_data(data: Dictionary) -> String:
 func _on_close_pressed():
 	visible = false
 	closed.emit()
-

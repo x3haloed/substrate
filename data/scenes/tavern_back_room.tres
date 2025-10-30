@@ -1,0 +1,29 @@
+[gd_resource type="Resource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://data/types/SceneGraph.gd" id="1"]
+[ext_resource type="Script" path="res://data/types/Entity.gd" id="2"]
+
+[sub_resource type="Resource" id="1"]
+script = ExtResource(2)
+id = "alley_passage"
+type_name = "exit"
+verbs = ["move"]
+props = {"leads": "cobblestone_alley", "description": "The passage back to the alley"}
+
+[sub_resource type="Resource" id="2"]
+script = ExtResource(2)
+id = "storage_crate"
+type_name = "item"
+verbs = ["examine", "open"]
+props = {"description": "A heavy wooden crate stamped with merchant symbols", "locked": false}
+
+[resource]
+script = ExtResource(1)
+scene_id = "tavern_back_room"
+description = "A cramped storage room filled with barrels, crates, and hanging herbs. Faint sounds drift from the tavern beyond."
+entities = [SubResource(1), SubResource(2)]
+rules = {
+	"on_enter": [],
+	"combat_allowed": false
+}
+

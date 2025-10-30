@@ -8,6 +8,7 @@ class_name Game
 @onready var lore_panel: LorePanel = $UI/LorePanel
 @onready var settings_panel: SettingsPanel = $UI/SettingsPanel
 @onready var settings_button: Button = $UI/SettingsButton
+@onready var action_queue_panel: ActionQueuePanel = $UI/ActionQueuePanel
 
 var llm_settings: LLMSettings
 var llm_client: LLMClient
@@ -36,6 +37,7 @@ func _ready():
 	director = Director.new(prompt_engine, world_db)
 	add_child(director)
 	director.action_resolved.connect(_on_action_resolved)
+	director.action_queue_updated.connect(_on_action_queue_updated)
 	
 	# Connect UI signals
 	chat_window.entity_clicked.connect(_on_entity_clicked)
@@ -112,6 +114,9 @@ func _on_action_resolved(_envelope: ResolutionEnvelope):
 
 func _on_settings_button_pressed():
 	settings_panel.visible = true
+
+func _on_action_queue_updated(queue_preview: Array[String], current_actor: String):
+	action_queue_panel.update_queue(queue_preview, current_actor)
 
 func _on_settings_saved():
 	# Reload LLM client with new settings

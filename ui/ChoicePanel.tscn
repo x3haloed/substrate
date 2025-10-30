@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://c5xn8k2v7m3p4"]
 
-[ext_resource type="Script" path="res://ui/ChoicePanel.gd" id="1_1"]
+[ext_resource type="Script" uid="uid://db1akqh1pa07t" path="res://ui/ChoicePanel.gd" id="1_1"]
 
 [node name="ChoicePanel" type="Control"]
 layout_mode = 3
@@ -20,6 +20,8 @@ offset_left = 8.0
 offset_top = 8.0
 offset_right = -8.0
 offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="Label" type="Label" parent="VBox"]
 layout_mode = 2
@@ -32,4 +34,3 @@ size_flags_vertical = 3
 [node name="ChoiceContainer" type="VBoxContainer" parent="VBox/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-

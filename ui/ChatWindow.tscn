@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://b8vwcq7x3kp4f"]
 
-[ext_resource type="Script" path="res://ui/ChatWindow.gd" id="1_1"]
+[ext_resource type="Script" uid="uid://b5uylvjoic30s" path="res://ui/ChatWindow.gd" id="1_1"]
 
 [node name="ChatWindow" type="Control"]
 layout_mode = 3
@@ -20,11 +20,12 @@ offset_left = 8.0
 offset_top = 8.0
 offset_right = -8.0
 offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="ChatLog" type="RichTextLabel" parent="VBox"]
 layout_mode = 2
 size_flags_vertical = 3
-text = ""
 bbcode_enabled = true
 scroll_following = true
 
@@ -39,4 +40,3 @@ placeholder_text = "Type a message..."
 [node name="SendButton" type="Button" parent="VBox/InputBox"]
 layout_mode = 2
 text = "Send"
-
