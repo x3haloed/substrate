@@ -79,7 +79,16 @@ func _start_game():
 func _display_envelope(envelope: ResolutionEnvelope):
 	# Display narration
 	for narr in envelope.narration:
-		chat_window.add_message(narr.text, narr.style, narr.speaker)
+		# Naively auto-tag scene entity IDs in narration so ChatWindow can link them
+		var scene_id = world_db.flags.get("current_scene", "")
+		var scene = world_db.get_scene(scene_id)
+		var tagged_text = narr.text
+		if scene:
+			var entity_ids: Array[String] = []
+			for e in scene.entities:
+				entity_ids.append(e.id)
+			tagged_text = Narrator.auto_tag_entities(narr.text, entity_ids)
+		chat_window.add_message(tagged_text, narr.style, narr.speaker)
 	
 	# Update choice panel
 	choice_panel.set_choices(envelope.ui_choices)
