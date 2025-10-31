@@ -58,28 +58,7 @@ func _init(p_llm_client: LLMClient, p_world_db: WorldDB):
 func build_narrator_prompt(scene_context: Dictionary) -> Array[Dictionary]:
 	var brief := format_scene_brief(scene_context)
 	# Build recent chat snapshot to give narrator strong situational awareness
-	var recent: Array[Dictionary] = []
-	var max_messages = 12
-	for i in range(world_db.history.size() - 1, -1, -1):
-		var h = world_db.history[i]
-		if not (h is Dictionary):
-			continue
-		var ev = str(h.get("event", ""))
-		if ev == "narration" or ev == "player_text":
-			recent.insert(0, {
-				"event": ev,
-				"style": h.get("style", ""),
-				"speaker": h.get("speaker", ""),
-				"text": h.get("text", "")
-			})
-			if recent.size() >= max_messages:
-				break
-	var chat_snapshot = {
-		"recent_messages": recent,
-		"last_npc_speaker": world_db.flags.get("last_npc_speaker", ""),
-		"last_npc_line": world_db.flags.get("last_npc_line", ""),
-		"last_player_line": world_db.flags.get("last_player_line", "")
-	}
+	var chat_snapshot = _build_chat_snapshot()
 	var user_content = "Scene brief:\n" + brief + "\n\n" + "Recent chat snapshot:\n" + JSON.stringify(chat_snapshot, "\t") + "\n\nWrite a concise atmospheric paragraph (3-5 sentences)."
 	return [
 		{"role": "system", "content": NARRATOR_SYSTEM_PROMPT + "\n\n" + "Respond only with prose. Do not output JSON or code fences."},
@@ -190,7 +169,8 @@ func build_npc_prompt(action: ActionRequest, scene: SceneGraph, character: Chara
 	var user_context: Dictionary = {
 		"player_message": str(action.context.get("utterance", "")),
 		"character": character_info,
-		"scene": scene_info
+		"scene": scene_info,
+		"chat_snapshot": _build_chat_snapshot()
 	}
 
 	# Include brief character book if present
@@ -213,29 +193,7 @@ func build_freeform_prompt(scene: SceneGraph, player_text: String) -> Array[Dict
 		"rules": scene.rules
 	}
 	# Build a chat snapshot from recent world history so the model can infer implied addresses
-	var recent: Array[Dictionary] = []
-	var max_messages = 12
-	for i in range(world_db.history.size() - 1, -1, -1):
-		var h = world_db.history[i]
-		if not (h is Dictionary):
-			continue
-		var ev = str(h.get("event", ""))
-		if ev == "narration" or ev == "player_text":
-			# Prepend by inserting at 0 to keep chronological order
-			recent.insert(0, {
-				"event": ev,
-				"style": h.get("style", ""),
-				"speaker": h.get("speaker", ""),
-				"text": h.get("text", "")
-			})
-			if recent.size() >= max_messages:
-				break
-	var chat_snapshot = {
-		"recent_messages": recent,
-		"last_npc_speaker": world_db.flags.get("last_npc_speaker", ""),
-		"last_npc_line": world_db.flags.get("last_npc_line", ""),
-		"last_player_line": world_db.flags.get("last_player_line", "")
-	}
+	var chat_snapshot = _build_chat_snapshot()
 
 	var instructions = """
 You are the Director, arbitrating freeform player input without an addressed target.
@@ -260,6 +218,32 @@ Rules:
 			"player_text": player_text
 		}, "\t")}
 	]
+
+## Build a compact snapshot of recent dialog/narration for context-aware prompts
+func _build_chat_snapshot() -> Dictionary:
+	var recent: Array[Dictionary] = []
+	var max_messages = 12
+	for i in range(world_db.history.size() - 1, -1, -1):
+		var h = world_db.history[i]
+		if not (h is Dictionary):
+			continue
+		var ev = str(h.get("event", ""))
+		if ev == "narration" or ev == "player_text":
+			# Prepend by inserting at 0 to keep chronological order
+			recent.insert(0, {
+				"event": ev,
+				"style": h.get("style", ""),
+				"speaker": h.get("speaker", ""),
+				"text": h.get("text", "")
+			})
+			if recent.size() >= max_messages:
+				break
+	return {
+		"recent_messages": recent,
+		"last_npc_speaker": world_db.flags.get("last_npc_speaker", ""),
+		"last_npc_line": world_db.flags.get("last_npc_line", ""),
+		"last_player_line": world_db.flags.get("last_player_line", "")
+	}
 
 func process_action(action: ActionRequest, character_context: Dictionary = {}) -> ResolutionEnvelope:
 	var scene = world_db.get_scene(action.scene)
