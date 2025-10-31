@@ -1,0 +1,10 @@
+---
+globs: data/characters/*.tres
+alwaysApply: false
+---
+# Omit *_base64 properties in .tres files
+
+Keep an eye out for '.tres' files for script_class="CharacterProfile". These CharacterProfile resource files often include very large base64-encoded fields that should be ignored to safely read the file into context.
+
+- '*_base64' fields like `portrait_base64` should be avoided when reading .tres files into context
+- base64 fields can be detected with `^(\\s*[A-Za-z0-9_]+_base64\\s*=).*$` and `^(\\s*[A-Za-z0-9_]+_base64\\s*=\\s*)(?:\\[\\s*$[\\s\\S]*?^\\s*\\]\\s*$|\"[\\s\\S]*?\` regex
