@@ -1,0 +1,346 @@
+diff --git a/main/Game.gd b/main/Game.gd
+index 4cb25f4..837b225 100644
+--- a/main/Game.gd
++++ b/main/Game.gd
+@@ -3,14 +3,17 @@ class_name Game
+ 
+ ## Main game bootstrap and run loop
+ 
+-@onready var chat_window: ChatWindow = $GameUI/game_container/main_game/center_panel/ChatWindow
+-@onready var choice_panel: ChoicePanel = $GameUI/game_container/main_game/center_panel/ChoicePanel
+-#@onready var lore_panel: LorePanel = $UI/LorePanel
+-@onready var settings_panel: SettingsPanel = $GameUI/SettingsPanel
+-@onready var settings_button: Button = $GameUI/game_container/header/HBoxContainer/button_group/settings_button
+-#@onready var action_queue_panel: ActionQueuePanel = $UI/ActionQueuePanel
+-@onready var card_editor: CardEditor = $GameUI/CardEditor
+-@onready var editor_button: Button = $GameUI/game_container/header/HBoxContainer/button_group/editor_button
++@onready var chat_window: ChatWindow = $UI/VBox/Container/MainGame/CenterPanel/ChatWindow
++@onready var choice_panel: ChoicePanel = $UI/VBox/Container/MainGame/CenterPanel/ChoicePanel
++@onready var inventory_panel: InventoryPanel = $UI/VBox/Container/MainGame/InventoryPanel
++@onready var npc_inventory_panel: NPCInventoryPanel = $UI/VBox/Container/MainGame/RightPanel/NPCInventoryPanel
++@onready var whisper_chat_panel: WhisperChatPanel = $UI/VBox/Container/MainGame/RightPanel/WhisperChatPanel
++@onready var lore_panel: LorePanel = $UI/LorePanel
++@onready var settings_panel: SettingsPanel = $UI/SettingsPanel
++@onready var settings_button: Button = $UI/VBox/Header/HBox/LeftSection/SettingsButton
++@onready var action_queue_panel: ActionQueuePanel = $UI/ActionQueuePanel
++@onready var card_editor: CardEditor = $UI/CardEditor
++@onready var editor_button: Button = $UI/VBox/Header/HBox/LeftSection/EditorButton
+ 
+ var llm_settings: LLMSettings
+ var llm_client: LLMClient
+@@ -188,27 +191,18 @@ func _on_autosave_timer():
+ 
+ func _on_editor_button_pressed():
+ 	# Hide main game UI
+-	chat_window.visible = false
+-	choice_panel.visible = false
+-	#lore_panel.visible = false
++	$UI/VBox.visible = false
++	lore_panel.visible = false
+ 	settings_panel.visible = false
+-	#action_queue_panel.visible = false
+-	settings_button.visible = false
+-	if editor_button:
+-		editor_button.visible = false
++	action_queue_panel.visible = false
+ 	
+ 	# Show editor
+ 	card_editor.visible = true
+ 
+ func _on_card_editor_closed():
+ 	# Show main game UI
+-	chat_window.visible = true
+-	choice_panel.visible = true
+-	#lore_panel.visible = true
+-	#action_queue_panel.visible = true
+-	settings_button.visible = true
+-	if editor_button:
+-		editor_button.visible = true
++	$UI/VBox.visible = true
++	action_queue_panel.visible = false
+ 	
+ 	# Hide editor
+ 	card_editor.visible = false
+diff --git a/main/Game.tscn b/main/Game.tscn
+index 32925b5..3a92322 100644
+--- a/main/Game.tscn
++++ b/main/Game.tscn
+@@ -1,10 +1,19 @@
+-[gd_scene load_steps=6 format=3 uid="uid://cd1mol72gjb2g"]
+-
+-[ext_resource type="Script" path="res://main/Game.gd" id="1_d75c0"]
+-[ext_resource type="PackedScene" uid="uid://b8vwcq7x3kp4f" path="res://ui/ChatWindow.tscn" id="2_cthgq"]
+-[ext_resource type="PackedScene" uid="uid://c5xn8k2v7m3p4" path="res://ui/ChoicePanel.tscn" id="3_4a11f"]
+-[ext_resource type="PackedScene" uid="uid://bdl3fk61pia1f" path="res://ui/SettingsPanel.tscn" id="4_jbgv0"]
+-[ext_resource type="PackedScene" path="res://ui/CardEditor.tscn" id="5_v77vj"]
++[gd_scene load_steps=12 format=3 uid="uid://cd1mol72gjb2g"]
++
++[ext_resource type="Script" uid="uid://bsglhg25j1uqv" path="res://main/Game.gd" id="1"]
++[ext_resource type="Theme" path="res://ui/terminal_theme.tres" id="2"]
++[ext_resource type="PackedScene" uid="uid://b8vwcq7x3kp4f" path="res://ui/ChatWindow.tscn" id="3"]
++[ext_resource type="PackedScene" uid="uid://c5xn8k2v7m3p4" path="res://ui/ChoicePanel.tscn" id="4"]
++[ext_resource type="PackedScene" uid="uid://ck2oj6rog80e" path="res://ui/LorePanel.tscn" id="5"]
++[ext_resource type="PackedScene" uid="uid://bdl3fk61pia1f" path="res://ui/SettingsPanel.tscn" id="6"]
++[ext_resource type="PackedScene" uid="uid://cknaw7q7h8p2r" path="res://ui/ActionQueuePanel.tscn" id="7"]
++[ext_resource type="PackedScene" path="res://ui/CardEditor.tscn" id="8"]
++[ext_resource type="PackedScene" uid="uid://c8vwcq7x3kp4g" path="res://ui/InventoryPanel.tscn" id="9"]
++[ext_resource type="PackedScene" uid="uid://d8vwcq7x3kp4h" path="res://ui/NPCInventoryPanel.tscn" id="10"]
++[ext_resource type="PackedScene" uid="uid://e8vwcq7x3kp4i" path="res://ui/WhisperChatPanel.tscn" id="11"]
++
++[sub_resource type="LabelSettings" id="LabelSettings_title"]
++font_size = 20
+ 
+ [node name="Game" type="Node"]
+ script = ExtResource("1_d75c0")
+@@ -16,111 +25,113 @@ anchor_right = 1.0
+ anchor_bottom = 1.0
+ grow_horizontal = 2
+ grow_vertical = 2
++theme = ExtResource("2")
+ 
+-[node name="game_container" type="VBoxContainer" parent="GameUI"]
++[node name="Background" type="ColorRect" parent="UI"]
+ layout_mode = 1
+ anchors_preset = 15
+ anchor_right = 1.0
+ anchor_bottom = 1.0
+ grow_horizontal = 2
+ grow_vertical = 2
+-theme_override_constants/separation = 8
++color = Color(0.93, 0.93, 0.93, 1)
+ 
+-[node name="header" type="PanelContainer" parent="GameUI/game_container"]
+-layout_mode = 2
++[node name="VBox" type="VBoxContainer" parent="UI"]
++layout_mode = 1
++anchors_preset = 15
++anchor_right = 1.0
++anchor_bottom = 1.0
++grow_horizontal = 2
++grow_vertical = 2
++theme_override_constants/separation = 8
+ 
+-[node name="HBoxContainer" type="HBoxContainer" parent="GameUI/game_container/header"]
++[node name="Header" type="PanelContainer" parent="UI/VBox"]
+ layout_mode = 2
+-theme_override_constants/separation = 12
+ 
+-[node name="title" type="Label" parent="GameUI/game_container/header/HBoxContainer"]
++[node name="HBox" type="HBoxContainer" parent="UI/VBox/Header"]
+ layout_mode = 2
+-theme_override_font_sizes/font_size = 20
+-text = "SUBSTRATE"
+-vertical_alignment = 1
++theme_override_constants/separation = 16
+ 
+-[node name="button_group" type="HBoxContainer" parent="GameUI/game_container/header/HBoxContainer"]
++[node name="LeftSection" type="HBoxContainer" parent="UI/VBox/Header/HBox"]
+ layout_mode = 2
++size_flags_horizontal = 3
++theme_override_constants/separation = 8
+ 
+-[node name="editor_button" type="Button" parent="GameUI/game_container/header/HBoxContainer/button_group"]
++[node name="Title" type="Label" parent="UI/VBox/Header/HBox/LeftSection"]
+ layout_mode = 2
+-text = "Card Editor"
++text = "SUBSTRATE"
++label_settings = SubResource("LabelSettings_title")
+ 
+-[node name="settings_button" type="Button" parent="GameUI/game_container/header/HBoxContainer/button_group"]
++[node name="EditorButton" type="Button" parent="UI/VBox/Header/HBox/LeftSection"]
+ layout_mode = 2
+-text = "Settings"
++text = "☰ Card Editor"
+ 
+-[node name="Spacer" type="Control" parent="GameUI/game_container/header/HBoxContainer"]
++[node name="SettingsButton" type="Button" parent="UI/VBox/Header/HBox/LeftSection"]
+ layout_mode = 2
+-size_flags_horizontal = 3
++text = "⚙ Settings"
+ 
+-[node name="player_label" type="Label" parent="GameUI/game_container/header/HBoxContainer"]
++[node name="PlayerLabel" type="Label" parent="UI/VBox/Header/HBox"]
+ layout_mode = 2
+ text = "Player: Commander_Alpha"
+-vertical_alignment = 1
++theme_override_colors/font_color = Color(0.4, 0.4, 0.4, 1)
+ 
+-[node name="main_game" type="HBoxContainer" parent="GameUI/game_container"]
++[node name="Container" type="MarginContainer" parent="UI/VBox"]
+ layout_mode = 2
+ size_flags_vertical = 3
+-theme_override_constants/separation = 8
++theme_override_constants/margin_left = 8
++theme_override_constants/margin_top = 8
++theme_override_constants/margin_right = 8
++theme_override_constants/margin_bottom = 8
+ 
+-[node name="player_inventory" type="PanelContainer" parent="GameUI/game_container/main_game"]
+-custom_minimum_size = Vector2(320, 0)
++[node name="MainGame" type="HBoxContainer" parent="UI/VBox/Container"]
+ layout_mode = 2
++theme_override_constants/separation = 8
+ 
+-[node name="Label" type="Label" parent="GameUI/game_container/main_game/player_inventory"]
++[node name="InventoryPanel" parent="UI/VBox/Container/MainGame" instance=ExtResource("9")]
++custom_minimum_size = Vector2(320, 0)
+ layout_mode = 2
+-text = "INVENTORY
+-(Not Implemented)"
+-horizontal_alignment = 1
+-vertical_alignment = 1
+ 
+-[node name="center_panel" type="VBoxContainer" parent="GameUI/game_container/main_game"]
++[node name="CenterPanel" type="VBoxContainer" parent="UI/VBox/Container/MainGame"]
+ layout_mode = 2
+ size_flags_horizontal = 3
+ theme_override_constants/separation = 8
+ 
+-[node name="ChatWindow" parent="GameUI/game_container/main_game/center_panel" instance=ExtResource("2_cthgq")]
++[node name="ChatWindow" parent="UI/VBox/Container/MainGame/CenterPanel" instance=ExtResource("3")]
+ layout_mode = 2
+ size_flags_vertical = 3
+ 
+-[node name="ChoicePanel" parent="GameUI/game_container/main_game/center_panel" instance=ExtResource("3_4a11f")]
++[node name="ChoicePanel" parent="UI/VBox/Container/MainGame/CenterPanel" instance=ExtResource("4")]
+ custom_minimum_size = Vector2(0, 150)
+ layout_mode = 2
+-size_flags_horizontal = 3
+-size_flags_vertical = 1
+ 
+-[node name="right_panel" type="VBoxContainer" parent="GameUI/game_container/main_game"]
++[node name="RightPanel" type="VBoxContainer" parent="UI/VBox/Container/MainGame"]
+ custom_minimum_size = Vector2(320, 0)
+ layout_mode = 2
+ theme_override_constants/separation = 8
+ 
+-[node name="npc_inventory" type="PanelContainer" parent="GameUI/game_container/main_game/right_panel"]
++[node name="NPCInventoryPanel" parent="UI/VBox/Container/MainGame/RightPanel" instance=ExtResource("10")]
+ layout_mode = 2
+ size_flags_vertical = 3
+ 
+-[node name="Label" type="Label" parent="GameUI/game_container/main_game/right_panel/npc_inventory"]
++[node name="WhisperChatPanel" parent="UI/VBox/Container/MainGame/RightPanel" instance=ExtResource("11")]
+ layout_mode = 2
+-text = "NPC INVENTORY
+-(Not Implemented)"
+-horizontal_alignment = 1
+-vertical_alignment = 1
+ 
+-[node name="whisper_chat" type="PanelContainer" parent="GameUI/game_container/main_game/right_panel"]
+-custom_minimum_size = Vector2(0, 256)
+-layout_mode = 2
++[node name="LorePanel" parent="UI" instance=ExtResource("5")]
++visible = false
++layout_mode = 1
+ 
+-[node name="Label" type="Label" parent="GameUI/game_container/main_game/right_panel/whisper_chat"]
+-layout_mode = 2
+-text = "WHISPER CHAT
+-(Not Implemented)"
+-horizontal_alignment = 1
+-vertical_alignment = 1
++[node name="SettingsPanel" parent="UI" instance=ExtResource("6")]
++visible = false
++layout_mode = 1
+ 
+-[node name="SettingsPanel" parent="GameUI" instance=ExtResource("4_jbgv0")]
++[node name="ActionQueuePanel" parent="UI" instance=ExtResource("7")]
+ visible = false
+ layout_mode = 1
++offset_left = 8.0
++offset_top = 8.0
++offset_right = 308.0
++offset_bottom = 80.0
+ 
+-[node name="CardEditor" parent="GameUI" instance=ExtResource("5_v77vj")]
++[node name="CardEditor" parent="UI" instance=ExtResource("8")]
+ visible = false
+ layout_mode = 1
+diff --git a/ui/ChatWindow.gd b/ui/ChatWindow.gd
+index dadfeb3..34c9771 100644
+--- a/ui/ChatWindow.gd
++++ b/ui/ChatWindow.gd
+@@ -7,7 +7,7 @@ signal entity_clicked(entity_id: String)
+ signal message_sent(text: String)
+ 
+ @onready var chat_log: RichTextLabel = $VBox/ChatLog
+-@onready var address_option: OptionButton = $VBox/InputBox/AddressOption
++@onready var address_option: OptionButton = $VBox/Header/HeaderHBox/AddressOption
+ @onready var input_line: LineEdit = $VBox/InputBox/InputLine
+ @onready var send_button: Button = $VBox/InputBox/SendButton
+ 
+@@ -44,7 +44,7 @@ func set_address_options(target_ids: Array[String]):
+ 	# Optional address dropdown for talking to specific entities
+ 	address_option.clear()
+ 	# First item means no direct address → narrator/world
+-	address_option.add_item("Address…")
++	address_option.add_item("address all...")
+ 	address_option.selected = 0
+ 	for id in target_ids:
+ 		address_option.add_item(id)
+diff --git a/ui/ChatWindow.tscn b/ui/ChatWindow.tscn
+index 1790e25..f4a4464 100644
+--- a/ui/ChatWindow.tscn
++++ b/ui/ChatWindow.tscn
+@@ -1,7 +1,10 @@
+-[gd_scene load_steps=2 format=3 uid="uid://b8vwcq7x3kp4f"]
++[gd_scene load_steps=3 format=3 uid="uid://b8vwcq7x3kp4f"]
+ 
+ [ext_resource type="Script" uid="uid://b5uylvjoic30s" path="res://ui/ChatWindow.gd" id="1_1"]
+ 
++[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_terminal_bg"]
++bg_color = Color(0, 0, 0, 1)
++
+ [node name="ChatWindow" type="Control"]
+ layout_mode = 3
+ anchors_preset = 15
+@@ -16,29 +19,40 @@ layout_mode = 1
+ anchors_preset = 15
+ anchor_right = 1.0
+ anchor_bottom = 1.0
+-offset_left = 8.0
+-offset_top = 8.0
+-offset_right = -8.0
+-offset_bottom = -8.0
+ grow_horizontal = 2
+ grow_vertical = 2
+ 
++[node name="Header" type="PanelContainer" parent="VBox"]
++layout_mode = 2
++
++[node name="HeaderHBox" type="HBoxContainer" parent="VBox/Header"]
++layout_mode = 2
++theme_override_constants/separation = 8
++
++[node name="Title" type="Label" parent="VBox/Header/HeaderHBox"]
++layout_mode = 2
++text = "COMMUNICATION"
++
++[node name="AddressOption" type="OptionButton" parent="VBox/Header/HeaderHBox"]
++layout_mode = 2
++text = "address all..."
++
+ [node name="ChatLog" type="RichTextLabel" parent="VBox"]
+ layout_mode = 2
+ size_flags_vertical = 3
++theme_override_colors/default_color = Color(0.7, 0.7, 0.7, 1)
++theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
++theme_override_styles/normal = SubResource("StyleBoxFlat_terminal_bg")
+ bbcode_enabled = true
+ scroll_following = true
+ 
+ [node name="InputBox" type="HBoxContainer" parent="VBox"]
+ layout_mode = 2
+ 
+-[node name="AddressOption" type="OptionButton" parent="VBox/InputBox"]
+-layout_mode = 2
+-
+ [node name="InputLine" type="LineEdit" parent="VBox/InputBox"]
+ layout_mode = 2
+ size_flags_horizontal = 3
+-placeholder_text = "Type a message..."
++placeholder_text = "Enter command..."
+ 
+ [node name="SendButton" type="Button" parent="VBox/InputBox"]
+ layout_mode = 2
