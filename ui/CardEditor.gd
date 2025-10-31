@@ -95,6 +95,9 @@ var portrait_file_dialog: FileDialog
 @onready var add_extension_button: Button = $VBox/ScrollContainer/VBox/ExtensionsSection/HBox/AddExtensionButton
 @onready var remove_extension_button: Button = $VBox/ScrollContainer/VBox/ExtensionsSection/HBox/RemoveExtensionButton
 
+# Container visibility control
+@onready var scroll_container: ScrollContainer = $VBox/ScrollContainer
+
 # Toolbar buttons
 @onready var new_button: Button = $VBox/Toolbar/NewButton
 @onready var open_button: Button = $VBox/Toolbar/OpenButton
@@ -170,8 +173,8 @@ func _ready():
 	# Setup file dialogs
 	_setup_file_dialogs()
 	
-	# Initialize with new profile
-	create_new_profile()
+	# Hide content until user starts or opens/imports a card
+	scroll_container.visible = false
 	
 	visible = false
 
@@ -230,6 +233,8 @@ func _on_import_file_selected(path: String):
 	current_profile = imported
 	current_path = ""  # New imported profile has no save path yet
 	_load_profile_to_ui()
+	# Reveal content after import completes
+	scroll_container.visible = true
 
 func _on_set_portrait_pressed():
 	portrait_file_dialog.popup_centered_ratio(0.75)
@@ -448,6 +453,8 @@ func _save_to_path(path: String) -> bool:
 # Toolbar handlers
 func _on_new_pressed():
 	create_new_profile()
+	# Reveal content after creating new profile
+	scroll_container.visible = true
 
 func _on_open_pressed():
 	open_file_dialog.popup_centered_ratio(0.75)
@@ -475,6 +482,8 @@ func _on_open_file_selected(path: String):
 	
 	current_path = scrd_path
 	_load_profile_to_ui()
+	# Reveal content after file load completes
+	scroll_container.visible = true
 
 func _on_save_pressed():
 	if current_path == "":
@@ -496,6 +505,8 @@ func _on_save_file_selected(path: String):
 func _on_close_pressed():
 	closed.emit()
 	visible = false
+	# Hide content so next open starts hidden
+	scroll_container.visible = false
 
 # Metadata handlers
 func _on_add_greeting_pressed():

@@ -62,6 +62,7 @@ text = "Close"
 [node name="ScrollContainer" type="ScrollContainer" parent="VBox"]
 layout_mode = 2
 size_flags_vertical = 3
+visible = false
 
 [node name="VBox" type="VBoxContainer" parent="VBox/ScrollContainer"]
 layout_mode = 2
