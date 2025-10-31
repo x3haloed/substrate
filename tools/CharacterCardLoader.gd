@@ -45,8 +45,21 @@ static func import_from_json(json_path: String) -> CharacterProfile:
 	# Optional metadata (V2 only, defaults for V1)
 	profile.creator_notes = card_data.get("creator_notes", "")
 	profile.system_prompt = card_data.get("system_prompt", "{{original}}")
-	profile.alternate_greetings = card_data.get("alternate_greetings", [])
-	profile.tags = card_data.get("tags", [])
+	# Populate typed arrays to satisfy Array[String] constraints
+	profile.alternate_greetings.clear()
+	if card_data.has("alternate_greetings") and card_data.alternate_greetings is Array:
+		for g in card_data.alternate_greetings:
+			if g is String:
+				profile.alternate_greetings.append(g)
+			else:
+				profile.alternate_greetings.append(str(g))
+	profile.tags.clear()
+	if card_data.has("tags") and card_data.tags is Array:
+		for t in card_data.tags:
+			if t is String:
+				profile.tags.append(t)
+			else:
+				profile.tags.append(str(t))
 	profile.creator = card_data.get("creator", "")
 	profile.character_version = card_data.get("character_version", "1.0")
 	
@@ -54,11 +67,14 @@ static func import_from_json(json_path: String) -> CharacterProfile:
 	if card_data.has("character_book") and card_data.character_book is Dictionary:
 		profile.character_book = _import_character_book(card_data.character_book)
 	
-	# Stats and traits (not in CC spec, initialize empty)
+	# Stats and traits (not in CC spec, initialize empty/typed)
 	profile.stats = {}
-	profile.traits = []
+	profile.traits.clear()
+	if card_data.has("traits") and card_data.traits is Array:
+		for trait_value in card_data.traits:
+			profile.traits.append(str(trait_value))
 	profile.style = {}
-	profile.triggers = []
+	profile.triggers.clear()
 	
 	# Extensions (preserve unknown keys)
 	if card_data.has("extensions") and card_data.extensions is Dictionary:
@@ -106,8 +122,12 @@ static func _import_character_book(book_data: Dictionary) -> CharacterBook:
 ## Import a single book entry
 static func _import_book_entry(entry_data: Dictionary) -> CharacterBookEntry:
 	var entry = CharacterBookEntry.new()
-	
-	entry.keys = entry_data.get("keys", [])
+
+	# Populate typed arrays for keys/secondary_keys
+	entry.keys.clear()
+	if entry_data.has("keys") and entry_data.keys is Array:
+		for k in entry_data.keys:
+			entry.keys.append(str(k))
 	entry.content = entry_data.get("content", "")
 	entry.enabled = entry_data.get("enabled", true)
 	entry.insertion_order = entry_data.get("insertion_order", 0)
@@ -116,7 +136,10 @@ static func _import_book_entry(entry_data: Dictionary) -> CharacterBookEntry:
 	entry.id = entry_data.get("id", "")
 	entry.comment = entry_data.get("comment", "")
 	entry.selective = entry_data.get("selective", false)
-	entry.secondary_keys = entry_data.get("secondary_keys", [])
+	entry.secondary_keys.clear()
+	if entry_data.has("secondary_keys") and entry_data.secondary_keys is Array:
+		for sk in entry_data.secondary_keys:
+			entry.secondary_keys.append(str(sk))
 	entry.constant = entry_data.get("constant", false)
 	entry.position = entry_data.get("position", "before_char")
 	
@@ -171,4 +194,3 @@ static func validate_profile(profile: CharacterProfile) -> bool:
 		return false
 	
 	return true
-

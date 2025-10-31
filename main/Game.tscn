@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://cd1mol72gjb2g"]
+[gd_scene load_steps=8 format=3 uid="uid://cd1mol72gjb2g"]
 
 [ext_resource type="Script" uid="uid://bsglhg25j1uqv" path="res://main/Game.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://b8vwcq7x3kp4f" path="res://ui/ChatWindow.tscn" id="2"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://ck2oj6rog80e" path="res://ui/LorePanel.tscn" id="4"]
 [ext_resource type="PackedScene" uid="uid://bdl3fk61pia1f" path="res://ui/SettingsPanel.tscn" id="5"]
 [ext_resource type="PackedScene" uid="uid://cknaw7q7h8p2r" path="res://ui/ActionQueuePanel.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://ui/CardEditor.tscn" id="7"]
 
 [node name="Game" type="Node"]
 script = ExtResource("1")
@@ -67,3 +68,21 @@ offset_bottom = -8.0
 grow_horizontal = 0
 grow_vertical = 0
 text = "Settings"
+
+[node name="EditorButton" type="Button" parent="UI"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -240.0
+offset_top = -40.0
+offset_right = -128.0
+offset_bottom = -8.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "Card Editor"
+
+[node name="CardEditor" parent="UI" instance=ExtResource("7")]
+layout_mode = 1

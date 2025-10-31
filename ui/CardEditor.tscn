@@ -1,0 +1,487 @@
+[gd_scene load_steps=2 format=3 uid="uid://o7xiakcfdh8l"]
+
+[ext_resource type="Script" uid="uid://dhwy8pryppl27" path="res://ui/CardEditor.gd" id="1_1"]
+
+[node name="CardEditor" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_1")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.15, 0.15, 0.15, 1)
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Toolbar" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="NewButton" type="Button" parent="VBox/Toolbar"]
+layout_mode = 2
+text = "New"
+
+[node name="OpenButton" type="Button" parent="VBox/Toolbar"]
+layout_mode = 2
+text = "Open"
+
+[node name="ImportButton" type="Button" parent="VBox/Toolbar"]
+layout_mode = 2
+text = "Import"
+
+[node name="SaveButton" type="Button" parent="VBox/Toolbar"]
+layout_mode = 2
+text = "Save"
+
+[node name="SaveAsButton" type="Button" parent="VBox/Toolbar"]
+layout_mode = 2
+text = "Save As..."
+
+[node name="CloseButton" type="Button" parent="VBox/Toolbar"]
+layout_mode = 2
+text = "Close"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBox" type="VBoxContainer" parent="VBox/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CoreSection" type="VBoxContainer" parent="VBox/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="SectionLabel" type="Label" parent="VBox/ScrollContainer/VBox/CoreSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Core Fields"
+
+[node name="NameEdit" type="LineEdit" parent="VBox/ScrollContainer/VBox/CoreSection"]
+layout_mode = 2
+placeholder_text = "Character Name"
+
+[node name="DescriptionEdit" type="TextEdit" parent="VBox/ScrollContainer/VBox/CoreSection"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+placeholder_text = "Description"
+
+[node name="PersonalityEdit" type="TextEdit" parent="VBox/ScrollContainer/VBox/CoreSection"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+placeholder_text = "Personality"
+
+[node name="FirstMesEdit" type="TextEdit" parent="VBox/ScrollContainer/VBox/CoreSection"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+placeholder_text = "First Message"
+
+[node name="MesExampleEdit" type="TextEdit" parent="VBox/ScrollContainer/VBox/CoreSection"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+placeholder_text = "Message Example"
+
+[node name="MetadataSection" type="VBoxContainer" parent="VBox/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="SectionLabel" type="Label" parent="VBox/ScrollContainer/VBox/MetadataSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Metadata"
+
+[node name="CreatorEdit" type="LineEdit" parent="VBox/ScrollContainer/VBox/MetadataSection"]
+layout_mode = 2
+placeholder_text = "Creator"
+
+[node name="CharacterVersionEdit" type="LineEdit" parent="VBox/ScrollContainer/VBox/MetadataSection"]
+layout_mode = 2
+placeholder_text = "Character Version"
+
+[node name="CreatorNotesEdit" type="TextEdit" parent="VBox/ScrollContainer/VBox/MetadataSection"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+placeholder_text = "Creator Notes"
+
+[node name="SystemPromptEdit" type="TextEdit" parent="VBox/ScrollContainer/VBox/MetadataSection"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+placeholder_text = "System Prompt"
+
+[node name="TagsEdit" type="LineEdit" parent="VBox/ScrollContainer/VBox/MetadataSection"]
+layout_mode = 2
+placeholder_text = "Tags (comma-separated)"
+
+[node name="AlternateGreetingsBox" type="VBoxContainer" parent="VBox/ScrollContainer/VBox/MetadataSection"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBox/ScrollContainer/VBox/MetadataSection/AlternateGreetingsBox"]
+layout_mode = 2
+text = "Alternate Greetings"
+
+[node name="GreetingsList" type="ItemList" parent="VBox/ScrollContainer/VBox/MetadataSection/AlternateGreetingsBox"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="VBox/ScrollContainer/VBox/MetadataSection/AlternateGreetingsBox"]
+layout_mode = 2
+
+[node name="GreetingEdit" type="LineEdit" parent="VBox/ScrollContainer/VBox/MetadataSection/AlternateGreetingsBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Greeting text"
+
+[node name="AddGreetingButton" type="Button" parent="VBox/ScrollContainer/VBox/MetadataSection/AlternateGreetingsBox/HBox"]
+layout_mode = 2
+text = "Add"
+
+[node name="RemoveGreetingButton" type="Button" parent="VBox/ScrollContainer/VBox/MetadataSection/AlternateGreetingsBox/HBox"]
+layout_mode = 2
+text = "Remove"
+
+[node name="CharacterBookSection" type="VBoxContainer" parent="VBox/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="SectionLabel" type="Label" parent="VBox/ScrollContainer/VBox/CharacterBookSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Character Book"
+
+[node name="CreateBookButton" type="Button" parent="VBox/ScrollContainer/VBox/CharacterBookSection"]
+layout_mode = 2
+text = "Create Character Book"
+
+[node name="BookPanel" type="Panel" parent="VBox/ScrollContainer/VBox/CharacterBookSection"]
+visible = false
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="VBox/ScrollContainer/VBox/CharacterBookSection/BookPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BookNameEdit" type="LineEdit" parent="VBox/ScrollContainer/VBox/CharacterBookSection/BookPanel/VBox"]
+layout_mode = 2
+placeholder_text = "Book Name"
+
+[node name="BookDescriptionEdit" type="TextEdit" parent="VBox/ScrollContainer/VBox/CharacterBookSection/BookPanel/VBox"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+placeholder_text = "Book Description"
+
+[node name="ScanDepthSpin" type="SpinBox" parent="VBox/ScrollContainer/VBox/CharacterBookSection/BookPanel/VBox"]
+layout_mode = 2
+max_value = 1000.0
+value = 32.0
+
+[node name="Label" type="Label" parent="VBox/ScrollContainer/VBox/CharacterBookSection/BookPanel/VBox"]
+layout_mode = 2
+text = "Scan Depth"
+
+[node name="TokenBudgetSpin" type="SpinBox" parent="VBox/ScrollContainer/VBox/CharacterBookSection/BookPanel/VBox"]
+layout_mode = 2
+max_value = 100000.0
+value = 1024.0
+
+[node name="Label2" type="Label" parent="VBox/ScrollContainer/VBox/CharacterBookSection/BookPanel/VBox"]
+layout_mode = 2
+text = "Token Budget"
+
+[node name="RecursiveScanningCheck" type="CheckBox" parent="VBox/ScrollContainer/VBox/CharacterBookSection/BookPanel/VBox"]
+layout_mode = 2
+text = "Recursive Scanning"
+
+[node name="EntriesList" type="ItemList" parent="VBox/ScrollContainer/VBox/CharacterBookSection/BookPanel/VBox"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+
+[node name="EntryEditPanel" type="Panel" parent="VBox/ScrollContainer/VBox/CharacterBookSection/BookPanel/VBox"]
+visible = false
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="VBox/ScrollContainer/VBox/CharacterBookSection/BookPanel/VBox/EntryEditPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="EntryKeysEdit" type="LineEdit" parent="VBox/ScrollContainer/VBox/CharacterBookSection/BookPanel/VBox/EntryEditPanel/VBox"]
+layout_mode = 2
+placeholder_text = "Keys (comma-separated)"
+
+[node name="EntryContentEdit" type="TextEdit" parent="VBox/ScrollContainer/VBox/CharacterBookSection/BookPanel/VBox/EntryEditPanel/VBox"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+placeholder_text = "Entry Content"
+
+[node name="EntryEnabledCheck" type="CheckBox" parent="VBox/ScrollContainer/VBox/CharacterBookSection/BookPanel/VBox/EntryEditPanel/VBox"]
+layout_mode = 2
+button_pressed = true
+text = "Enabled"
+
+[node name="EntryInsertionOrderSpin" type="SpinBox" parent="VBox/ScrollContainer/VBox/CharacterBookSection/BookPanel/VBox/EntryEditPanel/VBox"]
+layout_mode = 2
+max_value = 10000.0
+
+[node name="Label" type="Label" parent="VBox/ScrollContainer/VBox/CharacterBookSection/BookPanel/VBox/EntryEditPanel/VBox"]
+layout_mode = 2
+text = "Insertion Order"
+
+[node name="AddEntryButton" type="Button" parent="VBox/ScrollContainer/VBox/CharacterBookSection/BookPanel/VBox"]
+layout_mode = 2
+text = "Add Entry"
+
+[node name="RemoveEntryButton" type="Button" parent="VBox/ScrollContainer/VBox/CharacterBookSection/BookPanel/VBox"]
+layout_mode = 2
+text = "Remove Entry"
+
+[node name="StatsSection" type="VBoxContainer" parent="VBox/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="SectionLabel" type="Label" parent="VBox/ScrollContainer/VBox/StatsSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Stats"
+
+[node name="StatsTree" type="Tree" parent="VBox/ScrollContainer/VBox/StatsSection"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+columns = 2
+column_titles_visible = true
+
+[node name="HBox" type="HBoxContainer" parent="VBox/ScrollContainer/VBox/StatsSection"]
+layout_mode = 2
+
+[node name="StatKeyEdit" type="LineEdit" parent="VBox/ScrollContainer/VBox/StatsSection/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Key"
+
+[node name="StatValueEdit" type="LineEdit" parent="VBox/ScrollContainer/VBox/StatsSection/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Value"
+
+[node name="AddStatButton" type="Button" parent="VBox/ScrollContainer/VBox/StatsSection/HBox"]
+layout_mode = 2
+text = "Add"
+
+[node name="RemoveStatButton" type="Button" parent="VBox/ScrollContainer/VBox/StatsSection/HBox"]
+layout_mode = 2
+text = "Remove"
+
+[node name="TraitsSection" type="VBoxContainer" parent="VBox/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="SectionLabel" type="Label" parent="VBox/ScrollContainer/VBox/TraitsSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Traits"
+
+[node name="TraitsList" type="ItemList" parent="VBox/ScrollContainer/VBox/TraitsSection"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="VBox/ScrollContainer/VBox/TraitsSection"]
+layout_mode = 2
+
+[node name="TraitEdit" type="LineEdit" parent="VBox/ScrollContainer/VBox/TraitsSection/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Trait name"
+
+[node name="AddTraitButton" type="Button" parent="VBox/ScrollContainer/VBox/TraitsSection/HBox"]
+layout_mode = 2
+text = "Add"
+
+[node name="RemoveTraitButton" type="Button" parent="VBox/ScrollContainer/VBox/TraitsSection/HBox"]
+layout_mode = 2
+text = "Remove"
+
+[node name="StyleSection" type="VBoxContainer" parent="VBox/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="SectionLabel" type="Label" parent="VBox/ScrollContainer/VBox/StyleSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Style"
+
+[node name="StyleTree" type="Tree" parent="VBox/ScrollContainer/VBox/StyleSection"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+columns = 2
+column_titles_visible = true
+
+[node name="HBox" type="HBoxContainer" parent="VBox/ScrollContainer/VBox/StyleSection"]
+layout_mode = 2
+
+[node name="StyleKeyEdit" type="LineEdit" parent="VBox/ScrollContainer/VBox/StyleSection/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Key"
+
+[node name="StyleValueEdit" type="LineEdit" parent="VBox/ScrollContainer/VBox/StyleSection/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Value"
+
+[node name="AddStyleButton" type="Button" parent="VBox/ScrollContainer/VBox/StyleSection/HBox"]
+layout_mode = 2
+text = "Add"
+
+[node name="RemoveStyleButton" type="Button" parent="VBox/ScrollContainer/VBox/StyleSection/HBox"]
+layout_mode = 2
+text = "Remove"
+
+[node name="TriggersSection" type="VBoxContainer" parent="VBox/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="SectionLabel" type="Label" parent="VBox/ScrollContainer/VBox/TriggersSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Triggers"
+
+[node name="TriggersList" type="ItemList" parent="VBox/ScrollContainer/VBox/TriggersSection"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+
+[node name="TriggerEditPanel" type="Panel" parent="VBox/ScrollContainer/VBox/TriggersSection"]
+visible = false
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="VBox/ScrollContainer/VBox/TriggersSection/TriggerEditPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TriggerIdEdit" type="LineEdit" parent="VBox/ScrollContainer/VBox/TriggersSection/TriggerEditPanel/VBox"]
+layout_mode = 2
+placeholder_text = "Trigger ID"
+
+[node name="TriggerNsEdit" type="LineEdit" parent="VBox/ScrollContainer/VBox/TriggersSection/TriggerEditPanel/VBox"]
+layout_mode = 2
+placeholder_text = "Namespace"
+
+[node name="TriggerWhenEdit" type="LineEdit" parent="VBox/ScrollContainer/VBox/TriggersSection/TriggerEditPanel/VBox"]
+layout_mode = 2
+placeholder_text = "When (event)"
+
+[node name="TriggerNarrationEdit" type="TextEdit" parent="VBox/ScrollContainer/VBox/TriggersSection/TriggerEditPanel/VBox"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+placeholder_text = "Narration"
+
+[node name="TriggerPrioritySpin" type="SpinBox" parent="VBox/ScrollContainer/VBox/TriggersSection/TriggerEditPanel/VBox"]
+layout_mode = 2
+max_value = 1000.0
+
+[node name="Label" type="Label" parent="VBox/ScrollContainer/VBox/TriggersSection/TriggerEditPanel/VBox"]
+layout_mode = 2
+text = "Priority"
+
+[node name="TriggerCooldownSpin" type="SpinBox" parent="VBox/ScrollContainer/VBox/TriggersSection/TriggerEditPanel/VBox"]
+layout_mode = 2
+max_value = 1000.0
+step = 0.1
+
+[node name="Label2" type="Label" parent="VBox/ScrollContainer/VBox/TriggersSection/TriggerEditPanel/VBox"]
+layout_mode = 2
+text = "Cooldown"
+
+[node name="ActionBox" type="VBoxContainer" parent="VBox/ScrollContainer/VBox/TriggersSection/TriggerEditPanel/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBox/ScrollContainer/VBox/TriggersSection/TriggerEditPanel/VBox/ActionBox"]
+layout_mode = 2
+text = "Action"
+
+[node name="VerbEdit" type="LineEdit" parent="VBox/ScrollContainer/VBox/TriggersSection/TriggerEditPanel/VBox/ActionBox"]
+layout_mode = 2
+placeholder_text = "Verb"
+
+[node name="TargetEdit" type="LineEdit" parent="VBox/ScrollContainer/VBox/TriggersSection/TriggerEditPanel/VBox/ActionBox"]
+layout_mode = 2
+placeholder_text = "Target"
+
+[node name="HBox" type="HBoxContainer" parent="VBox/ScrollContainer/VBox/TriggersSection"]
+layout_mode = 2
+
+[node name="AddTriggerButton" type="Button" parent="VBox/ScrollContainer/VBox/TriggersSection/HBox"]
+layout_mode = 2
+text = "Add Trigger"
+
+[node name="RemoveTriggerButton" type="Button" parent="VBox/ScrollContainer/VBox/TriggersSection/HBox"]
+layout_mode = 2
+text = "Remove Trigger"
+
+[node name="ExtensionsSection" type="VBoxContainer" parent="VBox/ScrollContainer/VBox"]
+layout_mode = 2
+
+[node name="SectionLabel" type="Label" parent="VBox/ScrollContainer/VBox/ExtensionsSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Extensions"
+
+[node name="ExtensionsTree" type="Tree" parent="VBox/ScrollContainer/VBox/ExtensionsSection"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+columns = 2
+column_titles_visible = true
+
+[node name="HBox" type="HBoxContainer" parent="VBox/ScrollContainer/VBox/ExtensionsSection"]
+layout_mode = 2
+
+[node name="ExtensionKeyEdit" type="LineEdit" parent="VBox/ScrollContainer/VBox/ExtensionsSection/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Key"
+
+[node name="ExtensionValueEdit" type="LineEdit" parent="VBox/ScrollContainer/VBox/ExtensionsSection/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Value"
+
+[node name="AddExtensionButton" type="Button" parent="VBox/ScrollContainer/VBox/ExtensionsSection/HBox"]
+layout_mode = 2
+text = "Add"
+
+[node name="RemoveExtensionButton" type="Button" parent="VBox/ScrollContainer/VBox/ExtensionsSection/HBox"]
+layout_mode = 2
+text = "Remove"

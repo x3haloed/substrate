@@ -9,6 +9,8 @@ class_name Game
 @onready var settings_panel: SettingsPanel = $UI/SettingsPanel
 @onready var settings_button: Button = $UI/SettingsButton
 @onready var action_queue_panel: ActionQueuePanel = $UI/ActionQueuePanel
+@onready var card_editor: CardEditor = $UI/CardEditor
+@onready var editor_button: Button = $UI/EditorButton
 
 var llm_settings: LLMSettings
 var llm_client: LLMClient
@@ -48,6 +50,9 @@ func _ready():
 	lore_panel.set_world_db(world_db)
 	settings_panel.settings_saved.connect(_on_settings_saved)
 	settings_button.pressed.connect(_on_settings_button_pressed)
+	card_editor.closed.connect(_on_card_editor_closed)
+	if editor_button:
+		editor_button.pressed.connect(_on_editor_button_pressed)
 	
 	# Setup autosave
 	_setup_autosave()
@@ -180,6 +185,33 @@ func _on_autosave_timer():
 	if world_db:
 		world_db.autosave()
 		print("Autosave completed")
+
+func _on_editor_button_pressed():
+	# Hide main game UI
+	chat_window.visible = false
+	choice_panel.visible = false
+	lore_panel.visible = false
+	settings_panel.visible = false
+	action_queue_panel.visible = false
+	settings_button.visible = false
+	if editor_button:
+		editor_button.visible = false
+	
+	# Show editor
+	card_editor.visible = true
+
+func _on_card_editor_closed():
+	# Show main game UI
+	chat_window.visible = true
+	choice_panel.visible = true
+	lore_panel.visible = true
+	action_queue_panel.visible = true
+	settings_button.visible = true
+	if editor_button:
+		editor_button.visible = true
+	
+	# Hide editor
+	card_editor.visible = false
 
 func _notification(what):
 	# Save on exit
