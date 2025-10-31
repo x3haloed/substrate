@@ -6,6 +6,7 @@ class_name LLMSettings
 @export var api_base_url: String = "https://api.openai.com/v1"
 @export var api_key: String = ""
 @export var model: String = "gpt-4o-mini"
+@export var debug_trace: bool = false
 
 const PROVIDER_URLS = {
 	"openai": "https://api.openai.com/v1",

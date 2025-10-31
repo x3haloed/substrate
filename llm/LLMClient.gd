@@ -51,6 +51,14 @@ func make_request(messages: Array[Dictionary], model_override: String = "", json
 			headers.append("Authorization: Bearer " + settings.api_key)
 	
 	var json_string = JSON.stringify(request_body)
+	if settings.debug_trace:
+		print("=== LLM REQUEST ===")
+		print("Provider: " + settings.provider)
+		print("Model: " + (model_override if model_override != "" else settings.model))
+		print("Messages:\n" + JSON.stringify(messages, "\t"))
+		if json_schema.size() > 0:
+			print("JSON Schema:\n" + JSON.stringify(json_schema, "\t"))
+		print("Request Body:\n" + json_string)
 	
 	var error = http_request.request(url, headers, HTTPClient.METHOD_POST, json_string)
 	if error != OK:
@@ -92,6 +100,15 @@ func _on_request_completed(result: int, response_code: int, _headers: PackedStri
 		var key = pending_response.keys()[0]
 		callback = pending_response[key]
 	
+	var body_text = ""
+	if body and body.size() > 0:
+		body_text = body.get_string_from_utf8()
+	if settings.debug_trace:
+		print("=== LLM RESPONSE ===")
+		print("HTTP Result: " + str(result) + ", Code: " + str(response_code))
+		if body_text != "":
+			print("Raw Body:\n" + body_text)
+
 	if result != HTTPRequest.RESULT_SUCCESS:
 		var error_msg = "HTTP request failed: " + str(result)
 		if callback:
@@ -112,7 +129,7 @@ func _on_request_completed(result: int, response_code: int, _headers: PackedStri
 		return
 	
 	var json = JSON.new()
-	var parse_error = json.parse(body.get_string_from_utf8())
+	var parse_error = json.parse(body_text)
 	if parse_error != OK:
 		var error_msg = "Failed to parse JSON response"
 		if callback:

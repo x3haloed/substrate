@@ -275,6 +275,9 @@ func _parse_response(json_text: String) -> ResolutionEnvelope:
 	var parse_error = json.parse(json_text)
 	if parse_error != OK:
 		push_error("Failed to parse LLM response: " + json_text)
+		if llm_client and llm_client.settings and llm_client.settings.debug_trace:
+			print("*** LLM PARSE ERROR INPUT ***")
+			print(json_text)
 		return _create_error_envelope("Invalid JSON response")
 	
 	var data = json.data
@@ -284,9 +287,18 @@ func _parse_response(json_text: String) -> ResolutionEnvelope:
 	if data.has("narration") and data.narration is Array:
 		for narr_data in data.narration:
 			var narr = NarrationEvent.new()
-			narr.style = narr_data.get("style", "world")
-			narr.text = narr_data.get("text", "")
-			narr.speaker = narr_data.get("speaker", "")
+			var style_val = narr_data.get("style", "world")
+			if typeof(style_val) != TYPE_STRING:
+				style_val = "world"
+			narr.style = style_val
+			var text_val = narr_data.get("text", "")
+			if typeof(text_val) != TYPE_STRING:
+				text_val = ""
+			narr.text = text_val
+			var speaker_val = narr_data.get("speaker", "")
+			if typeof(speaker_val) != TYPE_STRING:
+				speaker_val = ""
+			narr.speaker = speaker_val
 			envelope.narration.append(narr)
 	
 	# Parse patches
