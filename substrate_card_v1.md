@@ -100,6 +100,9 @@ All fields below are on the `CharacterProfile` resource unless specified.
 - character_version: String (optional)
 - portrait_base64: String (optional; PNG image bytes encoded in base64)
   - Editor convenience: an inspector-only `portrait_image: Texture2D` proxy is exposed on `CharacterProfile` to preview and set the portrait without manual encoding. Changes are stored back into `portrait_base64` and the proxy itself is not serialized.
+- thumbnail_1024_base64: String (optional; precomputed PNG thumbnail, sRGB 8‑bit, exactly 1024×1024; storage-only; auto-generated when portrait is set)
+- thumbnail_512_base64: String (optional; precomputed PNG thumbnail, sRGB 8‑bit, exactly 512×512; storage-only; auto-generated when portrait is set)
+- thumbnail_256_base64: String (optional; precomputed PNG thumbnail, sRGB 8‑bit, exactly 256×256; storage-only; auto-generated when portrait is set)
 - character_book: Resource `CharacterBook` (optional; see below)
 - stats: Dictionary<String, Variant> (optional; arbitrary keys like `mood`, `bond_with_player`, `favor_guildA`)
 - traits: Array[String] (optional; stable descriptors that inform behavior)
@@ -182,6 +185,13 @@ Mapping (V2):
 - `data.character_book` → `CharacterBook` + `CharacterBookEntry` resources
 - `data.extensions` → copied into `extensions`
 - Exclude `scenario` and `post_history_instructions`
+
+V2 in PNG (embedded via "Chara"):
+- Substrate recognizes CC v2 cards embedded in PNG/APNG: a base64‑encoded JSON string under the `Chara` text metadata key.
+- Import behavior:
+  - Extract `Chara` payload → base64‑decode → parse JSON → apply V2 mapping above.
+  - Load the PNG pixels as the portrait and set via the editor proxy (`portrait_image`) so `portrait_base64` and all `thumbnail_*_base64` fields are generated automatically.
+  - The resulting `.scrd`/`.tres` resource does not re‑embed the `Chara` JSON; portrait data is stored only once in `portrait_base64` (plus precomputed thumbnails).
 
 Triggers/stats:
 - CC V1/V2 have no native `stats`/`triggers`; importer MAY infer defaults (e.g., empty dict/array). Users can extend after import.
