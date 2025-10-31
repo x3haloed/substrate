@@ -37,7 +37,7 @@ Your job is to write a single first-person reply as the specified character.
 Output MUST be a JSON object matching this schema:
 {
   "narration": [
-    {"style": "npc", "speaker": "<target_entity_id>", "text": "<the character's spoken line only>"}
+	{"style": "npc", "speaker": "<target_entity_id>", "text": "<the character's spoken line only>"}
   ],
   "patches": [ {"op": "...", "path": "...", "value": ... } ]
 }
