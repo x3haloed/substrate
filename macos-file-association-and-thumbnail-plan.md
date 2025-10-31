@@ -382,4 +382,89 @@ qlmanage -p /path/to/example.scrt
   - Zip or package for distribution.
 - Keep the extension target as a separate Xcode project to avoid coupling with Godot export.
 
+#### CI Integration Blueprint (macOS)
+- Directory conventions:
+  - `platform/macos/SubstrateThumbnail.xcodeproj/` — Xcode target for Quick Look extension
+  - `platform/macos/InfoInject.plist` — contains only `UTTypeExportedTypeDeclarations` and `CFBundleDocumentTypes`
+  - `platform/macos/Substrate.entitlements` — host app entitlements (if needed)
+  - `scripts/postexport_embed_and_sign_macos.sh` — merges, embeds, codesigns, verifies
+  - `build/macos/` — CI output (exported `.app`, DerivedData, built `.appex`)
+
+- Godot export (Release):
+```bash
+godot --headless --path "$(pwd)" \
+  --export-release "macOS (CI)" "build/macos/Substrate.app"
+```
+
+- Build Swift Quick Look extension:
+```bash
+xcodebuild \
+  -project platform/macos/SubstrateThumbnail.xcodeproj \
+  -scheme SubstrateThumbnail \
+  -configuration Release \
+  -destination 'platform=macOS' \
+  -derivedDataPath build/macos/DerivedData \
+  build
+```
+
+- Post‑export embed & sign (expects env vars):
+```bash
+# Required env (example):
+#   CODESIGN_IDENTITY="Developer ID Application: Your Org (TEAMID)"
+#   APP_ENTITLEMENTS="platform/macos/Substrate.entitlements"
+
+chmod +x scripts/postexport_embed_and_sign_macos.sh
+scripts/postexport_embed_and_sign_macos.sh
+```
+
+- Minimal GitHub Actions example:
+```yaml
+name: macOS Build
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Godot
+        run: |
+          brew install --cask godot@4
+          ln -s "/Applications/Godot.app/Contents/MacOS/Godot" /usr/local/bin/godot
+
+      - name: Export Godot app
+        run: |
+          godot --headless --path "$(pwd)" --export-release "macOS (CI)" "build/macos/Substrate.app"
+
+      - name: Build Thumbnail extension
+        run: |
+          xcodebuild \
+            -project platform/macos/SubstrateThumbnail.xcodeproj \
+            -scheme SubstrateThumbnail \
+            -configuration Release \
+            -destination 'platform=macOS' \
+            -derivedDataPath build/macos/DerivedData \
+            build
+
+      - name: Embed, sign, verify
+        env:
+          CODESIGN_IDENTITY: ${{ secrets.MACOS_CODESIGN_IDENTITY }}
+        run: |
+          chmod +x scripts/postexport_embed_and_sign_macos.sh
+          scripts/postexport_embed_and_sign_macos.sh
+
+      - name: Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Substrate-macOS
+          path: build/macos/Substrate.app
+```
+
+- Optional notarization for non‑MAS distribution:
+```bash
+xcrun notarytool submit "build/macos/Substrate.app" --keychain-profile AC_PASSWORD --wait
+xcrun stapler staple "build/macos/Substrate.app"
+```
+
 
