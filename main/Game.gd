@@ -114,8 +114,7 @@ func _on_message_sent(text: String):
 		action.target = addressed_target
 		action.scene = world_db.flags.get("current_scene", "")
 		action.context = {"utterance": text}
-		var envelope = await director.process_player_action(action)
-		_display_envelope(envelope)
+		await director.process_player_action(action)
 		return
 	
 	# Parse simple commands and emit player.command.* events

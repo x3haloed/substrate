@@ -28,7 +28,28 @@ Rules:
 - Patches must follow JSON Patch format exactly. Use op=add when creating a new key; use op=replace only when the key already exists.
 - Entity patches are restricted to these domains: /entities/{id}/props, /entities/{id}/state, /entities/{id}/lore.
 - Character stat changes must use: /characters/{id}/stats/{path}. Do not modify character stats via /entities.
-- Narration should reflect the action's consequences"""
+- Narration should reflect the action's consequences."""
+
+# Character dialog writer for NPCs
+const NPC_SYSTEM_PROMPT = """You are a character dialog writer.
+Your job is to write a single first-person reply as the specified character.
+
+Output MUST be a JSON object matching this schema:
+{
+  "narration": [
+    {"style": "npc", "speaker": "<target_entity_id>", "text": "<the character's spoken line only>"}
+  ],
+  "patches": [ {"op": "...", "path": "...", "value": ... } ]
+}
+
+Rules:
+- Reply strictly in first-person as the character; no out-of-character commentary.
+- Do not include world narration or stage directions; write only what the character says.
+- Keep it concise and true to the character's personality, traits, and style.
+- If relevant, you MAY include JSON patches to update state as consequences of speech or minor reactions.
+- You MAY reference scene entities by their exact IDs in square brackets like [barkeep]; do not invent new IDs.
+- Do NOT include code fences or any extra text outside the JSON object.
+"""
 
 func _init(p_llm_client: LLMClient, p_world_db: WorldDB):
 	llm_client = p_llm_client
@@ -124,12 +145,78 @@ func build_director_prompt(action: ActionRequest, scene: SceneGraph, character_c
 		{"role": "system", "content": prompt}
 	]
 
+# Build NPC dialog prompt when player talks to an NPC
+func build_npc_prompt(action: ActionRequest, scene: SceneGraph, character: CharacterProfile) -> Array[Dictionary]:
+	var scene_info = {
+		"scene_id": scene.scene_id,
+		"description": scene.description,
+		"entities": _serialize_entities(scene.entities),
+		"rules": scene.rules
+	}
+
+	var character_info = {
+		"id": action.target,
+		"name": character.name,
+		"description": character.description,
+		"personality": character.personality,
+		"traits": character.traits,
+		"style": character.style
+	}
+
+	var user_context: Dictionary = {
+		"player_message": str(action.context.get("utterance", "")),
+		"character": character_info,
+		"scene": scene_info
+	}
+
+	# Include brief character book if present
+	if character.character_book:
+		var summary = _summarize_character_book(character.character_book)
+		if summary != "":
+			user_context["lorebook_summary"] = summary
+
+	return [
+		{"role": "system", "content": NPC_SYSTEM_PROMPT},
+		{"role": "user", "content": JSON.stringify(user_context, "\t")}
+	]
+
 func process_action(action: ActionRequest, character_context: Dictionary = {}) -> ResolutionEnvelope:
 	var scene = world_db.get_scene(action.scene)
 	if not scene:
 		push_error("Scene not found: " + action.scene)
 		return _create_error_envelope("Scene not found")
 	
+	# Branch: NPC dialog
+	var target_entity := scene.get_entity(action.target)
+	var actor_entity := scene.get_entity(action.actor)
+	# Player addressing an NPC
+	if action.actor == "player" and action.verb == "talk" and target_entity and target_entity.type_name == "npc":
+		var target_character = world_db.get_character(action.target)
+		if target_character:
+			var npc_messages = build_npc_prompt(action, scene, target_character)
+			var npc_response = await _make_llm_request(npc_messages, true)
+			if npc_response != "":
+				var npc_envelope = _parse_response(npc_response)
+				# Ensure speaker/style are set correctly
+				if npc_envelope.narration.size() > 0:
+					npc_envelope.narration[0].style = "npc"
+					npc_envelope.narration[0].speaker = action.target
+				return npc_envelope
+			return _create_error_envelope("Empty NPC response")
+	# NPC taking a talk action (NPC's turn)
+	elif action.verb == "talk" and actor_entity and actor_entity.type_name == "npc":
+		var actor_character = world_db.get_character(action.actor)
+		if actor_character:
+			var npc_messages_actor = build_npc_prompt(action, scene, actor_character)
+			var npc_response_actor = await _make_llm_request(npc_messages_actor, true)
+			if npc_response_actor != "":
+				var npc_envelope_actor = _parse_response(npc_response_actor)
+				if npc_envelope_actor.narration.size() > 0:
+					npc_envelope_actor.narration[0].style = "npc"
+					npc_envelope_actor.narration[0].speaker = action.actor
+				return npc_envelope_actor
+			return _create_error_envelope("Empty NPC response")
+
 	# Build full character context if actor is an NPC
 	var full_context = character_context.duplicate()
 	if action.actor != "player":

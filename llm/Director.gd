@@ -94,6 +94,20 @@ func process_player_action(action: ActionRequest) -> ResolutionEnvelope:
 	
 	# Process through PromptEngine with character context
 	var envelope = await prompt_engine.process_action(action, character_context)
+
+	# Ensure voice formatting for talk: speaker is target when player talks; otherwise it's the actor
+	if action.verb == "talk":
+		var speaker_id = action.target if action.actor == "player" else action.actor
+		if envelope.narration.size() == 0:
+			var n = NarrationEvent.new()
+			n.style = "npc"
+			n.speaker = speaker_id
+			n.text = "..."
+			envelope.narration.append(n)
+		else:
+			# Force style/speaker for first entry
+			envelope.narration[0].style = "npc"
+			envelope.narration[0].speaker = speaker_id
 	
 	# Apply patches to world DB
 	_apply_patches(envelope.patches)
