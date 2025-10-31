@@ -10,7 +10,7 @@ scenes = {
 "tavern_common": "res://data/scenes/tavern_common.tres"
 }
 entities = {
-"archer": {
+"asha": {
 "seen": false,
 "type": "npc"
 },
@@ -19,7 +19,7 @@ entities = {
 "seen": true,
 "type": "npc"
 },
-"fool": {
+"tasmin": {
 "seen": false,
 "type": "npc"
 },
@@ -31,6 +31,6 @@ entities = {
 }
 }
 characters = {
-"archer": "res://data/characters/archer.tres",
-"fool": "res://data/characters/fool.tres"
+"asha": "res://data/characters/asha.tres",
+"tasmin": "res://data/characters/tamsin.tres"
 }

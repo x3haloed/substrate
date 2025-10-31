@@ -35,22 +35,22 @@ props = {
 
 [sub_resource type="Resource" id="4"]
 script = ExtResource("2")
-id = "fool"
+id = "tasmin"
 type_name = "npc"
 verbs = Array[String](["talk"])
 tags = Array[String](["human", "companion"])
 props = {
-"description": "A clumsy fool who brings chaos wherever they go"
+"description": "A bright-eyed trickster who turns mishaps into opportunities"
 }
 
 [sub_resource type="Resource" id="5"]
 script = ExtResource("2")
-id = "archer"
+id = "asha"
 type_name = "npc"
 verbs = Array[String](["talk"])
 tags = Array[String](["human", "companion"])
 props = {
-"description": "A vigilant archer who watches over allies"
+"description": "A vigilant archer with quiet, watchful resolve"
 }
 
 [resource]

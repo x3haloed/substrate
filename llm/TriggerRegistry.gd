@@ -209,4 +209,3 @@ func is_global_event(event: String) -> bool:
 func register_global_event(event: String):
 	if not event in global_events:
 		global_events.append(event)
-
