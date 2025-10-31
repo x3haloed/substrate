@@ -16,7 +16,7 @@ func _init(p_settings: LLMSettings):
 	add_child(http_request)
 	http_request.request_completed.connect(_on_request_completed)
 
-func make_request(messages: Array[Dictionary], model_override: String = "", expect_json: bool = false) -> String:
+func make_request(messages: Array[Dictionary], model_override: String = "", json_schema: Dictionary = {}) -> String:
 	var url = settings.get_api_url() + "/chat/completions"
 	
 	var request_body = {
@@ -24,8 +24,20 @@ func make_request(messages: Array[Dictionary], model_override: String = "", expe
 		"messages": messages,
 		"temperature": 0.7,
 	}
-	if expect_json:
-		request_body["response_format"] = {"type": "json_object"}
+	# Structured outputs: if a JSON schema is provided, enable schema-constrained responses when supported
+	if json_schema.size() > 0:
+		if settings.provider == "openrouter":
+			request_body["response_format"] = {
+				"type": "json_schema",
+				"json_schema": {
+					"name": "structured_output",
+					"strict": true,
+					"schema": json_schema
+				}
+			}
+		else:
+			# Fallback to JSON mode for providers/models that don't support JSON Schema on chat completions
+			request_body["response_format"] = {"type": "json_object"}
 	
 	var headers = [
 		"Content-Type: application/json"

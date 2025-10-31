@@ -194,7 +194,7 @@ func process_action(action: ActionRequest, character_context: Dictionary = {}) -
 		var target_character = world_db.get_character(action.target)
 		if target_character:
 			var npc_messages = build_npc_prompt(action, scene, target_character)
-			var npc_response = await _make_llm_request(npc_messages, true)
+			var npc_response = await _make_llm_request(npc_messages, _resolution_envelope_schema())
 			if npc_response != "":
 				var npc_envelope = _parse_response(npc_response)
 				# Ensure speaker/style are set correctly
@@ -208,7 +208,7 @@ func process_action(action: ActionRequest, character_context: Dictionary = {}) -
 		var actor_character = world_db.get_character(action.actor)
 		if actor_character:
 			var npc_messages_actor = build_npc_prompt(action, scene, actor_character)
-			var npc_response_actor = await _make_llm_request(npc_messages_actor, true)
+			var npc_response_actor = await _make_llm_request(npc_messages_actor, _resolution_envelope_schema())
 			if npc_response_actor != "":
 				var npc_envelope_actor = _parse_response(npc_response_actor)
 				if npc_envelope_actor.narration.size() > 0:
@@ -237,7 +237,7 @@ func process_action(action: ActionRequest, character_context: Dictionary = {}) -
 					full_context["book_summary"] = book_summary
 	
 	var messages = build_director_prompt(action, scene, full_context)
-	var response_text = await _make_llm_request(messages, true)
+	var response_text = await _make_llm_request(messages, _resolution_envelope_schema())
 	
 	if response_text == "":
 		return _create_error_envelope("LLM request failed")
@@ -264,11 +264,11 @@ func _summarize_character_book(book: CharacterBook) -> String:
 
 func process_narrator_request(context: Dictionary) -> String:
 	var messages = build_narrator_prompt(context)
-	var response_text = await _make_llm_request(messages, false)
+	var response_text = await _make_llm_request(messages)
 	return response_text
 
-func _make_llm_request(messages: Array[Dictionary], expect_json: bool = false) -> String:
-	return await llm_client.make_request(messages, "", expect_json)
+func _make_llm_request(messages: Array[Dictionary], json_schema: Dictionary = {}) -> String:
+	return await llm_client.make_request(messages, "", json_schema)
 
 func _parse_response(json_text: String) -> ResolutionEnvelope:
 	var json = JSON.new()
@@ -327,3 +327,61 @@ func _create_error_envelope(message: String) -> ResolutionEnvelope:
 	narr.text = "[Error: " + message + "]"
 	envelope.narration.append(narr)
 	return envelope
+
+## JSON Schema for enforcing structured outputs from the LLM
+func _resolution_envelope_schema() -> Dictionary:
+	return {
+		"type": "object",
+		"properties": {
+			"narration": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"style": {"type": "string", "enum": ["world", "npc"]},
+						"text": {"type": "string"},
+						"speaker": {"type": ["string", "null"]}
+					},
+					"required": ["style", "text", "speaker"],
+					"additionalProperties": false
+				}
+			},
+			"patches": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"op": {"type": "string"},
+						"path": {"type": "string"},
+						"value": {
+							"anyOf": [
+								{"type": "string"},
+								{"type": "number"},
+								{"type": "boolean"},
+								{"type": "object"},
+								{"type": "array"},
+								{"type": "null"}
+							]
+						}
+					},
+					"required": ["op", "path", "value"],
+					"additionalProperties": false
+				}
+			},
+			"ui_choices": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"verb": {"type": "string"},
+						"target": {"type": "string"},
+						"label": {"type": "string"}
+					},
+					"required": ["verb", "target", "label"],
+					"additionalProperties": false
+				}
+			}
+		},
+		"required": ["narration", "patches", "ui_choices"],
+		"additionalProperties": false
+	}
