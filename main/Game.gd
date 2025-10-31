@@ -89,6 +89,16 @@ func _display_envelope(envelope: ResolutionEnvelope):
 				entity_ids.append(e.id)
 			tagged_text = Narrator.auto_tag_entities(narr.text, entity_ids)
 		chat_window.add_message(tagged_text, narr.style, narr.speaker)
+		# Record narration into world history and recency flags for freeform inference
+		world_db.add_history_entry({
+			"event": "narration",
+			"style": narr.style,
+			"speaker": narr.speaker,
+			"text": narr.text
+		})
+		if narr.style == "npc":
+			world_db.flags["last_npc_speaker"] = narr.speaker
+			world_db.flags["last_npc_line"] = narr.text
 	
 	# Update choice panel
 	choice_panel.set_choices(envelope.ui_choices)
@@ -105,6 +115,12 @@ func _on_action_selected(verb: String, target: String):
 	await director.process_player_action(action)
 
 func _on_message_sent(text: String):
+	# Track the player's raw text for freeform inference
+	world_db.flags["last_player_line"] = text
+	world_db.add_history_entry({
+		"event": "player_text",
+		"text": text
+	})
 	# If the user addressed a specific entity, route as a talk action
 	var addressed_target = chat_window.get_selected_address()
 	if addressed_target != "":

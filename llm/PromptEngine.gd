@@ -57,9 +57,33 @@ func _init(p_llm_client: LLMClient, p_world_db: WorldDB):
 
 func build_narrator_prompt(scene_context: Dictionary) -> Array[Dictionary]:
 	var brief := format_scene_brief(scene_context)
+	# Build recent chat snapshot to give narrator strong situational awareness
+	var recent: Array[Dictionary] = []
+	var max_messages = 12
+	for i in range(world_db.history.size() - 1, -1, -1):
+		var h = world_db.history[i]
+		if not (h is Dictionary):
+			continue
+		var ev = str(h.get("event", ""))
+		if ev == "narration" or ev == "player_text":
+			recent.insert(0, {
+				"event": ev,
+				"style": h.get("style", ""),
+				"speaker": h.get("speaker", ""),
+				"text": h.get("text", "")
+			})
+			if recent.size() >= max_messages:
+				break
+	var chat_snapshot = {
+		"recent_messages": recent,
+		"last_npc_speaker": world_db.flags.get("last_npc_speaker", ""),
+		"last_npc_line": world_db.flags.get("last_npc_line", ""),
+		"last_player_line": world_db.flags.get("last_player_line", "")
+	}
+	var user_content = "Scene brief:\n" + brief + "\n\n" + "Recent chat snapshot:\n" + JSON.stringify(chat_snapshot, "\t") + "\n\nWrite a concise atmospheric paragraph (3-5 sentences)."
 	return [
 		{"role": "system", "content": NARRATOR_SYSTEM_PROMPT + "\n\n" + "Respond only with prose. Do not output JSON or code fences."},
-		{"role": "user", "content": "Scene brief:\n" + brief + "\n\nWrite a concise atmospheric paragraph (3-5 sentences)."}
+		{"role": "user", "content": user_content}
 	]
 
 ## Convert scene context JSON into a human-friendly brief to nudge prose outputs
@@ -188,6 +212,31 @@ func build_freeform_prompt(scene: SceneGraph, player_text: String) -> Array[Dict
 		"entities": _serialize_entities(scene.entities),
 		"rules": scene.rules
 	}
+	# Build a chat snapshot from recent world history so the model can infer implied addresses
+	var recent: Array[Dictionary] = []
+	var max_messages = 12
+	for i in range(world_db.history.size() - 1, -1, -1):
+		var h = world_db.history[i]
+		if not (h is Dictionary):
+			continue
+		var ev = str(h.get("event", ""))
+		if ev == "narration" or ev == "player_text":
+			# Prepend by inserting at 0 to keep chronological order
+			recent.insert(0, {
+				"event": ev,
+				"style": h.get("style", ""),
+				"speaker": h.get("speaker", ""),
+				"text": h.get("text", "")
+			})
+			if recent.size() >= max_messages:
+				break
+	var chat_snapshot = {
+		"recent_messages": recent,
+		"last_npc_speaker": world_db.flags.get("last_npc_speaker", ""),
+		"last_npc_line": world_db.flags.get("last_npc_line", ""),
+		"last_player_line": world_db.flags.get("last_player_line", "")
+	}
+
 	var instructions = """
 You are the Director, arbitrating freeform player input without an addressed target.
 
@@ -201,10 +250,15 @@ Rules:
 - Maintain world consistency and scene rules.
 - Prefer concise but evocative narration.
 - Do not invent entity IDs; only use those present in the scene.
+ - When the player's text looks like a reply and no addressee is explicit, prefer responding to last_npc_speaker from chat_snapshot.
 """
 	return [
 		{"role": "system", "content": instructions},
-		{"role": "user", "content": JSON.stringify({"scene": scene_info, "player_text": player_text}, "\t")}
+		{"role": "user", "content": JSON.stringify({
+			"scene": scene_info,
+			"chat_snapshot": chat_snapshot,
+			"player_text": player_text
+		}, "\t")}
 	]
 
 func process_action(action: ActionRequest, character_context: Dictionary = {}) -> ResolutionEnvelope:
