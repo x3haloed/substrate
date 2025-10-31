@@ -14,6 +14,7 @@ var current_path: String = ""  # Path for save (without .scrd extension)
 var save_file_dialog: FileDialog
 var open_file_dialog: FileDialog
 var import_file_dialog: FileDialog
+var portrait_file_dialog: FileDialog
 
 # Core fields
 @onready var name_edit: LineEdit = $VBox/ScrollContainer/VBox/CoreSection/NameEdit
@@ -25,6 +26,9 @@ var import_file_dialog: FileDialog
 # Metadata fields
 @onready var creator_edit: LineEdit = $VBox/ScrollContainer/VBox/MetadataSection/CreatorEdit
 @onready var character_version_edit: LineEdit = $VBox/ScrollContainer/VBox/MetadataSection/CharacterVersionEdit
+@onready var portrait_preview: TextureRect = $VBox/ScrollContainer/VBox/MetadataSection/PortraitSection/HBox/PortraitPreview
+@onready var set_portrait_button: Button = $VBox/ScrollContainer/VBox/MetadataSection/PortraitSection/HBox/VBox/SetPortraitButton
+@onready var clear_portrait_button: Button = $VBox/ScrollContainer/VBox/MetadataSection/PortraitSection/HBox/VBox/ClearPortraitButton
 @onready var creator_notes_edit: TextEdit = $VBox/ScrollContainer/VBox/MetadataSection/CreatorNotesEdit
 @onready var system_prompt_edit: TextEdit = $VBox/ScrollContainer/VBox/MetadataSection/SystemPromptEdit
 @onready var tags_edit: LineEdit = $VBox/ScrollContainer/VBox/MetadataSection/TagsEdit
@@ -114,6 +118,8 @@ func _ready():
 	# Connect metadata buttons
 	add_greeting_button.pressed.connect(_on_add_greeting_pressed)
 	remove_greeting_button.pressed.connect(_on_remove_greeting_pressed)
+	set_portrait_button.pressed.connect(_on_set_portrait_pressed)
+	clear_portrait_button.pressed.connect(_on_clear_portrait_pressed)
 	
 	# Connect character book buttons
 	create_book_button.pressed.connect(_on_create_book_pressed)
@@ -195,6 +201,19 @@ func _setup_file_dialogs():
 	import_file_dialog.file_selected.connect(_on_import_file_selected)
 	add_child(import_file_dialog)
 
+	# Portrait image dialog (allow common image types Godot can load)
+	portrait_file_dialog = FileDialog.new()
+	portrait_file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	portrait_file_dialog.add_filter("*.png ; PNG Images")
+	portrait_file_dialog.add_filter("*.jpg, *.jpeg ; JPEG Images")
+	portrait_file_dialog.add_filter("*.webp ; WebP Images")
+	portrait_file_dialog.add_filter("*.bmp ; BMP Images")
+	portrait_file_dialog.add_filter("*.tga ; TGA Images")
+	portrait_file_dialog.add_filter("*.* ; All Files")
+	portrait_file_dialog.access = FileDialog.ACCESS_FILESYSTEM
+	portrait_file_dialog.file_selected.connect(_on_portrait_file_selected)
+	add_child(portrait_file_dialog)
+
 func _on_import_pressed():
 	import_file_dialog.popup_centered_ratio(0.75)
 
@@ -206,6 +225,26 @@ func _on_import_file_selected(path: String):
 	current_profile = imported
 	current_path = ""  # New imported profile has no save path yet
 	_load_profile_to_ui()
+
+func _on_set_portrait_pressed():
+	portrait_file_dialog.popup_centered_ratio(0.75)
+
+func _on_portrait_file_selected(path: String):
+	# Load image from disk and set as portrait
+	var img := Image.new()
+	var err := img.load(path)
+	if err != OK:
+		push_error("Failed to load image: " + path)
+		return
+	var tex := ImageTexture.create_from_image(img)
+	if current_profile and tex:
+		current_profile.set_portrait_texture(tex)
+		portrait_preview.texture = current_profile.get_portrait_texture()
+
+func _on_clear_portrait_pressed():
+	if current_profile:
+		current_profile.clear_portrait()
+		portrait_preview.texture = null
 
 func create_new_profile():
 	current_profile = CharacterProfile.new()
@@ -256,6 +295,12 @@ func _load_profile_to_ui():
 	
 	# Extensions
 	_update_extensions_tree()
+
+	# Portrait preview
+	if current_profile:
+		# Try to warm cache and set texture
+		current_profile.warm_portrait_cache()
+		portrait_preview.texture = current_profile.get_portrait_texture()
 
 func _update_character_book_ui():
 	if current_profile.character_book:

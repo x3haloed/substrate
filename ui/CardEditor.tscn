@@ -115,6 +115,33 @@ placeholder_text = "Creator"
 layout_mode = 2
 placeholder_text = "Character Version"
 
+[node name="PortraitSection" type="VBoxContainer" parent="VBox/ScrollContainer/VBox/MetadataSection"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBox/ScrollContainer/VBox/MetadataSection/PortraitSection"]
+layout_mode = 2
+text = "Portrait"
+
+[node name="HBox" type="HBoxContainer" parent="VBox/ScrollContainer/VBox/MetadataSection/PortraitSection"]
+layout_mode = 2
+
+[node name="PortraitPreview" type="TextureRect" parent="VBox/ScrollContainer/VBox/MetadataSection/PortraitSection/HBox"]
+custom_minimum_size = Vector2(128, 128)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="VBox" type="VBoxContainer" parent="VBox/ScrollContainer/VBox/MetadataSection/PortraitSection/HBox"]
+layout_mode = 2
+
+[node name="SetPortraitButton" type="Button" parent="VBox/ScrollContainer/VBox/MetadataSection/PortraitSection/HBox/VBox"]
+layout_mode = 2
+text = "Set/Change Portrait"
+
+[node name="ClearPortraitButton" type="Button" parent="VBox/ScrollContainer/VBox/MetadataSection/PortraitSection/HBox/VBox"]
+layout_mode = 2
+text = "Clear Portrait"
+
 [node name="CreatorNotesEdit" type="TextEdit" parent="VBox/ScrollContainer/VBox/MetadataSection"]
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
