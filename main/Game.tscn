@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://cd1mol72gjb2g"]
+[gd_scene load_steps=8 format=3 uid="uid://cd1mol72gjb2g"]
 
 [ext_resource type="Script" path="res://main/Game.gd" id="1_d75c0"]
 [ext_resource type="PackedScene" uid="uid://b8vwcq7x3kp4f" path="res://ui/ChatWindow.tscn" id="2_cthgq"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://bdl3fk61pia1f" path="res://ui/SettingsPanel.tscn" id="4_jbgv0"]
 [ext_resource type="PackedScene" path="res://ui/CardEditor.tscn" id="5_v77vj"]
 [ext_resource type="PackedScene" path="res://ui/NPCInventoryPanel.tscn" id="6_npci"]
+[ext_resource type="PackedScene" path="res://ui/WhisperChatPanel.tscn" id="7_whsp"]
 
 [node name="Game" type="Node"]
 script = ExtResource("1_d75c0")
@@ -100,16 +101,8 @@ theme_override_constants/separation = 8
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="whisper_chat" type="PanelContainer" parent="GameUI/game_container/main_game/right_panel"]
-custom_minimum_size = Vector2(0, 256)
+[node name="WhisperChatPanel" parent="GameUI/game_container/main_game/right_panel" instance=ExtResource("7_whsp")]
 layout_mode = 2
-
-[node name="Label" type="Label" parent="GameUI/game_container/main_game/right_panel/whisper_chat"]
-layout_mode = 2
-text = "WHISPER CHAT
-(Not Implemented)"
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="SettingsPanel" parent="GameUI" instance=ExtResource("4_jbgv0")]
 visible = false
