@@ -23,7 +23,7 @@ class_name CharacterProfile
 @export var tags: Array[String] = []
 @export var creator: String = ""
 @export var character_version: String = "1.0"
-@export var portrait_base64: String = ""
+var portrait_base64: String = ""
 
 # Character knowledge
 @export var character_book: CharacterBook = null
@@ -119,6 +119,12 @@ func clear_portrait() -> void:
 
 func _get_property_list() -> Array:
 	var props: Array = []
+	# Persisted storage-only field, hidden from inspector
+	props.append({
+		"name": "portrait_base64",
+		"type": TYPE_STRING,
+		"usage": PROPERTY_USAGE_STORAGE
+	})
 	# Editor-only proxy to view/set the portrait as a Texture2D without persisting it
 	props.append({
 		"name": "portrait_image",
