@@ -325,6 +325,9 @@ func _generate_ui_choices(scene: SceneGraph) -> Array[UIChoice]:
 	
 	for entity in scene.entities:
 		for verb in entity.verbs:
+			# Filter out talk actions; conversations are handled via chat addressing
+			if verb == "talk":
+				continue
 			var choice = UIChoice.new()
 			choice.verb = verb
 			choice.target = entity.id

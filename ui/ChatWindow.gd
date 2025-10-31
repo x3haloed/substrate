@@ -7,6 +7,7 @@ signal entity_clicked(entity_id: String)
 signal message_sent(text: String)
 
 @onready var chat_log: RichTextLabel = $VBox/ChatLog
+@onready var address_option: OptionButton = $VBox/InputBox/AddressOption
 @onready var input_line: LineEdit = $VBox/InputBox/InputLine
 @onready var send_button: Button = $VBox/InputBox/SendButton
 
@@ -38,6 +39,25 @@ func add_message(text: String, style: String = "world", speaker: String = ""):
 
 func clear_chat():
 	chat_log.clear()
+
+func set_address_options(target_ids: Array[String]):
+	# Optional address dropdown for talking to specific entities
+	address_option.clear()
+	# First item means no direct address → narrator/world
+	address_option.add_item("Address…")
+	address_option.selected = 0
+	for id in target_ids:
+		address_option.add_item(id)
+
+func get_selected_address() -> String:
+	# Return selected entity id or empty if none chosen
+	if address_option.get_item_count() == 0:
+		return ""
+	# OptionButton uses numeric item ids starting at 0 by default; 0 is the placeholder
+	var selected_index = address_option.get_selected()
+	if selected_index <= 0:
+		return ""
+	return address_option.get_item_text(selected_index)
 
 func _on_send_pressed():
 	var text = input_line.text.strip_edges()

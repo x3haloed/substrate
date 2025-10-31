@@ -32,6 +32,9 @@ scroll_following = true
 [node name="InputBox" type="HBoxContainer" parent="VBox"]
 layout_mode = 2
 
+[node name="AddressOption" type="OptionButton" parent="VBox/InputBox"]
+layout_mode = 2
+
 [node name="InputLine" type="LineEdit" parent="VBox/InputBox"]
 layout_mode = 2
 size_flags_horizontal = 3

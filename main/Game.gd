@@ -92,6 +92,8 @@ func _display_envelope(envelope: ResolutionEnvelope):
 	
 	# Update choice panel
 	choice_panel.set_choices(envelope.ui_choices)
+	# Update chat address options with entities that support the talk verb
+	_update_chat_address_options()
 
 func _on_action_selected(verb: String, target: String):
 	var action = ActionRequest.new()
@@ -103,6 +105,19 @@ func _on_action_selected(verb: String, target: String):
 	await director.process_player_action(action)
 
 func _on_message_sent(text: String):
+	# If the user addressed a specific entity, route as a talk action
+	var addressed_target = chat_window.get_selected_address()
+	if addressed_target != "":
+		var action = ActionRequest.new()
+		action.actor = "player"
+		action.verb = "talk"
+		action.target = addressed_target
+		action.scene = world_db.flags.get("current_scene", "")
+		action.context = {"utterance": text}
+		var envelope = await director.process_player_action(action)
+		_display_envelope(envelope)
+		return
+	
 	# Parse simple commands and emit player.command.* events
 	var command = text.to_lower().strip_edges()
 	
@@ -141,8 +156,19 @@ func _on_message_sent(text: String):
 		# Fallback if no trigger matched
 		chat_window.add_message("(No companion available to cover you)", "world")
 	else:
-		# Just acknowledge chat messages for now
-		chat_window.add_message("(Chat not yet fully implemented - use action buttons)", "world")
+		# No address and not a known command
+		chat_window.add_message("(Tip: choose someone to talk to using the address menu)", "world")
+
+func _update_chat_address_options():
+	var scene = world_db.get_scene(world_db.flags.get("current_scene", ""))
+	if not scene:
+		chat_window.set_address_options([])
+		return
+	var talkables: Array[String] = []
+	for entity in scene.entities:
+		if "talk" in entity.verbs:
+			talkables.append(entity.id)
+	chat_window.set_address_options(talkables)
 
 func _on_entity_clicked(entity_id: String):
 	lore_panel.show_entity(entity_id)

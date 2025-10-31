@@ -15,6 +15,9 @@ func set_choices(choices: Array[UIChoice]):
 	clear_choices()
 	
 	for choice in choices:
+		# Filter out talk actions; chat UI handles conversations
+		if choice.verb == "talk":
+			continue
 		var button = Button.new()
 		button.text = choice.get_display_label()
 		button.pressed.connect(func(): action_selected.emit(choice.verb, choice.target))

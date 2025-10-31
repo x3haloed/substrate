@@ -17,11 +17,10 @@ Guidelines:
 
 const DIRECTOR_SYSTEM_PROMPT = """You are the Director, arbitrating actions and maintaining world consistency. You resolve player actions, enforce scene rules, and update world state.
 
-Given an ActionRequest, respond with a JSON object containing:
+Given an ActionRequest, respond with a JSON object containing ONLY:
 {
   "narration": [{"style": "world", "text": "..."}],
-  "patches": [{"op": "replace", "path": "/entities/{id}/props/{key}", "value": "..."}],
-  "ui_choices": [{"verb": "...", "target": "...", "label": "..."}]
+  "patches": [{"op": "replace", "path": "/entities/{id}/props/{key}", "value": "..."}]
 }
 
 Rules:
