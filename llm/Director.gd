@@ -131,6 +131,28 @@ func process_player_action(action: ActionRequest) -> ResolutionEnvelope:
 	action_resolved.emit(envelope)
 	return envelope
 
+func process_freeform_player_input(text: String) -> ResolutionEnvelope:
+	if current_scene_id == "":
+		return _create_error_envelope("No active scene")
+	var scene = world_db.get_scene(current_scene_id)
+	if not scene:
+		return _create_error_envelope("No active scene")
+	# Let PromptEngine interpret and resolve the freeform input
+	var envelope = await prompt_engine.process_freeform_input(scene, text)
+	# Apply patches and advance systems like a normal action
+	_apply_patches(envelope.patches)
+	world_db.add_history_entry({
+		"event": "freeform_input",
+		"text": text
+	})
+	action_queue.advance_turn()
+	trigger_registry.advance_turn()
+	_emit_queue_update()
+	# Refresh choices
+	envelope.ui_choices = _generate_ui_choices(scene)
+	action_resolved.emit(envelope)
+	return envelope
+
 func process_companion_action(npc_id: String, verb: String, target: String, narration_override: String = "") -> ResolutionEnvelope:
 	var action = ActionRequest.new()
 	action.actor = npc_id

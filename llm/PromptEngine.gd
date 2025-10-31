@@ -180,6 +180,33 @@ func build_npc_prompt(action: ActionRequest, scene: SceneGraph, character: Chara
 		{"role": "user", "content": JSON.stringify(user_context, "\t")}
 	]
 
+# Build a prompt to interpret freeform player input and resolve it
+func build_freeform_prompt(scene: SceneGraph, player_text: String) -> Array[Dictionary]:
+	var scene_info = {
+		"scene_id": scene.scene_id,
+		"description": scene.description,
+		"entities": _serialize_entities(scene.entities),
+		"rules": scene.rules
+	}
+	var instructions = """
+You are the Director, arbitrating freeform player input without an addressed target.
+
+Task:
+- Decide if the player's text is dialog (a spoken line) or an action description.
+- If dialog: pick the most appropriate NPC (by id in the scene) to react, or choose a world reaction if no NPC is appropriate.
+- If action: interpret the player's intent as an ActionRequest (actor is player) and resolve it.
+- Always reply with a valid ResolutionEnvelope JSON object: narration (npc or world), patches (if any), and ui_choices.
+
+Rules:
+- Maintain world consistency and scene rules.
+- Prefer concise but evocative narration.
+- Do not invent entity IDs; only use those present in the scene.
+"""
+	return [
+		{"role": "system", "content": instructions},
+		{"role": "user", "content": JSON.stringify({"scene": scene_info, "player_text": player_text}, "\t")}
+	]
+
 func process_action(action: ActionRequest, character_context: Dictionary = {}) -> ResolutionEnvelope:
 	var scene = world_db.get_scene(action.scene)
 	if not scene:
@@ -269,6 +296,13 @@ func process_narrator_request(context: Dictionary) -> String:
 
 func _make_llm_request(messages: Array[Dictionary], json_schema: Dictionary = {}) -> String:
 	return await llm_client.make_request(messages, "", json_schema)
+
+func process_freeform_input(scene: SceneGraph, player_text: String) -> ResolutionEnvelope:
+	var messages = build_freeform_prompt(scene, player_text)
+	var response_text = await _make_llm_request(messages, _resolution_envelope_schema())
+	if response_text == "":
+		return _create_error_envelope("LLM request failed")
+	return _parse_response(response_text)
 
 func _parse_response(json_text: String) -> ResolutionEnvelope:
 	var json = JSON.new()
