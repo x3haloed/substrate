@@ -118,8 +118,8 @@ func _on_message_sent(text: String):
 		return
 	
 	# No address: let Director interpret freeform input and resolve it
-	var envelope = await director.process_freeform_player_input(text)
-	_display_envelope(envelope)
+	await director.process_freeform_player_input(text)
+	return
 
 func _update_chat_address_options():
 	var scene = world_db.get_scene(world_db.flags.get("current_scene", ""))

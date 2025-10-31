@@ -267,16 +267,19 @@ func _apply_patches(patches: Array):
 											else:
 												dict = null
 												break
+										var prop_key_exists = false
 										if dict != null and prop_path_parts.size() > 0:
+											prop_key_exists = dict.has(prop_path_parts[-1])
 											old_value = dict.get(prop_path_parts[-1])
-										
+										var effective_op = patch.get("op", "")
+										if effective_op == "replace" and not prop_key_exists:
+											effective_op = "add"
 										var rel_patch = {
-											"op": patch.get("op", ""),
+											"op": effective_op,
 											"path": rel_path,
 											"value": patch.get("value")
 										}
 										JsonPatch.apply_patch(entity.props, rel_patch)
-										
 										# Record change in history
 										world_db.record_entity_change(entity_id, change_type, path, old_value, patch.get("value"), "player")
 									"state":
@@ -291,16 +294,19 @@ func _apply_patches(patches: Array):
 											else:
 												state_dict = null
 												break
+										var state_key_exists = false
 										if state_dict != null and state_path_parts.size() > 0:
+											state_key_exists = state_dict.has(state_path_parts[-1])
 											old_value = state_dict.get(state_path_parts[-1])
-										
+										var effective_op_s = patch.get("op", "")
+										if effective_op_s == "replace" and not state_key_exists:
+											effective_op_s = "add"
 										var rel_patch_s = {
-											"op": patch.get("op", ""),
+											"op": effective_op_s,
 											"path": rel_path_s,
 											"value": patch.get("value")
 										}
 										JsonPatch.apply_patch(entity.state, rel_patch_s)
-										
 										# Record change in history
 										world_db.record_entity_change(entity_id, change_type, path, old_value, patch.get("value"), "player")
 									"lore":
@@ -315,16 +321,19 @@ func _apply_patches(patches: Array):
 											else:
 												lore_dict = null
 												break
+										var lore_key_exists = false
 										if lore_dict != null and lore_path_parts.size() > 0:
+											lore_key_exists = lore_dict.has(lore_path_parts[-1])
 											old_value = lore_dict.get(lore_path_parts[-1])
-										
+										var effective_op_l = patch.get("op", "")
+										if effective_op_l == "replace" and not lore_key_exists:
+											effective_op_l = "add"
 										var rel_patch_l = {
-											"op": patch.get("op", ""),
+											"op": effective_op_l,
 											"path": rel_path_l,
 											"value": patch.get("value")
 										}
 										JsonPatch.apply_patch(entity.lore, rel_patch_l)
-										
 										# Record change in history
 										world_db.record_entity_change(entity_id, change_type, path, old_value, patch.get("value"), "player")
 									_:
