@@ -121,6 +121,10 @@ func _decode_base64_to_texture() -> Texture2D:
 	_portrait_texture_cache = ImageTexture.create_from_image(img)
 	return _portrait_texture_cache
 
+func warm_portrait_cache() -> void:
+	if _portrait_texture_cache == null and portrait_base64 != "":
+		_portrait_texture_cache = _decode_base64_to_texture()
+
 func get_portrait_texture() -> Texture2D:
 	return _decode_base64_to_texture()
 
@@ -189,4 +193,11 @@ func _set(p_name, value) -> bool:
 			set_portrait_texture(value)
 			return true
 		return false
+	elif String(p_name) == "portrait_base64":
+		portrait_base64 = String(value)
+		# Clear cache; optionally warm lazily (deferred to avoid repeated decode during load)
+		_portrait_texture_cache = null
+		if not Engine.is_editor_hint():
+			call_deferred("warm_portrait_cache")
+		return true
 	return false
