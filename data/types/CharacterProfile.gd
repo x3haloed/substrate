@@ -24,6 +24,9 @@ class_name CharacterProfile
 @export var creator: String = ""
 @export var character_version: String = "1.0"
 var portrait_base64: String = ""
+var thumbnail_1024_base64: String = ""
+var thumbnail_512_base64: String = ""
+var thumbnail_256_base64: String = ""
 
 # Character knowledge
 @export var character_book: CharacterBook = null
@@ -91,6 +94,20 @@ func _encode_texture_to_base64(texture: Texture2D) -> String:
 	var bytes: PackedByteArray = img.save_png_to_buffer()
 	return Marshalls.raw_to_base64(bytes)
 
+func _encode_image_to_base64(img: Image) -> String:
+	var bytes: PackedByteArray = img.save_png_to_buffer()
+	return Marshalls.raw_to_base64(bytes)
+
+func _generate_thumbnail_base64(texture: Texture2D, size: int) -> String:
+	if texture == null:
+		return ""
+	var img := texture.get_image()
+	if img == null:
+		return ""
+	img = img.duplicate()
+	img.resize(size, size, Image.INTERPOLATE_LANCZOS)
+	return _encode_image_to_base64(img)
+
 func _decode_base64_to_texture() -> Texture2D:
 	if portrait_base64 == "":
 		return null
@@ -110,11 +127,18 @@ func get_portrait_texture() -> Texture2D:
 func set_portrait_texture(texture: Texture2D) -> void:
 	portrait_base64 = _encode_texture_to_base64(texture)
 	_portrait_texture_cache = texture
+	# Auto-generate precomputed thumbnails for macOS Quick Look
+	thumbnail_1024_base64 = _generate_thumbnail_base64(texture, 1024)
+	thumbnail_512_base64 = _generate_thumbnail_base64(texture, 512)
+	thumbnail_256_base64 = _generate_thumbnail_base64(texture, 256)
 	emit_changed()
 
 func clear_portrait() -> void:
 	portrait_base64 = ""
 	_portrait_texture_cache = null
+	thumbnail_1024_base64 = ""
+	thumbnail_512_base64 = ""
+	thumbnail_256_base64 = ""
 	emit_changed()
 
 func _get_property_list() -> Array:
@@ -122,6 +146,22 @@ func _get_property_list() -> Array:
 	# Persisted storage-only field, hidden from inspector
 	props.append({
 		"name": "portrait_base64",
+		"type": TYPE_STRING,
+		"usage": PROPERTY_USAGE_STORAGE
+	})
+	# Precomputed thumbnails (PNG base64), persisted only
+	props.append({
+		"name": "thumbnail_1024_base64",
+		"type": TYPE_STRING,
+		"usage": PROPERTY_USAGE_STORAGE
+	})
+	props.append({
+		"name": "thumbnail_512_base64",
+		"type": TYPE_STRING,
+		"usage": PROPERTY_USAGE_STORAGE
+	})
+	props.append({
+		"name": "thumbnail_256_base64",
 		"type": TYPE_STRING,
 		"usage": PROPERTY_USAGE_STORAGE
 	})

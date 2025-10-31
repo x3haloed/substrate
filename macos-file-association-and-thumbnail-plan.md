@@ -1,13 +1,13 @@
-## macOS File Association and Thumbnail Integration Plan
+## Substrate macOS File Association and Thumbnail Integration Plan
 
 ### Goals
-- Associate a custom file extension with the Godot app so double‑click opens the app with the file path.
-- Provide dynamic, content‑based Finder thumbnails/icons for that file type.
+- Associate Substrate’s custom file extensions with the app so double‑click opens Substrate with the file path.
+- Provide dynamic, content‑based Finder thumbnails/icons for `.scrd` (Substrate Card) and `.scrt` (Substrate Cartridge) files.
 - Ship on the Mac App Store with a compliant sandboxed implementation.
 
 ### Scope
-- Define a custom UTI and document type in the app `Info.plist`.
-- Build a Quick Look Thumbnail extension to render thumbnails from renamed `.tres` files.
+- Define custom UTIs and document types in the app `Info.plist`.
+- Build a Quick Look Thumbnail extension to render thumbnails from Substrate Card (`.scrd`) and Substrate Cartridge (`.scrt`) files.
 - Embed, sign, and ship the extension within the app bundle.
 - Handle file open events in Godot.
 - Provide automation for post‑export embedding and codesigning.
@@ -21,12 +21,14 @@
 ---
 
 ### Identifiers and Conventions
-- Bundle Identifier (app): `com.yourcompany.yourgame`
-- File Extension: `.ygscene` (example)
-- UTI Identifier: `com.yourcompany.yourgame.scene`
-- Display Name: "YourGame Scene"
-
-Update names as needed before implementation.
+- App Name: `Substrate`
+- Bundle Identifier (app): `com.substrate.app` (update to your actual identifier)
+- File Extensions:
+  - `.scrd` (Substrate Card) — UTI: `com.substrate.card`
+  - `.scrt` (Substrate Cartridge) — UTI: `com.substrate.cartridge`
+- Display Names:
+  - "Substrate Card"
+  - "Substrate Cartridge"
 
 ---
 
@@ -34,14 +36,14 @@ Update names as needed before implementation.
 Add these keys to the exported app's `Info.plist` (Godot macOS export can inject, or post‑process after export):
 
 ```xml
-<!-- UTI declaration for the custom file type -->
+<!-- UTI declarations for Substrate Card and Substrate Cartridge file types -->
 <key>UTTypeExportedTypeDeclarations</key>
 <array>
   <dict>
     <key>UTTypeIdentifier</key>
-    <string>com.yourcompany.yourgame.scene</string>
+    <string>com.substrate.card</string>
     <key>UTTypeDescription</key>
-    <string>YourGame Scene</string>
+    <string>Substrate Card</string>
     <key>UTTypeConformsTo</key>
     <array>
       <string>public.data</string>
@@ -51,23 +53,43 @@ Add these keys to the exported app's `Info.plist` (Godot macOS export can inject
     <dict>
       <key>public.filename-extension</key>
       <array>
-        <string>ygscene</string>
+        <string>scrd</string>
       </array>
       <key>public.mime-type</key>
-      <string>application/x-yourgame-scene</string>
+      <string>application/x-substrate-card</string>
+    </dict>
+  </dict>
+  <dict>
+    <key>UTTypeIdentifier</key>
+    <string>com.substrate.cartridge</string>
+    <key>UTTypeDescription</key>
+    <string>Substrate Cartridge</string>
+    <key>UTTypeConformsTo</key>
+    <array>
+      <string>public.data</string>
+      <string>public.text</string>
+    </array>
+    <key>UTTypeTagSpecification</key>
+    <dict>
+      <key>public.filename-extension</key>
+      <array>
+        <string>scrt</string>
+      </array>
+      <key>public.mime-type</key>
+      <string>application/x-substrate-cartridge</string>
     </dict>
   </dict>
   </array>
 
-<!-- Document type association so LaunchServices opens the app on double‑click -->
+<!-- Document type associations so LaunchServices opens Substrate on double‑click -->
 <key>CFBundleDocumentTypes</key>
 <array>
   <dict>
     <key>CFBundleTypeName</key>
-    <string>YourGame Scene</string>
+    <string>Substrate Card</string>
     <key>LSItemContentTypes</key>
     <array>
-      <string>com.yourcompany.yourgame.scene</string>
+      <string>com.substrate.card</string>
     </array>
     <key>CFBundleTypeRole</key>
     <string>Editor</string>
@@ -81,6 +103,18 @@ Add these keys to the exported app's `Info.plist` (Godot macOS export can inject
     </array>
     -->
   </dict>
+  <dict>
+    <key>CFBundleTypeName</key>
+    <string>Substrate Cartridge</string>
+    <key>LSItemContentTypes</key>
+    <array>
+      <string>com.substrate.cartridge</string>
+    </array>
+    <key>CFBundleTypeRole</key>
+    <string>Editor</string>
+    <key>LSHandlerRank</key>
+    <string>Owner</string>
+  </dict>
 </array>
 ```
 
@@ -91,7 +125,7 @@ Notes:
 ---
 
 ### 2) Quick Look Thumbnail Extension (dynamic icons in Finder)
-Implement a modern app extension (`com.apple.quicklook.thumbnail`) that reads `.ygscene` (renamed `.tres`) and draws a thumbnail.
+Implement a modern app extension (`com.apple.quicklook.thumbnail`) that reads `.scrd` (Substrate Card) and `.scrt` (Substrate Cartridge) files and draws a thumbnail.
 
 Extension `Info.plist` essentials:
 ```xml
@@ -105,16 +139,18 @@ Extension `Info.plist` essentials:
   <dict>
     <key>QLSupportedContentTypes</key>
     <array>
-      <string>com.yourcompany.yourgame.scene</string>
+      <string>com.substrate.card</string>
+      <string>com.substrate.cartridge</string>
     </array>
   </dict>
 </dict>
 ```
 
-Swift outline for `ThumbnailProvider`:
+Swift outline for `ThumbnailProvider` (prefers precomputed thumbnails, then falls back to portrait):
 ```swift
 import QuickLookThumbnailing
 import AppKit
+import AVFoundation
 
 final class ThumbnailProvider: QLThumbnailProvider {
     override func provideThumbnail(for request: QLFileThumbnailRequest,
@@ -139,7 +175,7 @@ final class ThumbnailProvider: QLThumbnailProvider {
                         .foregroundColor: NSColor.labelColor,
                         .paragraphStyle: style
                     ]
-                    let s = "YourGame"
+                    let s = "Substrate"
                     s.draw(in: rect.insetBy(dx: 12, dy: 12), withAttributes: attrs)
                 }
                 return true
@@ -151,19 +187,20 @@ final class ThumbnailProvider: QLThumbnailProvider {
     }
 
     private func extractPreviewImage(fromTresText text: String, at fileURL: URL) -> NSImage? {
-        // Heuristics; prefer explicit metadata in file content.
-        // 1) preview_image = "res://relative/path.png"
-        if let path = regexMatch(text, pattern: #"preview_image\s*=\s*\"([^\"]+)\""#).first {
-            let url: URL
-            if path.hasPrefix("res://") {
-                url = fileURL.deletingLastPathComponent().appendingPathComponent(String(path.dropFirst(6)))
-            } else {
-                url = URL(fileURLWithPath: path)
+        // Prefer precomputed thumbnails in descending size, then fall back to portrait_base64
+        let orderedKeys = [
+            "thumbnail_1024_base64",
+            "thumbnail_512_base64",
+            "thumbnail_256_base64"
+        ]
+        for key in orderedKeys {
+            if let b64 = regexMatch(text, pattern: "#\\b" + key + "\\s*=\\s*\\\"([A-Za-z0-9+/=]+)\\\"#").first,
+               let data = Data(base64Encoded: b64), let img = NSImage(data: data) {
+                return img
             }
-            if let img = NSImage(contentsOf: url) { return img }
         }
-        // 2) preview_image_base64 = "..."
-        if let b64 = regexMatch(text, pattern: #"preview_image_base64\s*=\s*\"([A-Za-z0-9+/=]+)\""#).first,
+        // Fallback: portrait_base64 (full-resolution portrait)
+        if let b64 = regexMatch(text, pattern: #"\bportrait_base64\s*=\s*\"([A-Za-z0-9+/=]+)\""#).first,
            let data = Data(base64Encoded: b64), let img = NSImage(data: data) {
             return img
         }
@@ -205,8 +242,10 @@ In the app’s main script (early in startup), parse command‑line arguments to
 ```gdscript
 var args := OS.get_cmdline_args()
 for a in args:
-    if a.ends_with(".ygscene"):
-        _open_custom_scene(a)
+    if a.ends_with(".scrd"):
+        _open_substrate_card(a)
+    elif a.ends_with(".scrt"):
+        _open_substrate_cartridge(a)
 ```
 
 Notes:
@@ -219,8 +258,8 @@ Notes:
 After exporting the `.app` from Godot, embed the extension and codesign the entire bundle.
 
 Assumptions:
-- Exported app path: `build/YourGame.app`
-- Built extension path: `build/YourGameThumbnail.appex`
+- Exported app path: `build/Substrate.app`
+- Built extension path: `build/SubstrateThumbnail.appex`
 - Team ID and signing identities set in environment variables.
 
 Script outline:
@@ -228,10 +267,10 @@ Script outline:
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP="build/YourGame.app"
-APPEX_SRC="build/YourGameThumbnail.appex"
-APPEX_DST="$APP/Contents/PlugIns/YourGameThumbnail.appex"
-IDENTITY="Developer ID Application: Your Company (TEAMID)"  # or 3rd‑party Mac App Store identity
+APP="build/Substrate.app"
+APPEX_SRC="build/SubstrateThumbnail.appex"
+APPEX_DST="$APP/Contents/PlugIns/SubstrateThumbnail.appex"
+IDENTITY="Developer ID Application: Substrate (TEAMID)"  # or 3rd‑party Mac App Store identity
 
 # 1) Embed extension
 mkdir -p "$(dirname "$APPEX_DST")"
@@ -268,7 +307,8 @@ qlmanage -r; qlmanage -r cache
 ```
 - Preview a file explicitly:
 ```bash
-qlmanage -p /path/to/example.ygscene
+qlmanage -p /path/to/example.scrd
+qlmanage -p /path/to/example.scrt
 ```
 - Force LaunchServices to refresh (use with care):
 ```bash
@@ -283,12 +323,16 @@ qlmanage -p /path/to/example.ygscene
 
 ---
 
-### 6) File format guidance for reliable thumbnails
-- Prefer adding explicit metadata in your renamed `.tres` file:
-  - `preview_image = "res://relative/path.png"`
-  - or `preview_image_base64 = "..."`
-- Keep referenced images near the file to avoid sandbox path issues.
-- Keep thumbnail work fast (<50–100ms) and memory‑efficient; avoid loading large textures.
+- ### 6) File format guidance for reliable thumbnails
+- Add explicit metadata directly into the `.scrd` (Substrate Card) and `.scrt` (Substrate Cartridge) files as storage‑only properties:
+  - `thumbnail_1024_base64` — PNG, sRGB, 8‑bit, exactly 1024×1024 px
+  - `thumbnail_512_base64` — PNG, sRGB, 8‑bit, exactly 512×512 px
+  - `thumbnail_256_base64` — PNG, sRGB, 8‑bit, exactly 256×256 px
+  - Fallback: `portrait_base64` — full‑res PNG if thumbnails are missing
+- The Quick Look extension will prefer the largest available precomputed thumbnail, then fall back to smaller ones, then the portrait.
+- Precompute once at save time in Godot to minimize decode work in the extension.
+- Keep referenced images embedded (base64) to avoid sandbox path issues and to allow a single self‑contained `.scrd` file.
+- Target render cost <50–100 ms; avoid unnecessarily large images.
 
 ---
 
@@ -309,8 +353,9 @@ qlmanage -p /path/to/example.ygscene
 ---
 
 ### 9) Acceptance Criteria
-- Double‑clicking `.ygscene` opens the app and loads the referenced content.
-- Finder shows per‑file thumbnails derived from the content for grid/list/column views.
+- Double‑clicking `.scrd` opens Substrate and loads the referenced card content.
+- Double‑clicking `.scrt` opens Substrate and loads the referenced cartridge content.
+- Finder shows per‑file thumbnails derived from precomputed fields for grid/list/column views.
 - `qlmanage -p` previews render correctly.
 - App bundle passes local codesign verification and App Store validation.
 - No additional permissions requested at runtime solely due to the extension.
@@ -319,8 +364,8 @@ qlmanage -p /path/to/example.ygscene
 
 ### 10) Execution Checklist (suggested order)
 1. Finalize identifiers: extension, UTI, bundle IDs.
-2. Add `Info.plist` UTI + document types to macOS export config.
-3. Create Xcode QL Thumbnail extension target; implement `ThumbnailProvider`.
+2. Add `Info.plist` UTI + document types to macOS export config for `.scrd` and `.scrt`.
+3. Create Xcode QL Thumbnail extension target; implement `ThumbnailProvider` to prefer `thumbnail_*_base64` for both UTIs.
 4. Build extension product (`.appex`).
 5. Export Godot macOS app.
 6. Embed `.appex` under `Contents/PlugIns/` and re‑sign.
