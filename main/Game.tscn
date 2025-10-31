@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://cd1mol72gjb2g"]
+[gd_scene load_steps=9 format=3 uid="uid://cd1mol72gjb2g"]
 
 [ext_resource type="Script" path="res://main/Game.gd" id="1_d75c0"]
 [ext_resource type="PackedScene" uid="uid://b8vwcq7x3kp4f" path="res://ui/ChatWindow.tscn" id="2_cthgq"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://ui/CardEditor.tscn" id="5_v77vj"]
 [ext_resource type="PackedScene" path="res://ui/NPCInventoryPanel.tscn" id="6_npci"]
 [ext_resource type="PackedScene" path="res://ui/WhisperChatPanel.tscn" id="7_whsp"]
+[ext_resource type="PackedScene" path="res://ui/InventoryPanel.tscn" id="8_invp"]
 
 [node name="Game" type="Node"]
 script = ExtResource("1_d75c0")
@@ -66,16 +67,9 @@ layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 8
 
-[node name="player_inventory" type="PanelContainer" parent="GameUI/game_container/main_game"]
+[node name="InventoryPanel" parent="GameUI/game_container/main_game" instance=ExtResource("8_invp")]
+layout_mode = 2
 custom_minimum_size = Vector2(320, 0)
-layout_mode = 2
-
-[node name="Label" type="Label" parent="GameUI/game_container/main_game/player_inventory"]
-layout_mode = 2
-text = "INVENTORY
-(Not Implemented)"
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="center_panel" type="VBoxContainer" parent="GameUI/game_container/main_game"]
 layout_mode = 2
