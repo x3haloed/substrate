@@ -1,3 +1,4 @@
+@tool
 extends Resource
 class_name CharacterProfile
 
@@ -22,6 +23,7 @@ class_name CharacterProfile
 @export var tags: Array[String] = []
 @export var creator: String = ""
 @export var character_version: String = "1.0"
+@export var portrait_base64: String = ""
 
 # Character knowledge
 @export var character_book: CharacterBook = null
@@ -74,3 +76,71 @@ func get_triggers_for_namespace(ns: String) -> Array[TriggerDef]:
 		if trigger.ns == ns:
 			result.append(trigger)
 	return result
+
+# --- Portrait helpers & editor integration ---
+
+var _portrait_texture_cache: Texture2D = null
+
+func _encode_texture_to_base64(texture: Texture2D) -> String:
+	if texture == null:
+		return ""
+	var img: Image = texture.get_image()
+	if img == null:
+		return ""
+	# Always store as PNG for deterministic round-trips
+	var bytes: PackedByteArray = img.save_png_to_buffer()
+	return Marshalls.raw_to_base64(bytes)
+
+func _decode_base64_to_texture() -> Texture2D:
+	if portrait_base64 == "":
+		return null
+	if _portrait_texture_cache != null:
+		return _portrait_texture_cache
+	var bytes: PackedByteArray = Marshalls.base64_to_raw(portrait_base64)
+	var img := Image.new()
+	var err := img.load_png_from_buffer(bytes)
+	if err != OK:
+		return null
+	_portrait_texture_cache = ImageTexture.create_from_image(img)
+	return _portrait_texture_cache
+
+func get_portrait_texture() -> Texture2D:
+	return _decode_base64_to_texture()
+
+func set_portrait_texture(texture: Texture2D) -> void:
+	portrait_base64 = _encode_texture_to_base64(texture)
+	_portrait_texture_cache = texture
+	emit_changed()
+
+func clear_portrait() -> void:
+	portrait_base64 = ""
+	_portrait_texture_cache = null
+	emit_changed()
+
+func _get_property_list() -> Array:
+	var props: Array = []
+	# Editor-only proxy to view/set the portrait as a Texture2D without persisting it
+	props.append({
+		"name": "portrait_image",
+		"type": TYPE_OBJECT,
+		"hint": PROPERTY_HINT_RESOURCE_TYPE,
+		"hint_string": "Texture2D",
+		"usage": PROPERTY_USAGE_EDITOR
+	})
+	return props
+
+func _get(p_name):
+	if String(p_name) == "portrait_image":
+		return _decode_base64_to_texture()
+	return null
+
+func _set(p_name, value) -> bool:
+	if String(p_name) == "portrait_image":
+		if value == null:
+			clear_portrait()
+			return true
+		if value is Texture2D:
+			set_portrait_texture(value)
+			return true
+		return false
+	return false

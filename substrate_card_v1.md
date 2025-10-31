@@ -98,6 +98,8 @@ All fields below are on the `CharacterProfile` resource unless specified.
 - tags: Array[String] (optional)
 - creator: String (optional)
 - character_version: String (optional)
+- portrait_base64: String (optional; PNG image bytes encoded in base64)
+  - Editor convenience: an inspector-only `portrait_image: Texture2D` proxy is exposed on `CharacterProfile` to preview and set the portrait without manual encoding. Changes are stored back into `portrait_base64` and the proxy itself is not serialized.
 - character_book: Resource `CharacterBook` (optional; see below)
 - stats: Dictionary<String, Variant> (optional; arbitrary keys like `mood`, `bond_with_player`, `favor_guildA`)
 - traits: Array[String] (optional; stable descriptors that inform behavior)
