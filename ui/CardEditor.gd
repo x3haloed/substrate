@@ -197,6 +197,7 @@ func _setup_file_dialogs():
 	import_file_dialog = FileDialog.new()
 	import_file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
 	import_file_dialog.add_filter("*.json ; CC v2 JSON Files")
+	import_file_dialog.add_filter("*.png ; CC v2 PNG Files")
 	import_file_dialog.access = FileDialog.ACCESS_FILESYSTEM
 	import_file_dialog.file_selected.connect(_on_import_file_selected)
 	add_child(import_file_dialog)
@@ -218,7 +219,11 @@ func _on_import_pressed():
 	import_file_dialog.popup_centered_ratio(0.75)
 
 func _on_import_file_selected(path: String):
-	var imported: CharacterProfile = CharacterCardLoader.import_from_json(path)
+	var imported: CharacterProfile = null
+	if path.to_lower().ends_with(".png"):
+		imported = CharacterCardLoader.import_from_png(path)
+	else:
+		imported = CharacterCardLoader.import_from_json(path)
 	if not imported:
 		push_error("Failed to import character card from JSON")
 		return
