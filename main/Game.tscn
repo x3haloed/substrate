@@ -1,17 +1,15 @@
-[gd_scene load_steps=8 format=3 uid="uid://cd1mol72gjb2g"]
+[gd_scene load_steps=6 format=3 uid="uid://cd1mol72gjb2g"]
 
-[ext_resource type="Script" uid="uid://bsglhg25j1uqv" path="res://main/Game.gd" id="1"]
-[ext_resource type="PackedScene" uid="uid://b8vwcq7x3kp4f" path="res://ui/ChatWindow.tscn" id="2"]
-[ext_resource type="PackedScene" uid="uid://c5xn8k2v7m3p4" path="res://ui/ChoicePanel.tscn" id="3"]
-[ext_resource type="PackedScene" uid="uid://ck2oj6rog80e" path="res://ui/LorePanel.tscn" id="4"]
-[ext_resource type="PackedScene" uid="uid://bdl3fk61pia1f" path="res://ui/SettingsPanel.tscn" id="5"]
-[ext_resource type="PackedScene" uid="uid://cknaw7q7h8p2r" path="res://ui/ActionQueuePanel.tscn" id="6"]
-[ext_resource type="PackedScene" path="res://ui/CardEditor.tscn" id="7"]
+[ext_resource type="Script" path="res://main/Game.gd" id="1_d75c0"]
+[ext_resource type="PackedScene" uid="uid://b8vwcq7x3kp4f" path="res://ui/ChatWindow.tscn" id="2_cthgq"]
+[ext_resource type="PackedScene" uid="uid://c5xn8k2v7m3p4" path="res://ui/ChoicePanel.tscn" id="3_4a11f"]
+[ext_resource type="PackedScene" uid="uid://bdl3fk61pia1f" path="res://ui/SettingsPanel.tscn" id="4_jbgv0"]
+[ext_resource type="PackedScene" path="res://ui/CardEditor.tscn" id="5_v77vj"]
 
 [node name="Game" type="Node"]
-script = ExtResource("1")
+script = ExtResource("1_d75c0")
 
-[node name="UI" type="Control" parent="."]
+[node name="GameUI" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -19,70 +17,110 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="MainSplit" type="HSplitContainer" parent="UI"]
+[node name="game_container" type="VBoxContainer" parent="GameUI"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 40.0
-offset_top = 70.0
-offset_right = -8.0
-offset_bottom = -8.0
 grow_horizontal = 2
 grow_vertical = 2
-split_offset = 600
+theme_override_constants/separation = 8
 
-[node name="ChatWindow" parent="UI/MainSplit" instance=ExtResource("2")]
+[node name="header" type="PanelContainer" parent="GameUI/game_container"]
 layout_mode = 2
 
-[node name="ChoicePanel" parent="UI/MainSplit" instance=ExtResource("3")]
+[node name="HBoxContainer" type="HBoxContainer" parent="GameUI/game_container/header"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="title" type="Label" parent="GameUI/game_container/header/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "SUBSTRATE"
+vertical_alignment = 1
+
+[node name="button_group" type="HBoxContainer" parent="GameUI/game_container/header/HBoxContainer"]
+layout_mode = 2
+
+[node name="editor_button" type="Button" parent="GameUI/game_container/header/HBoxContainer/button_group"]
+layout_mode = 2
+text = "Card Editor"
+
+[node name="settings_button" type="Button" parent="GameUI/game_container/header/HBoxContainer/button_group"]
+layout_mode = 2
+text = "Settings"
+
+[node name="Spacer" type="Control" parent="GameUI/game_container/header/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="LorePanel" parent="UI" instance=ExtResource("4")]
+[node name="player_label" type="Label" parent="GameUI/game_container/header/HBoxContainer"]
+layout_mode = 2
+text = "Player: Commander_Alpha"
+vertical_alignment = 1
+
+[node name="main_game" type="HBoxContainer" parent="GameUI/game_container"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="player_inventory" type="PanelContainer" parent="GameUI/game_container/main_game"]
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="GameUI/game_container/main_game/player_inventory"]
+layout_mode = 2
+text = "INVENTORY
+(Not Implemented)"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="center_panel" type="VBoxContainer" parent="GameUI/game_container/main_game"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="ChatWindow" parent="GameUI/game_container/main_game/center_panel" instance=ExtResource("2_cthgq")]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ChoicePanel" parent="GameUI/game_container/main_game/center_panel" instance=ExtResource("3_4a11f")]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+
+[node name="right_panel" type="VBoxContainer" parent="GameUI/game_container/main_game"]
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="npc_inventory" type="PanelContainer" parent="GameUI/game_container/main_game/right_panel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Label" type="Label" parent="GameUI/game_container/main_game/right_panel/npc_inventory"]
+layout_mode = 2
+text = "NPC INVENTORY
+(Not Implemented)"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="whisper_chat" type="PanelContainer" parent="GameUI/game_container/main_game/right_panel"]
+custom_minimum_size = Vector2(0, 256)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="GameUI/game_container/main_game/right_panel/whisper_chat"]
+layout_mode = 2
+text = "WHISPER CHAT
+(Not Implemented)"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SettingsPanel" parent="GameUI" instance=ExtResource("4_jbgv0")]
+visible = false
 layout_mode = 1
 
-[node name="SettingsPanel" parent="UI" instance=ExtResource("5")]
-layout_mode = 1
-
-[node name="ActionQueuePanel" parent="UI" instance=ExtResource("6")]
-custom_minimum_size = Vector2(0, 0)
-layout_mode = 1
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 292.0
-offset_bottom = 72.0
-grow_vertical = 1
-
-[node name="SettingsButton" type="Button" parent="UI"]
-layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -120.0
-offset_top = -40.0
-offset_right = -8.0
-offset_bottom = -8.0
-grow_horizontal = 0
-grow_vertical = 0
-text = "Settings"
-
-[node name="EditorButton" type="Button" parent="UI"]
-layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -240.0
-offset_top = -40.0
-offset_right = -128.0
-offset_bottom = -8.0
-grow_horizontal = 0
-grow_vertical = 0
-text = "Card Editor"
-
-[node name="CardEditor" parent="UI" instance=ExtResource("7")]
+[node name="CardEditor" parent="GameUI" instance=ExtResource("5_v77vj")]
+visible = false
 layout_mode = 1

@@ -3,14 +3,14 @@ class_name Game
 
 ## Main game bootstrap and run loop
 
-@onready var chat_window: ChatWindow = $UI/MainSplit/ChatWindow
-@onready var choice_panel: ChoicePanel = $UI/MainSplit/ChoicePanel
-@onready var lore_panel: LorePanel = $UI/LorePanel
-@onready var settings_panel: SettingsPanel = $UI/SettingsPanel
-@onready var settings_button: Button = $UI/SettingsButton
-@onready var action_queue_panel: ActionQueuePanel = $UI/ActionQueuePanel
-@onready var card_editor: CardEditor = $UI/CardEditor
-@onready var editor_button: Button = $UI/EditorButton
+@onready var chat_window: ChatWindow = $GameUI/game_container/main_game/center_panel/ChatWindow
+@onready var choice_panel: ChoicePanel = $GameUI/game_container/main_game/center_panel/ChoicePanel
+#@onready var lore_panel: LorePanel = $UI/LorePanel
+@onready var settings_panel: SettingsPanel = $GameUI/SettingsPanel
+@onready var settings_button: Button = $GameUI/game_container/header/HBoxContainer/button_group/settings_button
+#@onready var action_queue_panel: ActionQueuePanel = $UI/ActionQueuePanel
+@onready var card_editor: CardEditor = $GameUI/CardEditor
+@onready var editor_button: Button = $GameUI/game_container/header/HBoxContainer/button_group/editor_button
 
 var llm_settings: LLMSettings
 var llm_client: LLMClient
@@ -41,13 +41,13 @@ func _ready():
 	director = Director.new(prompt_engine, world_db)
 	add_child(director)
 	director.action_resolved.connect(_on_action_resolved)
-	director.action_queue_updated.connect(_on_action_queue_updated)
+	#director.action_queue_updated.connect(_on_action_queue_updated)
 	
 	# Connect UI signals
-	chat_window.entity_clicked.connect(_on_entity_clicked)
+	#chat_window.entity_clicked.connect(_on_entity_clicked)
 	chat_window.message_sent.connect(_on_message_sent)
 	choice_panel.action_selected.connect(_on_action_selected)
-	lore_panel.set_world_db(world_db)
+	#lore_panel.set_world_db(world_db)
 	settings_panel.settings_saved.connect(_on_settings_saved)
 	settings_button.pressed.connect(_on_settings_button_pressed)
 	card_editor.closed.connect(_on_card_editor_closed)
@@ -153,8 +153,8 @@ func _update_chat_address_options():
 			talkables.append(entity.id)
 	chat_window.set_address_options(talkables)
 
-func _on_entity_clicked(entity_id: String):
-	lore_panel.show_entity(entity_id)
+#func _on_entity_clicked(entity_id: String):
+	#lore_panel.show_entity(entity_id)
 
 func _on_action_resolved(envelope: ResolutionEnvelope):
 	_display_envelope(envelope)
@@ -162,8 +162,8 @@ func _on_action_resolved(envelope: ResolutionEnvelope):
 func _on_settings_button_pressed():
 	settings_panel.visible = true
 
-func _on_action_queue_updated(queue_preview: Array[String], current_actor: String):
-	action_queue_panel.update_queue(queue_preview, current_actor)
+#func _on_action_queue_updated(queue_preview: Array[String], current_actor: String):
+	#action_queue_panel.update_queue(queue_preview, current_actor)
 
 func _on_settings_saved():
 	# Reload LLM client with new settings
@@ -190,9 +190,9 @@ func _on_editor_button_pressed():
 	# Hide main game UI
 	chat_window.visible = false
 	choice_panel.visible = false
-	lore_panel.visible = false
+	#lore_panel.visible = false
 	settings_panel.visible = false
-	action_queue_panel.visible = false
+	#action_queue_panel.visible = false
 	settings_button.visible = false
 	if editor_button:
 		editor_button.visible = false
@@ -204,8 +204,8 @@ func _on_card_editor_closed():
 	# Show main game UI
 	chat_window.visible = true
 	choice_panel.visible = true
-	lore_panel.visible = true
-	action_queue_panel.visible = true
+	#lore_panel.visible = true
+	#action_queue_panel.visible = true
 	settings_button.visible = true
 	if editor_button:
 		editor_button.visible = true

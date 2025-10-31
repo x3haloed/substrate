@@ -5,7 +5,7 @@ class_name ChoicePanel
 
 signal action_selected(verb: String, target: String)
 
-@onready var choice_container: VBoxContainer = $VBox/ScrollContainer/ChoiceContainer
+@onready var choice_container: GridContainer = $VBox/ScrollContainer/ChoiceContainer
 
 func clear_choices():
 	for child in choice_container.get_children():
