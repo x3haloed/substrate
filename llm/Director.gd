@@ -46,8 +46,9 @@ func enter_scene(scene_id: String) -> ResolutionEnvelope:
 	narr.text = narration_text if narration_text != "" else scene.description
 	envelope.narration.append(narr)
 	
-	# Emit scene.enter event and evaluate character triggers
-	await _evaluate_scene_enter_triggers(scene, envelope)
+	# Evaluate scene.enter triggers AFTER initial narration has been displayed
+	# by deferring execution to the next frame.
+	call_deferred("_evaluate_scene_enter_triggers", scene, envelope)
 	
 	# Generate initial UI choices
 	envelope.ui_choices = _generate_ui_choices(scene)
