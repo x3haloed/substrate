@@ -99,9 +99,8 @@ func _on_action_selected(verb: String, target: String):
 	action.verb = verb
 	action.target = target
 	action.scene = world_db.flags.get("current_scene", "")
-	
-	var envelope = await director.process_player_action(action)
-	_display_envelope(envelope)
+	# Let Director emit action_resolved; we handle display in _on_action_resolved
+	await director.process_player_action(action)
 
 func _on_message_sent(text: String):
 	# Parse simple commands and emit player.command.* events
@@ -148,9 +147,8 @@ func _on_message_sent(text: String):
 func _on_entity_clicked(entity_id: String):
 	lore_panel.show_entity(entity_id)
 
-func _on_action_resolved(_envelope: ResolutionEnvelope):
-	# Additional handling if needed
-	pass
+func _on_action_resolved(envelope: ResolutionEnvelope):
+	_display_envelope(envelope)
 
 func _on_settings_button_pressed():
 	settings_panel.visible = true
