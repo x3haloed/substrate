@@ -1,0 +1,67 @@
+[gd_scene load_steps=2 format=3 uid="uid://bktsgeb5uww62"]
+
+[ext_resource type="Script" uid="uid://cpaufvsjfjrkr" path="res://ui/NPCInventoryPanel.gd" id="1"]
+
+[node name="NPCInventoryPanel" type="Panel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="NPCTabs" type="TabBar" parent="VBox"]
+layout_mode = 2
+
+[node name="Header" type="PanelContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="VBox/Header"]
+layout_mode = 2
+
+[node name="Portrait" type="ColorRect" parent="VBox/Header/HBox"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+color = Color(0.5, 0.5, 0.5, 1)
+
+[node name="VBoxInfo" type="VBoxContainer" parent="VBox/Header/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NPCName" type="Label" parent="VBox/Header/HBox/VBoxInfo"]
+layout_mode = 2
+text = "Trader Vex"
+
+[node name="Disposition" type="Label" parent="VBox/Header/HBox/VBoxInfo"]
+layout_mode = 2
+text = "Disposition: Neutral"
+
+[node name="CloseButton" type="Button" parent="VBox/Header/HBox"]
+layout_mode = 2
+text = "×"
+
+[node name="Content" type="VBoxContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SectionTitle" type="Label" parent="VBox/Content"]
+layout_mode = 2
+text = "TRADER INVENTORY"
+
+[node name="ItemScroll" type="ScrollContainer" parent="VBox/Content"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ItemGrid" type="GridContainer" parent="VBox/Content/ItemScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 3

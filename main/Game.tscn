@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://cd1mol72gjb2g"]
+[gd_scene load_steps=7 format=3 uid="uid://cd1mol72gjb2g"]
 
 [ext_resource type="Script" path="res://main/Game.gd" id="1_d75c0"]
 [ext_resource type="PackedScene" uid="uid://b8vwcq7x3kp4f" path="res://ui/ChatWindow.tscn" id="2_cthgq"]
 [ext_resource type="PackedScene" uid="uid://c5xn8k2v7m3p4" path="res://ui/ChoicePanel.tscn" id="3_4a11f"]
 [ext_resource type="PackedScene" uid="uid://bdl3fk61pia1f" path="res://ui/SettingsPanel.tscn" id="4_jbgv0"]
 [ext_resource type="PackedScene" path="res://ui/CardEditor.tscn" id="5_v77vj"]
+[ext_resource type="PackedScene" path="res://ui/NPCInventoryPanel.tscn" id="6_npci"]
 
 [node name="Game" type="Node"]
 script = ExtResource("1_d75c0")
@@ -95,16 +96,9 @@ custom_minimum_size = Vector2(320, 0)
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="npc_inventory" type="PanelContainer" parent="GameUI/game_container/main_game/right_panel"]
+[node name="NPCInventoryPanel" parent="GameUI/game_container/main_game/right_panel" instance=ExtResource("6_npci")]
 layout_mode = 2
 size_flags_vertical = 3
-
-[node name="Label" type="Label" parent="GameUI/game_container/main_game/right_panel/npc_inventory"]
-layout_mode = 2
-text = "NPC INVENTORY
-(Not Implemented)"
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="whisper_chat" type="PanelContainer" parent="GameUI/game_container/main_game/right_panel"]
 custom_minimum_size = Vector2(0, 256)
