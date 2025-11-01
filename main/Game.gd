@@ -67,6 +67,11 @@ func _ready():
 	# Setup autosave
 	_setup_autosave()
 	
+	# Install browser clipboard bridge for Web builds
+	if OS.has_feature("web"):
+		var clipboard_bridge := preload("res://tools/ClipboardBridge.gd").new()
+		add_child(clipboard_bridge)
+	
 	# Start the game
 	_start_game()
 
