@@ -13,6 +13,8 @@ class_name Game
 #@onready var action_queue_panel: ActionQueuePanel = $UI/ActionQueuePanel
 @onready var card_editor: CardEditor = $GameUI/CardEditor
 @onready var editor_button: Button = $GameUI/game_container/header/HBoxContainer/button_group/editor_button
+@onready var card_manager: CardManager = $GameUI/CardManager
+@onready var cards_button: Button = $GameUI/game_container/header/HBoxContainer/button_group/cards_button
 
 var llm_settings: LLMSettings
 var llm_client: LLMClient
@@ -65,6 +67,9 @@ func _ready():
 	card_editor.closed.connect(_on_card_editor_closed)
 	if editor_button:
 		editor_button.pressed.connect(_on_editor_button_pressed)
+	card_manager.closed.connect(_on_card_manager_closed)
+	if cards_button:
+		cards_button.pressed.connect(_on_cards_button_pressed)
 	
 	# Setup autosave
 	_setup_autosave()
@@ -268,30 +273,40 @@ func _on_autosave_timer():
 
 func _on_editor_button_pressed():
 	# Hide main game UI
-	chat_window.visible = false
-	choice_panel.visible = false
+	var game_container = $GameUI/game_container
+	game_container.visible = false
 	lore_panel.visible = false
 	settings_panel.visible = false
-	#action_queue_panel.visible = false
-	settings_button.visible = false
-	if editor_button:
-		editor_button.visible = false
 	
 	# Show editor
 	card_editor.visible = true
 
 func _on_card_editor_closed():
 	# Show main game UI
-	chat_window.visible = true
-	choice_panel.visible = true
-	lore_panel.visible = true
-	#action_queue_panel.visible = true
-	settings_button.visible = true
-	if editor_button:
-		editor_button.visible = true
+	var game_container = $GameUI/game_container
+	game_container.visible = true
 	
 	# Hide editor
 	card_editor.visible = false
+
+func _on_cards_button_pressed():
+	# Hide main game UI
+	var game_container = $GameUI/game_container
+	game_container.visible = false
+	lore_panel.visible = false
+	settings_panel.visible = false
+	card_editor.visible = false
+	
+	# Show card manager
+	card_manager.visible = true
+
+func _on_card_manager_closed():
+	# Show main game UI
+	var game_container = $GameUI/game_container
+	game_container.visible = true
+	
+	# Hide card manager
+	card_manager.visible = false
 
 func _notification(what):
 	# Save on exit
