@@ -1,6 +1,6 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=3 format=3 uid="uid://biy2iv78iall4"]
 
-[ext_resource type="Script" path="res://ui/CardManager.gd" id="1"]
+[ext_resource type="Script" uid="uid://cygm7rkl3xqjr" path="res://ui/CardManager.gd" id="1"]
 [ext_resource type="Theme" uid="uid://4v4y5u4fr565" path="res://ui/fantasy_theme.tres" id="2"]
 
 [node name="CardManager" type="Control"]
@@ -224,8 +224,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-horizontal_scroll_bar_mode = 3
-vertical_scroll_bar_mode = 0
 
 [node name="CardShelf" type="HBoxContainer" parent="VBoxContainer/MainContainer/CardShelfSection/MarginContainer/VBoxContainer/ShelfControl/ScrollContainer"]
 unique_name_in_owner = true
@@ -264,8 +262,8 @@ text = "▶"
 
 [node name="ControlButtons" type="HBoxContainer" parent="VBoxContainer/MainContainer/CardShelfSection/MarginContainer/VBoxContainer"]
 layout_mode = 2
-alignment = 1
 theme_override_constants/separation = 16
+alignment = 1
 
 [node name="AutoScrollButton" type="Button" parent="VBoxContainer/MainContainer/CardShelfSection/MarginContainer/VBoxContainer/ControlButtons"]
 unique_name_in_owner = true
@@ -506,4 +504,3 @@ text = "EPICS: 45"
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
 text = "LEGENDARIES: 32"
-
