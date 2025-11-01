@@ -63,8 +63,8 @@ The model writes prose + small deltas; the engine enforces game rules.
 ```
 res://
  ├─ llm/
-│   ├─ PromptEngine.gd      # Builds prompts, parses JSON responses (schema with commands)
-│   ├─ Director.gd          # Turn phases, arbitration, patches, engine commands
+ │   ├─ PromptEngine.gd      # Builds prompts, parses JSON responses (schema with commands)
+ │   ├─ Director.gd          # Turn phases, arbitration, patches, engine commands
  │   ├─ Narrator.gd          # Text formatting and styles
  │   ├─ CompanionAI.gd      # NPC behavior and triggers
  │   ├─ LLMClient.gd         # HTTP client for LLM API
@@ -75,12 +75,12 @@ res://
  │   ├─ types/               # Core data types (Entity, SceneGraph, etc.)
  │   └─ world_state.tres     # Initial world database
  ├─ ui/
-│   ├─ ChatWindow.tscn      # Main chat interface
-│   ├─ ChoicePanel.tscn     # Action buttons
-│   ├─ PlayerInventoryPanel.tscn # Player inventory (binds to WorldDB.player_inventory)
-│   ├─ NPCPanel.tscn        # NPC tabs + inventory from scene entity contents
-│   ├─ LorePanel.tscn       # Entity information overlay
-│   └─ SettingsPanel.tscn   # LLM configuration UI
+ │   ├─ ChatWindow.tscn      # Main chat interface
+ │   ├─ ChoicePanel.tscn     # Action buttons
+ │   ├─ PlayerInventoryPanel.tscn # Player inventory (binds to WorldDB.player_inventory)
+ │   ├─ NPCPanel.tscn        # NPC tabs + inventory from scene entity contents
+ │   ├─ LorePanel.tscn       # Entity information overlay
+ │   └─ SettingsPanel.tscn   # LLM configuration UI
  └─ main/
      └─ Game.tscn            # Main game scene
 ```
