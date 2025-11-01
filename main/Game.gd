@@ -9,6 +9,7 @@ class_name Game
 @onready var settings_panel: SettingsPanel = $GameUI/SettingsPanel
 @onready var settings_button: Button = $GameUI/game_container/header/HBoxContainer/button_group/settings_button
 @onready var inventory_panel: PlayerInventoryPanel = $GameUI/game_container/main_game/InventoryPanel
+@onready var npc_panel: NPCPanel = $GameUI/game_container/main_game/right_panel/NPCInventoryPanel
 #@onready var action_queue_panel: ActionQueuePanel = $UI/ActionQueuePanel
 @onready var card_editor: CardEditor = $GameUI/CardEditor
 @onready var editor_button: Button = $GameUI/game_container/header/HBoxContainer/button_group/editor_button
@@ -54,6 +55,8 @@ func _ready():
 	choice_panel.action_selected.connect(_on_action_selected)
 	# Bind inventory panel to player inventory (Phase 2)
 	inventory_panel.set_inventory(world_db.player_inventory)
+	# Bind NPC panel to world DB
+	npc_panel.set_world_db(world_db)
 	#lore_panel.set_world_db(world_db)
 	settings_panel.settings_saved.connect(_on_settings_saved)
 	settings_button.pressed.connect(_on_settings_button_pressed)
@@ -118,6 +121,8 @@ func _display_envelope(envelope: ResolutionEnvelope):
 	_update_chat_address_options()
 	# Refresh inventory panel to reflect any item transfers
 	inventory_panel.refresh()
+	# Refresh NPC panel (tabs and selection detail)
+	npc_panel.refresh()
 
 func _on_action_selected(verb: String, target: String):
 	# Fail early for take if inventory cannot accept
