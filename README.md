@@ -18,8 +18,13 @@ This separation keeps prose delightful without letting it corrupt state, and kee
    - Enter your API key (if required)
    - Enter the model name (e.g., `gpt-4o-mini` for OpenAI)
    - IMPORTANT: Choose a model that supports structured (JSON schema) outputs
+     
+     <img width="233" height="210" alt="image" src="https://github.com/user-attachments/assets/f2a2f257-8000-4ae6-8ed7-34155e7d5a0b" />
+
+     (OpenRouter model browser)
+     
    - Click "Save"
-3. Run the project (F5)
+4. Run the project (F5)
 
 You should see: the narrator’s opening, scene entities represented as clickable tags in chat, on‑rails verbs as buttons, and a left/right inventory UI for the player and NPCs.
 
