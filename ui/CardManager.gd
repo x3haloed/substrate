@@ -5,6 +5,8 @@ class_name CardManager
 
 signal closed
 
+const CardRepositoryRef = preload("res://tools/CardRepository.gd")
+
 @onready var card_shelf: HBoxContainer = %CardShelf
 @onready var exit_button: Button = %ExitButton
 @onready var help_button: Button = %HelpButton
@@ -25,7 +27,6 @@ var auto_scrolling: bool = false
 var auto_scroll_timer: Timer
 
 const CARD_WIDTH: int = 112  # 96px + 16px gap
-const CHARACTER_DIR: String = "res://data/characters/"
 
 func _ready():
 	_setup_sort_options()
@@ -44,20 +45,12 @@ func _setup_sort_options():
 
 func _load_character_cards():
 	character_cards.clear()
-	var dir = DirAccess.open(CHARACTER_DIR)
-	if dir:
-		dir.list_dir_begin()
-		var file_name = dir.get_next()
-		while file_name != "":
-			if file_name.ends_with(".tres"):
-				var full_path = CHARACTER_DIR + file_name
-				var character = load(full_path) as CharacterProfile
-				if character:
-					# Warm the portrait cache to avoid lag during rendering
-					character.warm_portrait_cache()
-					character_cards.append(character)
-			file_name = dir.get_next()
-		dir.list_dir_end()
+	var cards: Array[CharacterProfile] = CardRepositoryRef.load_cards()
+	for character in cards:
+		if character:
+			# Warm the portrait cache to avoid lag during rendering
+			character.warm_portrait_cache()
+			character_cards.append(character)
 
 func _populate_card_shelf():
 	# Clear existing cards

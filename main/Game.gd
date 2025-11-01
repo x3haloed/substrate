@@ -24,6 +24,10 @@ var director: Director
 var autosave_timer: Timer
 var autosave_interval: float = 300.0  # 5 minutes
 
+func _enter_tree():
+	# Ensure the user's card repository is initialized with builtin cards
+	CardRepository.sync_builtin_cards_to_repo()
+
 func _ready():
 	# Load or create LLM settings
 	_load_settings()
