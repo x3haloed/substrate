@@ -65,3 +65,33 @@ size_flags_vertical = 3
 layout_mode = 2
 size_flags_horizontal = 3
 columns = 3
+
+[node name="WhisperContent" type="HBoxContainer" parent="VBox/Content"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HBox" type="HBoxContainer" parent="VBox/Content/WhisperContent"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ChatVBox" type="VBoxContainer" parent="VBox/Content/WhisperContent/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ChatLog" type="RichTextLabel" parent="VBox/Content/WhisperContent/HBox/ChatVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+
+[node name="InputBox" type="HBoxContainer" parent="VBox/Content/WhisperContent/HBox/ChatVBox"]
+layout_mode = 2
+
+[node name="InputLine" type="LineEdit" parent="VBox/Content/WhisperContent/HBox/ChatVBox/InputBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Whisper..."
+
+[node name="SendButton" type="Button" parent="VBox/Content/WhisperContent/HBox/ChatVBox/InputBox"]
+layout_mode = 2
+text = "Send"

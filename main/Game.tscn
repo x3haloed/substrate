@@ -1,13 +1,12 @@
-[gd_scene load_steps=9 format=3 uid="uid://cd1mol72gjb2g"]
+[gd_scene load_steps=8 format=3 uid="uid://cd1mol72gjb2g"]
 
-[ext_resource type="Script" path="res://main/Game.gd" id="1_d75c0"]
+[ext_resource type="Script" uid="uid://bsglhg25j1uqv" path="res://main/Game.gd" id="1_d75c0"]
 [ext_resource type="PackedScene" uid="uid://b8vwcq7x3kp4f" path="res://ui/ChatWindow.tscn" id="2_cthgq"]
 [ext_resource type="PackedScene" uid="uid://c5xn8k2v7m3p4" path="res://ui/ChoicePanel.tscn" id="3_4a11f"]
 [ext_resource type="PackedScene" uid="uid://bdl3fk61pia1f" path="res://ui/SettingsPanel.tscn" id="4_jbgv0"]
-[ext_resource type="PackedScene" path="res://ui/CardEditor.tscn" id="5_v77vj"]
-[ext_resource type="PackedScene" path="res://ui/NPCInventoryPanel.tscn" id="6_npci"]
-[ext_resource type="PackedScene" path="res://ui/WhisperChatPanel.tscn" id="7_whsp"]
-[ext_resource type="PackedScene" path="res://ui/InventoryPanel.tscn" id="8_invp"]
+[ext_resource type="PackedScene" uid="uid://o7xiakcfdh8l" path="res://ui/CardEditor.tscn" id="5_v77vj"]
+[ext_resource type="PackedScene" uid="uid://bktsgeb5uww62" path="res://ui/NPCInventoryPanel.tscn" id="6_npci"]
+[ext_resource type="PackedScene" uid="uid://bq085jnfkwvmf" path="res://ui/InventoryPanel.tscn" id="8_invp"]
 
 [node name="Game" type="Node"]
 script = ExtResource("1_d75c0")
@@ -68,8 +67,8 @@ size_flags_vertical = 3
 theme_override_constants/separation = 8
 
 [node name="InventoryPanel" parent="GameUI/game_container/main_game" instance=ExtResource("8_invp")]
-layout_mode = 2
 custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
 
 [node name="center_panel" type="VBoxContainer" parent="GameUI/game_container/main_game"]
 layout_mode = 2
@@ -84,7 +83,6 @@ size_flags_vertical = 3
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 1
 
 [node name="right_panel" type="VBoxContainer" parent="GameUI/game_container/main_game"]
 custom_minimum_size = Vector2(320, 0)
@@ -94,9 +92,6 @@ theme_override_constants/separation = 8
 [node name="NPCInventoryPanel" parent="GameUI/game_container/main_game/right_panel" instance=ExtResource("6_npci")]
 layout_mode = 2
 size_flags_vertical = 3
-
-[node name="WhisperChatPanel" parent="GameUI/game_container/main_game/right_panel" instance=ExtResource("7_whsp")]
-layout_mode = 2
 
 [node name="SettingsPanel" parent="GameUI" instance=ExtResource("4_jbgv0")]
 visible = false
