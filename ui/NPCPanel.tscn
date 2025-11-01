@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://bktsgeb5uww62"]
+[gd_scene load_steps=3 format=3 uid="uid://bktsgeb5uww62"]
 
-[ext_resource type="Script" uid="uid://cpaufvsjfjrkr" path="res://ui/NPCInventoryPanel.gd" id="1"]
+[ext_resource type="Script" uid="uid://cpaufvsjfjrkr" path="res://ui/NPCPanel.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://dub370j3w7k8n" path="res://assets/images/dwarf.png" id="2_8t4v1"]
 
 [node name="NPCInventoryPanel" type="Panel"]
 anchors_preset = 15
@@ -20,6 +21,10 @@ grow_vertical = 2
 
 [node name="NPCTabs" type="TabBar" parent="VBox"]
 layout_mode = 2
+current_tab = 0
+tab_count = 2
+tab_0/title = "NPC 1"
+tab_1/title = "NPC 2"
 
 [node name="Header" type="PanelContainer" parent="VBox"]
 layout_mode = 2
@@ -27,10 +32,11 @@ layout_mode = 2
 [node name="HBox" type="HBoxContainer" parent="VBox/Header"]
 layout_mode = 2
 
-[node name="Portrait" type="ColorRect" parent="VBox/Header/HBox"]
+[node name="Portrait" type="TextureRect" parent="VBox/Header/HBox"]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
-color = Color(0.5, 0.5, 0.5, 1)
+texture = ExtResource("2_8t4v1")
+expand_mode = 5
 
 [node name="VBoxInfo" type="VBoxContainer" parent="VBox/Header/HBox"]
 layout_mode = 2

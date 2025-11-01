@@ -1,12 +1,17 @@
-[gd_scene load_steps=8 format=3 uid="uid://cd1mol72gjb2g"]
+[gd_scene load_steps=9 format=3 uid="uid://cd1mol72gjb2g"]
 
 [ext_resource type="Script" uid="uid://bsglhg25j1uqv" path="res://main/Game.gd" id="1_d75c0"]
 [ext_resource type="PackedScene" uid="uid://b8vwcq7x3kp4f" path="res://ui/ChatWindow.tscn" id="2_cthgq"]
 [ext_resource type="PackedScene" uid="uid://c5xn8k2v7m3p4" path="res://ui/ChoicePanel.tscn" id="3_4a11f"]
 [ext_resource type="PackedScene" uid="uid://bdl3fk61pia1f" path="res://ui/SettingsPanel.tscn" id="4_jbgv0"]
 [ext_resource type="PackedScene" uid="uid://o7xiakcfdh8l" path="res://ui/CardEditor.tscn" id="5_v77vj"]
-[ext_resource type="PackedScene" uid="uid://bktsgeb5uww62" path="res://ui/NPCInventoryPanel.tscn" id="6_npci"]
+[ext_resource type="PackedScene" uid="uid://bktsgeb5uww62" path="res://ui/NPCPanel.tscn" id="6_npci"]
 [ext_resource type="PackedScene" uid="uid://bq085jnfkwvmf" path="res://ui/InventoryPanel.tscn" id="8_invp"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2dx66"]
+content_margin_top = 12.0
+content_margin_right = 10.0
+content_margin_bottom = 12.0
 
 [node name="Game" type="Node"]
 script = ExtResource("1_d75c0")
@@ -33,16 +38,19 @@ layout_mode = 2
 
 [node name="HBoxContainer" type="HBoxContainer" parent="GameUI/game_container/header"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 4
 
 [node name="title" type="Label" parent="GameUI/game_container/header/HBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxEmpty_2dx66")
 text = "SUBSTRATE"
 vertical_alignment = 1
 
 [node name="button_group" type="HBoxContainer" parent="GameUI/game_container/header/HBoxContainer"]
 layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 10
 
 [node name="editor_button" type="Button" parent="GameUI/game_container/header/HBoxContainer/button_group"]
 layout_mode = 2

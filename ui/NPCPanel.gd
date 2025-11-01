@@ -1,12 +1,12 @@
 extends Control
-class_name NPCInventoryPanel
+class_name NPCPanel
 
 ## NPC inventory panel with tabs (placeholder implementation)
 
 @onready var npc_tabs: TabBar = $VBox/NPCTabs
 @onready var npc_name: Label = $VBox/Header/HBox/VBoxInfo/NPCName
 @onready var npc_disposition: Label = $VBox/Header/HBox/VBoxInfo/Disposition
-@onready var npc_portrait: ColorRect = $VBox/Header/HBox/Portrait
+@onready var npc_portrait: TextureRect = $VBox/Header/HBox/Portrait
 @onready var item_grid: GridContainer = $VBox/Content/ItemScroll/ItemGrid
 @onready var chat_log: RichTextLabel = $VBox/Content/WhisperContent/HBox/ChatVBox/ChatLog
 @onready var input_line: LineEdit = $VBox/Content/WhisperContent/HBox/ChatVBox/InputBox/InputLine

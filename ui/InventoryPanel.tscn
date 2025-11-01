@@ -27,7 +27,6 @@ layout_mode = 2
 [node name="Title" type="Label" parent="VBox/Header/HeaderVBox"]
 layout_mode = 2
 text = "INVENTORY"
-horizontal_alignment = 1
 
 [node name="SearchBar" type="HBoxContainer" parent="VBox/Header/HeaderVBox"]
 layout_mode = 2
@@ -58,7 +57,6 @@ layout_mode = 2
 [node name="StatsTitle" type="Label" parent="VBox/Content/StatsSidebar/StatsVBox"]
 layout_mode = 2
 text = "STATS"
-horizontal_alignment = 1
 
 [node name="HPLabel" type="Label" parent="VBox/Content/StatsSidebar/StatsVBox"]
 layout_mode = 2
