@@ -71,15 +71,27 @@ func _ready():
 	_start_game()
 
 func _load_settings():
-	var settings_path = "res://llm/settings.tres"
-	llm_settings = load(settings_path) as LLMSettings
+	var defaults_path = "res://llm/settings.tres"
+	llm_settings = null
+	if ResourceLoader.exists(defaults_path):
+		llm_settings = load(defaults_path) as LLMSettings
 	
 	if not llm_settings:
-		# Create default settings
+		# In exports, res:// is read-only; fall back to in-memory defaults
 		llm_settings = LLMSettings.new()
-		llm_settings.provider = "openai"
-		llm_settings.model = "gpt-4o-mini"
-		ResourceSaver.save(llm_settings, settings_path)
+	
+	# Overlay user overrides from persistent storage (works on Web via IndexedDB)
+	var cfg := ConfigFile.new()
+	var cfg_err := cfg.load("user://llm_settings.cfg")
+	if cfg_err == OK:
+		var provider := str(cfg.get_value("llm", "provider", llm_settings.provider))
+		llm_settings.set_provider(provider)
+		var api_base := str(cfg.get_value("llm", "api_base_url", llm_settings.api_base_url))
+		if provider == "custom":
+			llm_settings.api_base_url = api_base
+		llm_settings.api_key = str(cfg.get_value("llm", "api_key", llm_settings.api_key))
+		llm_settings.model = str(cfg.get_value("llm", "model", llm_settings.model))
+		llm_settings.debug_trace = bool(cfg.get_value("llm", "debug_trace", llm_settings.debug_trace))
 	
 	settings_panel.load_settings(llm_settings)
 
@@ -215,7 +227,7 @@ func _on_settings_saved():
 	llm_client = LLMClient.new(llm_settings)
 	add_child(llm_client)
 	prompt_engine.llm_client = llm_client
-	chat_window.add_message("Settings saved. Restart to apply changes.", "world")
+	chat_window.add_message("Settings saved and applied.", "world")
 
 func _setup_autosave():
 	autosave_timer = Timer.new()

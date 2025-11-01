@@ -78,9 +78,14 @@ func _on_save_pressed():
 	settings.api_key = api_key_edit.text
 	settings.model = model_edit.text
 	
-	# Save to resource file
-	var path = "res://llm/settings.tres"
-	ResourceSaver.save(settings, path)
+	# Persist to user storage (works on Web via IndexedDB)
+	var cfg := ConfigFile.new()
+	cfg.set_value("llm", "provider", settings.provider)
+	cfg.set_value("llm", "api_base_url", settings.api_base_url)
+	cfg.set_value("llm", "api_key", settings.api_key)
+	cfg.set_value("llm", "model", settings.model)
+	cfg.set_value("llm", "debug_trace", settings.debug_trace)
+	cfg.save("user://llm_settings.cfg")
 	
 	settings_saved.emit()
 	visible = false
