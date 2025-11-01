@@ -9,6 +9,8 @@ var pending_response: Dictionary = {}
 
 signal request_complete(response_text: String)
 signal request_error(error: String)
+signal request_started(meta: Dictionary)
+signal request_finished(meta: Dictionary)
 
 func _init(p_settings: LLMSettings):
 	settings = p_settings
@@ -16,7 +18,7 @@ func _init(p_settings: LLMSettings):
 	add_child(http_request)
 	http_request.request_completed.connect(_on_request_completed)
 
-func make_request(messages: Array[Dictionary], model_override: String = "", json_schema: Dictionary = {}) -> String:
+func make_request(messages: Array[Dictionary], model_override: String = "", json_schema: Dictionary = {}, meta: Dictionary = {}) -> String:
 	var url = settings.get_api_url() + "/chat/completions"
 	
 	var request_body = {
@@ -56,9 +58,13 @@ func make_request(messages: Array[Dictionary], model_override: String = "", json
 			print("JSON Schema:\n" + JSON.stringify(json_schema, "\t"))
 		print("Request Body:\n" + json_string)
 	
+	# Notify listeners that a request has started (for UI typing indicators, etc.)
+	request_started.emit(meta)
+
 	var error = http_request.request(url, headers, HTTPClient.METHOD_POST, json_string)
 	if error != OK:
 		request_error.emit("Failed to start HTTP request: " + str(error))
+		request_finished.emit(meta)
 		return ""
 	
 	# Wait for response asynchronously
@@ -67,7 +73,8 @@ func make_request(messages: Array[Dictionary], model_override: String = "", json
 	pending_response[request_id] = {
 		"received": false,
 		"text": "",
-		"error": ""
+		"error": "",
+		"meta": meta
 	}
 	
 	# Wait for response
@@ -79,6 +86,7 @@ func make_request(messages: Array[Dictionary], model_override: String = "", json
 		if elapsed > max_wait:
 			pending_response.erase(request_id)
 			request_error.emit("Request timeout")
+			request_finished.emit(meta)
 			return ""
 	
 	var result = pending_response[request_id]
@@ -86,8 +94,10 @@ func make_request(messages: Array[Dictionary], model_override: String = "", json
 	
 	if result.error != "":
 		request_error.emit(result.error)
+		request_finished.emit(meta)
 		return ""
 	
+	request_finished.emit(meta)
 	return result.text
 
 func _on_request_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray):
@@ -110,6 +120,8 @@ func _on_request_completed(result: int, response_code: int, _headers: PackedStri
 		if callback:
 			callback.received = true
 			callback.error = error_msg
+			if callback.has("meta"):
+				request_finished.emit(callback.meta)
 		else:
 			request_error.emit(error_msg)
 		return
@@ -120,6 +132,8 @@ func _on_request_completed(result: int, response_code: int, _headers: PackedStri
 		if callback:
 			callback.received = true
 			callback.error = error_msg
+			if callback.has("meta"):
+				request_finished.emit(callback.meta)
 		else:
 			request_error.emit(error_msg)
 		return
@@ -131,6 +145,8 @@ func _on_request_completed(result: int, response_code: int, _headers: PackedStri
 		if callback:
 			callback.received = true
 			callback.error = error_msg
+			if callback.has("meta"):
+				request_finished.emit(callback.meta)
 		else:
 			request_error.emit(error_msg)
 		return
@@ -141,6 +157,8 @@ func _on_request_completed(result: int, response_code: int, _headers: PackedStri
 		if callback:
 			callback.received = true
 			callback.error = error_msg
+			if callback.has("meta"):
+				request_finished.emit(callback.meta)
 		else:
 			request_error.emit(error_msg)
 		return
@@ -149,5 +167,7 @@ func _on_request_completed(result: int, response_code: int, _headers: PackedStri
 	if callback:
 		callback.received = true
 		callback.text = content
+		if callback.has("meta"):
+			request_finished.emit(callback.meta)
 	else:
 		request_complete.emit(content)

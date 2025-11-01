@@ -7,6 +7,7 @@ signal entity_clicked(entity_id: String)
 signal message_sent(text: String)
 
 @onready var chat_log: RichTextLabel = $VBox/ChatLog
+@onready var typing_indicator: TypingIndicator = $VBox/TypingIndicator
 @onready var address_option: OptionButton = $VBox/InputBox/AddressOption
 @onready var input_line: LineEdit = $VBox/InputBox/InputLine
 @onready var send_button: Button = $VBox/InputBox/SendButton
@@ -39,6 +40,14 @@ func add_message(text: String, style: String = "world", speaker: String = ""):
 
 func clear_chat():
 	chat_log.clear()
+
+func show_typing(source: String, name_hint: String = "") -> void:
+	if typing_indicator:
+		typing_indicator.start(source, name_hint)
+
+func hide_typing() -> void:
+	if typing_indicator:
+		typing_indicator.stop()
 
 func set_address_options(target_ids: Array[String]):
 	# Optional address dropdown for talking to specific entities

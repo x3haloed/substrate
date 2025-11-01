@@ -39,6 +39,8 @@ func _ready():
 	# Initialize LLM client (must be a Node in the scene tree)
 	llm_client = LLMClient.new(llm_settings)
 	add_child(llm_client)
+	llm_client.request_started.connect(_on_llm_request_started)
+	llm_client.request_finished.connect(_on_llm_request_finished)
 	
 	# Initialize prompt engine
 	prompt_engine = PromptEngine.new(llm_client, world_db)
@@ -232,7 +234,25 @@ func _on_settings_saved():
 	llm_client = LLMClient.new(llm_settings)
 	add_child(llm_client)
 	prompt_engine.llm_client = llm_client
+	llm_client.request_started.connect(_on_llm_request_started)
+	llm_client.request_finished.connect(_on_llm_request_finished)
 	chat_window.add_message("Settings saved and applied.", "world")
+
+func _on_llm_request_started(meta: Dictionary):
+	var source := str(meta.get("source", ""))
+	var name_hint := ""
+	if source == "npc":
+		var candidate_id := str(meta.get("npc_id", meta.get("npc_hint", "")))
+		if candidate_id != "":
+			var profile = world_db.get_character(candidate_id)
+			if profile and profile.name != "":
+				name_hint = profile.name
+			else:
+				name_hint = candidate_id
+	chat_window.show_typing(source, name_hint)
+
+func _on_llm_request_finished(_meta: Dictionary):
+	chat_window.hide_typing()
 
 func _setup_autosave():
 	autosave_timer = Timer.new()

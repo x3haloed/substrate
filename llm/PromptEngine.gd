@@ -261,7 +261,7 @@ func process_action(action: ActionRequest, character_context: Dictionary = {}) -
 		var target_character = world_db.get_character(action.target)
 		if target_character:
 			var npc_messages = build_npc_prompt(action, scene, target_character)
-			var npc_response = await _make_llm_request(npc_messages, _resolution_envelope_schema())
+			var npc_response = await _make_llm_request(npc_messages, _resolution_envelope_schema(), {"source": "npc", "npc_id": action.target})
 			if npc_response != "":
 				var npc_envelope = _parse_response(npc_response)
 				# Ensure speaker/style are set correctly
@@ -275,7 +275,7 @@ func process_action(action: ActionRequest, character_context: Dictionary = {}) -
 		var actor_character = world_db.get_character(action.actor)
 		if actor_character:
 			var npc_messages_actor = build_npc_prompt(action, scene, actor_character)
-			var npc_response_actor = await _make_llm_request(npc_messages_actor, _resolution_envelope_schema())
+			var npc_response_actor = await _make_llm_request(npc_messages_actor, _resolution_envelope_schema(), {"source": "npc", "npc_id": action.actor})
 			if npc_response_actor != "":
 				var npc_envelope_actor = _parse_response(npc_response_actor)
 				if npc_envelope_actor.narration.size() > 0:
@@ -304,7 +304,7 @@ func process_action(action: ActionRequest, character_context: Dictionary = {}) -
 					full_context["book_summary"] = book_summary
 	
 	var messages = build_director_prompt(action, scene, full_context)
-	var response_text = await _make_llm_request(messages, _resolution_envelope_schema())
+	var response_text = await _make_llm_request(messages, _resolution_envelope_schema(), {"source": "director"})
 	
 	if response_text == "":
 		return _create_error_envelope("LLM request failed")
@@ -331,15 +331,15 @@ func _summarize_character_book(book: CharacterBook) -> String:
 
 func process_narrator_request(context: Dictionary) -> String:
 	var messages = build_narrator_prompt(context)
-	var response_text = await _make_llm_request(messages)
+	var response_text = await _make_llm_request(messages, {}, {"source": "narrator"})
 	return response_text
 
-func _make_llm_request(messages: Array[Dictionary], json_schema: Dictionary = {}) -> String:
-	return await llm_client.make_request(messages, "", json_schema)
+func _make_llm_request(messages: Array[Dictionary], json_schema: Dictionary = {}, meta: Dictionary = {}) -> String:
+	return await llm_client.make_request(messages, "", json_schema, meta)
 
 func process_freeform_input(scene: SceneGraph, player_text: String) -> ResolutionEnvelope:
 	var messages = build_freeform_prompt(scene, player_text)
-	var response_text = await _make_llm_request(messages, _resolution_envelope_schema())
+	var response_text = await _make_llm_request(messages, _resolution_envelope_schema(), {"source": "director", "npc_hint": world_db.flags.get("last_npc_speaker", "")})
 	if response_text == "":
 		return _create_error_envelope("LLM request failed")
 	return _parse_response(response_text)
