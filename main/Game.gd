@@ -8,6 +8,7 @@ class_name Game
 #@onready var lore_panel: LorePanel = $UI/LorePanel
 @onready var settings_panel: SettingsPanel = $GameUI/SettingsPanel
 @onready var settings_button: Button = $GameUI/game_container/header/HBoxContainer/button_group/settings_button
+@onready var inventory_panel: PlayerInventoryPanel = $GameUI/game_container/main_game/InventoryPanel
 #@onready var action_queue_panel: ActionQueuePanel = $UI/ActionQueuePanel
 @onready var card_editor: CardEditor = $GameUI/CardEditor
 @onready var editor_button: Button = $GameUI/game_container/header/HBoxContainer/button_group/editor_button
@@ -29,6 +30,10 @@ func _ready():
 	if not world_db:
 		push_error("Failed to load world state")
 		return
+	# Ensure player entity exists for inventory/ownership
+	world_db.ensure_player_entity()
+	# Ensure player inventory exists (Phase 2)
+	world_db.ensure_player_inventory()
 	
 	# Initialize LLM client (must be a Node in the scene tree)
 	llm_client = LLMClient.new(llm_settings)
@@ -47,6 +52,8 @@ func _ready():
 	#chat_window.entity_clicked.connect(_on_entity_clicked)
 	chat_window.message_sent.connect(_on_message_sent)
 	choice_panel.action_selected.connect(_on_action_selected)
+	# Bind inventory panel to player inventory (Phase 2)
+	inventory_panel.set_inventory(world_db.player_inventory)
 	#lore_panel.set_world_db(world_db)
 	settings_panel.settings_saved.connect(_on_settings_saved)
 	settings_button.pressed.connect(_on_settings_button_pressed)
@@ -109,8 +116,27 @@ func _display_envelope(envelope: ResolutionEnvelope):
 	choice_panel.set_choices(envelope.ui_choices)
 	# Update chat address options with entities that support the talk verb
 	_update_chat_address_options()
+	# Refresh inventory panel to reflect any item transfers
+	inventory_panel.refresh()
 
 func _on_action_selected(verb: String, target: String):
+	# Fail early for take if inventory cannot accept
+	if verb == "take":
+		var scene_id = world_db.flags.get("current_scene", "")
+		var scene = world_db.get_scene(scene_id)
+		if scene:
+			var entity = scene.get_entity(target)
+			if entity:
+				world_db.ensure_player_inventory()
+				var def = _resolve_item_def_for_entity(entity)
+				if def != null:
+					var stack := ItemStack.new()
+					stack.item = def
+					stack.quantity = 1
+					if world_db.player_inventory and not world_db.player_inventory.can_accept(stack):
+						chat_window.add_message("Your pack is full. You can't carry the [" + entity.id + "] right now.", "world")
+						return
+	
 	var action = ActionRequest.new()
 	action.actor = "player"
 	action.verb = verb
@@ -118,6 +144,18 @@ func _on_action_selected(verb: String, target: String):
 	action.scene = world_db.flags.get("current_scene", "")
 	# Let Director emit action_resolved; we handle display in _on_action_resolved
 	await director.process_player_action(action)
+
+## Map a scene entity to an ItemDef for inventory checks (kept in sync with Director)
+func _resolve_item_def_for_entity(entity: Entity) -> ItemDef:
+	if entity == null:
+		return null
+	var def := ItemDef.new()
+	def.id = entity.id
+	def.display_name = entity.props.get("display_name", entity.id.capitalize())
+	def.description = entity.props.get("description", "")
+	def.weight_kg = float(entity.props.get("weight_kg", 0.5))
+	def.max_stack = int(entity.props.get("max_stack", 1))
+	return def
 
 func _on_message_sent(text: String):
 	# Track the player's raw text for freeform inference

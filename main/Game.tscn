@@ -6,7 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://bdl3fk61pia1f" path="res://ui/SettingsPanel.tscn" id="4_jbgv0"]
 [ext_resource type="PackedScene" uid="uid://o7xiakcfdh8l" path="res://ui/CardEditor.tscn" id="5_v77vj"]
 [ext_resource type="PackedScene" uid="uid://bktsgeb5uww62" path="res://ui/NPCPanel.tscn" id="6_npci"]
-[ext_resource type="PackedScene" uid="uid://bq085jnfkwvmf" path="res://ui/InventoryPanel.tscn" id="8_invp"]
+[ext_resource type="PackedScene" uid="uid://bq085jnfkwvmf" path="res://ui/PlayerInventoryPanel.tscn" id="8_invp"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2dx66"]
 content_margin_top = 12.0

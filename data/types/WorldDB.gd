@@ -9,6 +9,7 @@ class_name WorldDB
 @export var history: Array[Dictionary] = []
 @export var flags: Dictionary = {}  # Global world flags
 @export var relationships: Dictionary = {}  # entity_id -> {related_entity_id: relationship_type}
+@export var player_inventory: Inventory
 
 var _loaded_scenes: Dictionary = {}
 var _loaded_characters: Dictionary = {}
@@ -290,4 +291,24 @@ static func load_from_file(path: String) -> WorldDB:
 	if world_db:
 		print("World state loaded from: " + path)
 	return world_db
+
+
+## Ensure a canonical player entity exists for inventory/ownership
+func ensure_player_entity() -> void:
+	if not entities.has("player") or not (entities["player"] is Dictionary):
+		entities["player"] = {
+			"type": "player",
+			"contents": []
+		}
+		return
+	var player = entities["player"]
+	if not player.has("type"):
+		player["type"] = "player"
+	if not player.has("contents"):
+		player["contents"] = []
+
+## Ensure a player inventory resource exists (Phase 2)
+func ensure_player_inventory() -> void:
+	if player_inventory == null:
+		player_inventory = Inventory.new()
 

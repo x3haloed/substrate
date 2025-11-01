@@ -111,6 +111,10 @@ func process_player_action(action: ActionRequest) -> ResolutionEnvelope:
 	
 	# Apply patches to world DB
 	_apply_patches(envelope.patches)
+
+	# Post-patch intervention for 'take': allow LLM first, then fallback
+	if action.verb == "take":
+		_fallback_take_if_needed(action, envelope)
 	
 	# Update history
 	world_db.add_history_entry({
@@ -369,6 +373,9 @@ func _generate_ui_choices(scene: SceneGraph) -> Array[UIChoice]:
 	var choices: Array[UIChoice] = []
 	
 	for entity in scene.entities:
+		# Hide entities already taken/removed
+		if entity.state.get("taken", false):
+			continue
 		for verb in entity.verbs:
 			# Filter out talk actions; conversations are handled via chat addressing
 			if verb == "talk":
@@ -380,6 +387,66 @@ func _generate_ui_choices(scene: SceneGraph) -> Array[UIChoice]:
 			choices.append(choice)
 	
 	return choices
+
+## Deterministic fallback for 'take' verb when LLM patches do not handle removal/ownership
+func _fallback_take_if_needed(action: ActionRequest, envelope: ResolutionEnvelope) -> void:
+	var scene = world_db.get_scene(current_scene_id)
+	if not scene:
+		return
+	var e = scene.get_entity(action.target)
+	if e == null:
+		return
+	if e.state.get("taken", false):
+		return
+	# Prefer Phase 2 Inventory if available
+	world_db.ensure_player_inventory()
+	if world_db.player_inventory != null:
+		var def := _resolve_item_def_for_entity(e)
+		if def != null:
+			var stack := ItemStack.new()
+			stack.item = def
+			stack.quantity = 1
+			if world_db.player_inventory.can_accept(stack):
+				world_db.player_inventory.try_add_stack(stack)
+			else:
+				# Inventory full: do not move item; inform via narration and exit
+				if envelope.narration.size() == 0:
+					var n = NarrationEvent.new()
+					n.style = "world"
+					n.text = "Your pack is full. You can't carry the %s." % e.id
+					envelope.narration.append(n)
+				return
+	else:
+		# Phase 1 fallback to contents
+		world_db.ensure_player_entity()
+		var player_data = world_db.entities.get("player", {})
+		if player_data is Dictionary:
+			if not player_data.has("contents"):
+				player_data["contents"] = []
+			var contents = player_data["contents"]
+			if contents is Array and not (action.target in contents):
+				contents.append(action.target)
+				player_data["contents"] = contents
+	# Mark entity as taken so it no longer appears in choices
+	e.state["taken"] = true
+	# Add a minimal narration line if LLM didn't provide one
+	if envelope.narration.size() == 0:
+		var n = NarrationEvent.new()
+		n.style = "world"
+		n.text = "You take the %s." % e.id
+		envelope.narration.append(n)
+
+## Simple resolver that maps a scene entity to an ItemDef (placeholder: generates inline defs)
+func _resolve_item_def_for_entity(entity: Entity) -> ItemDef:
+	if entity == null:
+		return null
+	var def := ItemDef.new()
+	def.id = entity.id
+	def.display_name = entity.props.get("display_name", entity.id.capitalize())
+	def.description = entity.props.get("description", "")
+	def.weight_kg = float(entity.props.get("weight_kg", 0.5))
+	def.max_stack = int(entity.props.get("max_stack", 1))
+	return def
 
 func _get_entity_summaries(scene: SceneGraph) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
