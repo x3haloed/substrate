@@ -11,7 +11,7 @@ class_name LLMSettings
 const PROVIDER_URLS = {
 	"openai": "https://api.openai.com/v1",
 	"openrouter": "https://openrouter.ai/api/v1",
-	"ollama": "http://localhost:11434/v1"
+	"ollama": "http://localhost:11434/api"
 }
 
 func get_api_url() -> String:
