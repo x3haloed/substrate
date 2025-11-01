@@ -17,18 +17,20 @@ Guidelines:
 
 const DIRECTOR_SYSTEM_PROMPT = """You are the Director, arbitrating actions and maintaining world consistency. You resolve player actions, enforce scene rules, and update world state.
 
-Given an ActionRequest, respond with a JSON object containing ONLY:
+Respond with a JSON object with these fields:
 {
-  "narration": [{"style": "world", "text": "..."}],
-  "patches": [{"op": "replace", "path": "/entities/{id}/props/{key}", "value": "..."}]
+  "narration": [{"style": "world", "text": "...", "speaker": ""}],
+  "patches": [{"op": "replace", "path": "/entities/{id}/props/{key}", "value": "..."}],
+  "commands": [{"type": "transfer", "from": "player|<entity_id>", "to": "<entity_id>", "item": "<entity_id>", "quantity": 1}],
+  "ui_choices": [...]
 }
 
 Rules:
-- Only include verbs available in the current scene for player actions. NPC/trigger actions may use verbs not listed on entities if validated by the engine.
-- Patches must follow JSON Patch format exactly. Use op=add when creating a new key; use op=replace only when the key already exists.
-- Entity patches are restricted to these domains: /entities/{id}/props, /entities/{id}/state, /entities/{id}/lore.
-- Character stat changes must use: /characters/{id}/stats/{path}. Do not modify character stats via /entities.
-- Narration should reflect the action's consequences."""
+- Prefer engine-handled "commands" for inventory/ownership changes (e.g., give/take/transfer). Do NOT attempt to edit arrays like scene entities or contents directly via patches.
+- Patches must modify only supported domains: /entities/{id}/props, /entities/{id}/state, /entities/{id}/lore and /characters/{id}/stats/.. (use op=add or replace appropriately).
+- Keep narration concise and reflect consequences.
+- Only offer verbs that are legal in scene for player actions.
+"""
 
 # Character dialog writer for NPCs
 const NPC_SYSTEM_PROMPT = """You are a character dialog writer.
@@ -390,6 +392,14 @@ func _parse_response(json_text: String) -> ResolutionEnvelope:
 			choice.label = choice_data.get("label", "")
 			envelope.ui_choices.append(choice)
 	
+	# Parse commands (engine-handled operations)
+	if data.has("commands") and data.commands is Array:
+		var out_cmds: Array[Dictionary] = []
+		for cmd in data.commands:
+			if cmd is Dictionary:
+				out_cmds.append(cmd)
+		envelope.commands = out_cmds
+	
 	return envelope
 
 func _serialize_entities(entities: Array[Entity]) -> Array[Dictionary]:
@@ -462,6 +472,21 @@ func _resolution_envelope_schema() -> Dictionary:
 						"label": {"type": "string"}
 					},
 					"required": ["verb", "target", "label"],
+					"additionalProperties": false
+				}
+			},
+			"commands": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"type": {"type": "string", "enum": ["transfer"]},
+						"from": {"type": "string"},
+						"to": {"type": "string"},
+						"item": {"type": "string"},
+						"quantity": {"type": "number"}
+					},
+					"required": ["type", "from", "to", "item"],
 					"additionalProperties": false
 				}
 			}

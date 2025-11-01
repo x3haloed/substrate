@@ -112,6 +112,9 @@ func process_player_action(action: ActionRequest) -> ResolutionEnvelope:
 	# Apply patches to world DB
 	_apply_patches(envelope.patches)
 
+	# Engine-handled commands (e.g., transfer)
+	_process_commands(envelope.commands)
+
 	# Post-patch intervention for 'take': allow LLM first, then fallback
 	if action.verb == "take":
 		_fallback_take_if_needed(action, envelope)
@@ -145,6 +148,18 @@ func process_freeform_player_input(text: String) -> ResolutionEnvelope:
 	var envelope = await prompt_engine.process_freeform_input(scene, text)
 	# Apply patches and advance systems like a normal action
 	_apply_patches(envelope.patches)
+	# Process engine commands from freeform
+	_process_commands(envelope.commands)
+	# Minimal heuristic: parse 'give <item> to <target>' if no commands returned
+	if (envelope.commands == null or envelope.commands.is_empty()):
+		var lower = text.strip_edges().to_lower()
+		if lower.begins_with("give ") and " to " in lower:
+			var parts = lower.substr(5).split(" to ")
+			if parts.size() == 2:
+				var item_id = parts[0].strip_edges().replace("[", "").replace("]", "")
+				var target_id = parts[1].strip_edges().replace("[", "").replace("]", "")
+				var cmd = {"type": "transfer", "from": "player", "to": target_id, "item": item_id, "quantity": 1}
+				_process_commands([cmd])
 	world_db.add_history_entry({
 		"event": "freeform_input",
 		"text": text
@@ -447,6 +462,68 @@ func _resolve_item_def_for_entity(entity: Entity) -> ItemDef:
 	def.weight_kg = float(entity.props.get("weight_kg", 0.5))
 	def.max_stack = int(entity.props.get("max_stack", 1))
 	return def
+
+## Process engine-handled commands from the envelope
+func _process_commands(commands: Array) -> void:
+	if commands == null or commands.is_empty():
+		return
+	for cmd in commands:
+		if not (cmd is Dictionary):
+			continue
+		var ctype = str(cmd.get("type", ""))
+		match ctype:
+			"transfer":
+				_handle_transfer_command(cmd)
+			_:
+				# Unsupported command types are ignored for now
+				pass
+
+## Transfer items between owners (player inventory ↔ entity.contents)
+func _handle_transfer_command(cmd: Dictionary) -> void:
+	var from_id = str(cmd.get("from", ""))
+	var to_id = str(cmd.get("to", ""))
+	var item_id = str(cmd.get("item", ""))
+	var qty = int(cmd.get("quantity", 1))
+	if from_id == "" or to_id == "" or item_id == "" or qty <= 0:
+		return
+	# Player → NPC transfer
+	if from_id == "player":
+		world_db.ensure_player_inventory()
+		var inv = world_db.player_inventory
+		if inv == null:
+			return
+		# Remove from player inventory by ItemDef id
+		var removed := 0
+		for i in range(inv.slots.size() - 1, -1, -1):
+			var s: ItemStack = inv.slots[i]
+			if s and s.item and s.item.id == item_id:
+				var take = min(qty - removed, s.quantity)
+				s.quantity -= take
+				removed += take
+				if s.quantity <= 0:
+					inv.slots.remove_at(i)
+				if removed >= qty:
+					break
+		if removed <= 0:
+			return
+		inv.emit_signal("changed")
+		# Add to target entity.contents
+		var scene = world_db.get_scene(current_scene_id)
+		if not scene:
+			return
+		var target_entity = scene.get_entity(to_id)
+		if target_entity == null:
+			return
+		if not (target_entity.contents is Array):
+			target_entity.contents = []
+		for j in range(removed):
+			if not (item_id in target_entity.contents):
+				target_entity.contents.append(item_id)
+		# Optionally mark owner
+		var item_entity = scene.get_entity(item_id)
+		if item_entity:
+			item_entity.state["taken"] = true
+			item_entity.props["owner"] = to_id
 
 func _get_entity_summaries(scene: SceneGraph) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
