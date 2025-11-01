@@ -12,8 +12,9 @@ This separation keeps prose delightful without letting it corrupt state, and kee
 ## Quick Start
 
 1. Open the project in Godot 4.5
-2. Configure your LLM provider:
-   - Click the "Settings" button in the bottom-right
+1. Run the project (F5)
+1. Configure your LLM provider:
+   - Click the "Settings" button in the upper-left
    - Select your provider (OpenAI, OpenRouter, Ollama, or Custom)
    - Enter your API key (if required)
    - Enter the model name (e.g., `gpt-4o-mini` for OpenAI)
@@ -24,7 +25,6 @@ This separation keeps prose delightful without letting it corrupt state, and kee
      (OpenRouter model browser)
      
    - Click "Save"
-4. Run the project (F5)
 
 You should see: the narrator’s opening, scene entities represented as clickable tags in chat, on‑rails verbs as buttons, and a left/right inventory UI for the player and NPCs.
 
