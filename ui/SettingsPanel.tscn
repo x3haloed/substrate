@@ -80,7 +80,6 @@ text = "API Key:"
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "sk-..."
-secret = true
 
 [node name="ModelBox" type="HBoxContainer" parent="VBox"]
 layout_mode = 2
