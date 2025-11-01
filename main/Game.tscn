@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://cd1mol72gjb2g"]
+[gd_scene load_steps=10 format=3 uid="uid://cd1mol72gjb2g"]
 
 [ext_resource type="Script" uid="uid://bsglhg25j1uqv" path="res://main/Game.gd" id="1_d75c0"]
 [ext_resource type="PackedScene" uid="uid://b8vwcq7x3kp4f" path="res://ui/ChatWindow.tscn" id="2_cthgq"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://o7xiakcfdh8l" path="res://ui/CardEditor.tscn" id="5_v77vj"]
 [ext_resource type="PackedScene" uid="uid://bktsgeb5uww62" path="res://ui/NPCPanel.tscn" id="6_npci"]
 [ext_resource type="PackedScene" uid="uid://bq085jnfkwvmf" path="res://ui/PlayerInventoryPanel.tscn" id="8_invp"]
+[ext_resource type="PackedScene" uid="uid://ck2oj6rog80e" path="res://ui/LorePanel.tscn" id="8_on5i6"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2dx66"]
 content_margin_top = 12.0
@@ -106,5 +107,9 @@ visible = false
 layout_mode = 1
 
 [node name="CardEditor" parent="GameUI" instance=ExtResource("5_v77vj")]
+visible = false
+layout_mode = 1
+
+[node name="LorePanel" parent="GameUI" instance=ExtResource("8_on5i6")]
 visible = false
 layout_mode = 1
