@@ -17,6 +17,7 @@ This separation keeps prose delightful without letting it corrupt state, and kee
    - Select your provider (OpenAI, OpenRouter, Ollama, or Custom)
    - Enter your API key (if required)
    - Enter the model name (e.g., `gpt-4o-mini` for OpenAI)
+   - IMPORTANT: Choose a model that supports structured (JSON schema) outputs
    - Click "Save"
 3. Run the project (F5)
 
