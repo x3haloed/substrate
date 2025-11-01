@@ -15,7 +15,7 @@ signal closed()
 
 var settings: LLMSettings
 
-const PROVIDER_NAMES = ["OpenAI", "OpenRouter", "Ollama", "Custom"]
+const PROVIDER_NAMES = ["OpenAI", "OpenRouter", "LM Studio", "Ollama", "Custom"]
 
 func _ready():
 	save_button.pressed.connect(_on_save_pressed)
@@ -38,10 +38,12 @@ func load_settings(p_settings: LLMSettings):
 			provider_option.selected = 0
 		"openrouter":
 			provider_option.selected = 1
-		"ollama":
+		"lmstudio":
 			provider_option.selected = 2
-		"custom":
+		"ollama":
 			provider_option.selected = 3
+		"custom":
+			provider_option.selected = 4
 		_:
 			provider_option.selected = 0
 	
@@ -51,6 +53,7 @@ func load_settings(p_settings: LLMSettings):
 	
 	_update_url_edit_state()
 
+
 func _on_provider_selected(index: int):
 	match index:
 		0:
@@ -58,17 +61,18 @@ func _on_provider_selected(index: int):
 		1:
 			settings.set_provider("openrouter")
 		2:
-			settings.set_provider("ollama")
+			settings.set_provider("lmstudio")
 		3:
+			settings.set_provider("ollama")
+		4:
 			settings.set_provider("custom")
 	
 	_update_url_edit_state()
 
 func _update_url_edit_state():
-	var is_custom = provider_option.selected == 3
-	api_url_edit.editable = is_custom
-	if not is_custom:
-		api_url_edit.text = settings.get_api_url()
+	# Allow editing the API URL for all providers
+	api_url_edit.editable = true
+	api_url_edit.text = settings.get_api_url()
 
 func _on_save_pressed():
 	if not settings:

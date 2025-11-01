@@ -87,8 +87,8 @@ func _load_settings():
 		var provider := str(cfg.get_value("llm", "provider", llm_settings.provider))
 		llm_settings.set_provider(provider)
 		var api_base := str(cfg.get_value("llm", "api_base_url", llm_settings.api_base_url))
-		if provider == "custom":
-			llm_settings.api_base_url = api_base
+		# Allow overriding API URL for any provider (not only "custom")
+		llm_settings.api_base_url = api_base
 		llm_settings.api_key = str(cfg.get_value("llm", "api_key", llm_settings.api_key))
 		llm_settings.model = str(cfg.get_value("llm", "model", llm_settings.model))
 		llm_settings.debug_trace = bool(cfg.get_value("llm", "debug_trace", llm_settings.debug_trace))
