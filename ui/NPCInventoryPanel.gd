@@ -11,7 +11,6 @@ class_name NPCInventoryPanel
 @onready var chat_log: RichTextLabel = $VBox/Content/WhisperContent/HBox/ChatVBox/ChatLog
 @onready var input_line: LineEdit = $VBox/Content/WhisperContent/HBox/ChatVBox/InputBox/InputLine
 @onready var send_button: Button = $VBox/Content/WhisperContent/HBox/ChatVBox/InputBox/SendButton
-@onready var close_button: Button = $VBox/Header/HBox/CloseButton
 
 var current_npc: String = "Trader Vex"
 
@@ -21,7 +20,6 @@ func _ready():
 	_setup_placeholder_chat()
 	send_button.pressed.connect(_on_send_pressed)
 	input_line.text_submitted.connect(_on_input_submitted)
-	close_button.pressed.connect(_on_close_pressed)
 
 func _setup_tabs():
 	npc_tabs.add_tab("Trader Vex")
@@ -50,6 +48,3 @@ func _on_send_pressed():
 
 func _on_input_submitted(_text: String):
 	_on_send_pressed()
-
-func _on_close_pressed():
-	visible = false
