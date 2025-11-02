@@ -36,6 +36,8 @@ var _visibility_map := {
 
 func _ready() -> void:
 	entry_list.item_selected.connect(_on_entry_selected)
+	if entry_list.has_signal("item_clicked"):	# workaround ?
+		entry_list.item_clicked.connect(_on_entry_clicked)
 	add_button.pressed.connect(_on_add_pressed)
 	delete_button.pressed.connect(_on_delete_pressed)
 	add_related_button.pressed.connect(_on_add_related_pressed)
@@ -112,6 +114,12 @@ func _on_entry_selected(index: int) -> void:
 		return
 	var entry_id := str(entry_list.get_item_metadata(index))
 	_show_entry(entry_id)
+
+# workaround ?
+func _on_entry_clicked(index: int, _at_position: Vector2, button: int) -> void:
+	if button == MOUSE_BUTTON_LEFT:
+		entry_list.select(index)
+		_on_entry_selected(index)
 
 func _show_entry(entry_id: String) -> void:
 	if current_world_db == null or current_world_db.lore_db == null:
