@@ -1,0 +1,108 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/CampaignPicker.gd" id="1_picker"]
+
+[node name="CampaignPicker" type="Window"]
+title = "Select Campaign"
+initial_position = 2
+size = Vector2i(800, 600)
+visible = false
+script = ExtResource("1_picker")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Header" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBox/Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Campaigns"
+
+[node name="HSplit" type="HSplitContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CampaignList" type="ItemList" parent="VBox/HSplit"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PreviewPanel" type="PanelContainer" parent="VBox/HSplit"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PreviewVBox" type="VBoxContainer" parent="VBox/HSplit/PreviewPanel"]
+layout_mode = 2
+
+[node name="PreviewLabel" type="Label" parent="VBox/HSplit/PreviewPanel/PreviewVBox"]
+layout_mode = 2
+text = "Campaign Info"
+horizontal_alignment = 1
+
+[node name="NameLabel" type="Label" parent="VBox/HSplit/PreviewPanel/PreviewVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Name: -"
+
+[node name="VersionLabel" type="Label" parent="VBox/HSplit/PreviewPanel/PreviewVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Version: -"
+
+[node name="AuthorLabel" type="Label" parent="VBox/HSplit/PreviewPanel/PreviewVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Author: -"
+
+[node name="DescLabel" type="Label" parent="VBox/HSplit/PreviewPanel/PreviewVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Description: -"
+autowrap_mode = 3
+
+[node name="ScenesLabel" type="Label" parent="VBox/HSplit/PreviewPanel/PreviewVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Scenes: 0"
+
+[node name="CharactersLabel" type="Label" parent="VBox/HSplit/PreviewPanel/PreviewVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Characters: 0"
+
+[node name="Toolbar" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="NewBtn" type="Button" parent="VBox/Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "New Campaign"
+
+[node name="Spacer" type="Control" parent="VBox/Toolbar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="DeleteBtn" type="Button" parent="VBox/Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Delete"
+
+[node name="OpenBtn" type="Button" parent="VBox/Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Open"
+
+[node name="CancelBtn" type="Button" parent="VBox/Toolbar"]
+layout_mode = 2
+text = "Cancel"
+

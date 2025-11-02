@@ -103,9 +103,10 @@ func _write_text_file(path: String, text: String) -> bool:
     return true
 
 func _zip_dir(dir_path: String, out_zip_path: String) -> bool:
-    # Ensure .scrt extension if not provided
+    # Use provided extension, default to .scrt if none
     var out_path := out_zip_path
-    if not out_path.to_lower().ends_with(".scrt"):
+    var lower := out_path.to_lower()
+    if not (lower.ends_with(".scrt") or lower.ends_with(".zip")):
         out_path += ".scrt"
     # Create packer
     var zp := ZIPPacker.new()

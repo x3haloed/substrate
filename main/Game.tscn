@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://cd1mol72gjb2g"]
+[gd_scene load_steps=16 format=3 uid="uid://cd1mol72gjb2g"]
 
 [ext_resource type="Script" uid="uid://bsglhg25j1uqv" path="res://main/Game.gd" id="1_d75c0"]
 [ext_resource type="PackedScene" uid="uid://b8vwcq7x3kp4f" path="res://ui/ChatWindow.tscn" id="2_cthgq"]
@@ -13,6 +13,7 @@
 [ext_resource type="PackedScene" uid="uid://pj4t0x4141sl" path="res://ui/CampaignBrowser.tscn" id="11_cbr"]
 [ext_resource type="PackedScene" path="res://ui/CampaignDetail.tscn" id="12_cdt"]
 [ext_resource type="PackedScene" uid="uid://bfqo6mc1kpx4l" path="res://ui/CampaignStudio.tscn" id="13_g87en"]
+[ext_resource type="PackedScene" path="res://ui/CampaignPicker.tscn" id="14_campick"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2dx66"]
 content_margin_top = 12.0
@@ -152,3 +153,5 @@ layout_mode = 1
 
 [node name="CampaignStudio" parent="GameUI" instance=ExtResource("13_g87en")]
 layout_mode = 1
+
+[node name="CampaignPicker" parent="GameUI" instance=ExtResource("14_campick")]

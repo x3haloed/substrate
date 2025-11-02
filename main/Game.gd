@@ -22,6 +22,7 @@ class_name Game
 @onready var campaigns_button: Button = $GameUI/game_container/header/HBoxContainer/button_group/campaigns_button
 @onready var studio_button: Button = $GameUI/game_container/header/HBoxContainer/button_group/studio_button
 @onready var campaign_studio: Control = $GameUI/CampaignStudio
+@onready var campaign_picker: Window = $GameUI/CampaignPicker
 
 var llm_settings: LLMSettings
 var llm_client: LLMClient
@@ -115,6 +116,9 @@ func _ready():
 	if campaign_studio:
 		campaign_studio.closed.connect(_on_campaign_studio_closed)
 		campaign_studio.playtest_requested.connect(_on_studio_playtest_requested)
+	if campaign_picker:
+		campaign_picker.campaign_selected.connect(_on_campaign_picker_selected)
+		campaign_picker.cancelled.connect(_on_campaign_picker_cancelled)
 
 func _load_settings():
 	var defaults_path = "res://llm/settings.tres"
@@ -489,19 +493,9 @@ func _on_card_manager_closed():
 	card_manager.visible = false
 
 func _on_studio_button_pressed():
-	# Hide main game UI
-	var game_container = $GameUI/game_container
-	game_container.visible = false
-	lore_panel.visible = false
-	settings_panel.visible = false
-	card_editor.visible = false
-	card_manager.visible = false
-	save_load_panel.visible = false
-	campaign_browser.visible = false
-	campaign_detail.visible = false
-	# Show studio with current world_db
-	if campaign_studio:
-		campaign_studio.open_with_world(world_db)
+	# Show campaign picker instead of directly opening studio
+	if campaign_picker:
+		campaign_picker.show_picker()
 
 func _on_campaign_studio_closed():
 	# Show main game UI
@@ -521,6 +515,26 @@ func _on_studio_playtest_requested(test_world_db: WorldDB):
 	# 2. Load test_world_db
 	# 3. Enter the initial scene
 	print("Playtest requested for campaign: ", test_world_db.flags.get("campaign_name", ""))
+
+func _on_campaign_picker_selected(cart_path: String, loaded_world: WorldDB):
+	# Hide main game UI
+	var game_container = $GameUI/game_container
+	game_container.visible = false
+	lore_panel.visible = false
+	settings_panel.visible = false
+	card_editor.visible = false
+	card_manager.visible = false
+	save_load_panel.visible = false
+	campaign_browser.visible = false
+	campaign_detail.visible = false
+	
+	# Open studio with the selected/new campaign
+	if campaign_studio:
+		campaign_studio.open_with_world(loaded_world, cart_path)
+
+func _on_campaign_picker_cancelled():
+	# User cancelled the picker, do nothing
+	pass
 
 func _notification(what):
 	# Save on exit
