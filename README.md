@@ -35,6 +35,7 @@ The project supports multiple LLM providers using the OpenAI v1 chat completions
 - **OpenAI**: `https://api.openai.com/v1` (default)
 - **OpenRouter**: `https://openrouter.ai/api/v1`
 - **Ollama**: `http://localhost:11434/v1` (local)
+- **LM Studio**: `http://localhost:1234/v1` (local)
 - **Custom**: Enter your own API endpoint
 
 Settings are saved to `res://llm/settings.tres` and persist between sessions.
@@ -100,10 +101,4 @@ res://
 
 ## Vision & Next Steps
 
-Substrate aims to be the “narrative substrate” for party‑forward stories: companions with initiative, scenes that feel authored yet pliable, and a world you can interrogate without breaking immersion. See `substrate_vision_mvp.md` for the evolving roadmap:
-- Linked scenes and travel affordances
-- Expanded trigger language and drama systems
-- Tactical encounters with cinematic narration
-- Richer inventories (equipment, shops, crafting)
-- Save/Load flows suitable for longer campaigns
-
+Substrate aims to be the “narrative substrate” for party‑forward stories: companions with initiative, scenes that feel authored yet pliable, and a world you can interrogate without breaking immersion.
