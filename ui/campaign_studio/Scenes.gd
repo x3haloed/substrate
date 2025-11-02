@@ -388,23 +388,11 @@ func _update_scene_image_preview() -> void:
 	if ip == "":
 		scene_image_preview.texture = null
 		return
-	var img := Image.new()
-	# Only attempt to load if the file actually exists to avoid debugger errors
-	var candidate_path := ""
-	if FileAccess.file_exists(ip):
-		candidate_path = ip
-	else:
-		# Try resolve relative to editor cart base and check existence
-		var base := _resolve_editor_world_base()
-		if base != "":
-			var alt := base.rstrip("/") + "/" + ip.lstrip("/")
-			if FileAccess.file_exists(alt):
-				candidate_path = alt
-	if candidate_path != "":
-		var err := img.load(candidate_path)
-		if err == OK:
-			scene_image_preview.texture = ImageTexture.create_from_image(img)
-			return
+	# Use centralized resolver to locate and load image from relative or absolute paths
+	var loaded := PathResolver.try_load_image(ip, current_world_db)
+	if loaded != null:
+		scene_image_preview.texture = ImageTexture.create_from_image(loaded)
+		return
 	# Fallback: clear preview if no valid image could be loaded
 	scene_image_preview.texture = null
 
@@ -412,7 +400,7 @@ func _copy_scene_image_into_cart(src_path: String) -> String:
 	# Return a cart-relative path like "assets/scene_images/<file>" if successful, else ""
 	if typeof(src_path) != TYPE_STRING or src_path == "":
 		return ""
-	var base := _resolve_editor_world_base()
+	var base := PathResolver.resolve_world_base_path(current_world_db)
 	if base == "":
 		# Fallback to editor temp
 		base = "user://editor/worlds/temp"
@@ -430,19 +418,7 @@ func _copy_scene_image_into_cart(src_path: String) -> String:
 	# Store as cart-relative for portability
 	return "assets/scene_images/" + filename
 
-func _resolve_editor_world_base() -> String:
-	# Try flag
-	var cid := str(current_world_db.flags.get("cartridge_id", ""))
-	if cid != "":
-		return "user://editor/worlds/" + cid
-	# Derive from any scene path in world DB
-	for sid in current_world_db.scenes.keys():
-		var v = current_world_db.scenes[sid]
-		if v is String:
-			var dir := String(v).get_base_dir()
-			if dir.ends_with("/scenes"):
-				return dir.get_base_dir()
-	return ""
+
 
 ## ========================================
 ## ENTITY EDITOR DIALOG

@@ -36,8 +36,7 @@ func export_world(world: WorldDB, export_path: String, meta: Dictionary = {}, op
 			DirAccess.make_dir_recursive_absolute(assets_dir)
 			var filename := ip.get_file()
 			var dest := assets_dir.rstrip("/") + "/" + filename
-			var rbase := scene_res.resource_path.get_base_dir()
-			var ip_abs := rbase.trim_suffix("scenes/").trim_suffix("scenes") + "/" + ip.lstrip("/")
+			var ip_abs := PathResolver.resolve_path(ip, world)
 			_copy_file(ip_abs, dest)
 			scene_res.image_path = "assets/scene_images/" + filename
 		# Save rewritten scene resource into staging
