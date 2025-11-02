@@ -35,7 +35,7 @@ props = {
 
 [sub_resource type="Resource" id="4"]
 script = ExtResource("2")
-id = "tasmin"
+id = "tamsin"
 type_name = "npc"
 verbs = Array[String](["talk"])
 tags = Array[String](["human", "companion"])

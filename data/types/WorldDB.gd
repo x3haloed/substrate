@@ -10,6 +10,7 @@ class_name WorldDB
 @export var flags: Dictionary = {}  # Global world flags
 @export var relationships: Dictionary = {}  # entity_id -> {related_entity_id: relationship_type}
 @export var player_inventory: Inventory
+@export var party: Array[String] = []  # Current player party member IDs
 
 var _loaded_scenes: Dictionary = {}
 var _loaded_characters: Dictionary = {}

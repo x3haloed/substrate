@@ -46,7 +46,11 @@ func _refresh_tabs_from_scene() -> void:
 		npc_tabs.remove_tab(i)
 	npc_ids.clear()
 	var npcs = scene.get_entities_by_type("npc")
+	# Only show party NPCs in tabs
+	var party_ids: Array[String] = world_db.party if world_db and world_db.party is Array else []
 	for e in npcs:
+		if not (e.id in party_ids):
+			continue
 		var label = e.id
 		var profile = world_db.get_character(e.id)
 		if profile and profile.name != "":

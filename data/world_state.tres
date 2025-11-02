@@ -19,18 +19,19 @@ entities = {
 "seen": true,
 "type": "npc"
 },
-"tasmin": {
-"seen": false,
-"type": "npc"
-},
 "mug": {
 "props": {
 "liquid": "ale"
 },
 "type": "item"
+},
+"tamsin": {
+"seen": false,
+"type": "npc"
 }
 }
 characters = {
 "asha": "res://data/characters/asha.tres",
-"tasmin": "res://data/characters/tamsin.tres"
+"tamsin": "res://data/characters/tamsin.tres"
 }
+party = Array[String](["asha", "tamsin"])
