@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://cd1mol72gjb2g"]
+[gd_scene load_steps=15 format=3 uid="uid://cd1mol72gjb2g"]
 
 [ext_resource type="Script" uid="uid://bsglhg25j1uqv" path="res://main/Game.gd" id="1_d75c0"]
 [ext_resource type="PackedScene" uid="uid://b8vwcq7x3kp4f" path="res://ui/ChatWindow.tscn" id="2_cthgq"]
@@ -8,10 +8,11 @@
 [ext_resource type="PackedScene" uid="uid://bktsgeb5uww62" path="res://ui/NPCPanel.tscn" id="6_npci"]
 [ext_resource type="PackedScene" uid="uid://bq085jnfkwvmf" path="res://ui/PlayerInventoryPanel.tscn" id="8_invp"]
 [ext_resource type="PackedScene" uid="uid://ck2oj6rog80e" path="res://ui/LorePanel.tscn" id="8_on5i6"]
-[ext_resource type="PackedScene" path="res://ui/CardManager.tscn" id="9_cm"]
+[ext_resource type="PackedScene" uid="uid://biy2iv78iall4" path="res://ui/CardManager.tscn" id="9_cm"]
 [ext_resource type="PackedScene" path="res://ui/SaveLoadPanel.tscn" id="10_slp"]
 [ext_resource type="PackedScene" path="res://ui/CampaignBrowser.tscn" id="11_cbr"]
 [ext_resource type="PackedScene" path="res://ui/CampaignDetail.tscn" id="12_cdt"]
+[ext_resource type="PackedScene" path="res://ui/CampaignStudio.tscn" id="13_g87en"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2dx66"]
 content_margin_top = 12.0
@@ -77,6 +78,10 @@ text = "Save/Load"
 layout_mode = 2
 text = "Campaigns"
 
+[node name="studio_button" type="Button" parent="GameUI/game_container/header/HBoxContainer/button_group"]
+layout_mode = 2
+text = "Campaign Studio"
+
 [node name="Spacer" type="Control" parent="GameUI/game_container/header/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -135,7 +140,6 @@ visible = false
 layout_mode = 1
 
 [node name="SaveLoadPanel" parent="GameUI" instance=ExtResource("10_slp")]
-visible = false
 layout_mode = 1
 
 [node name="CampaignBrowser" parent="GameUI" instance=ExtResource("11_cbr")]
@@ -144,4 +148,7 @@ layout_mode = 1
 
 [node name="CampaignDetail" parent="GameUI" instance=ExtResource("12_cdt")]
 visible = false
+layout_mode = 1
+
+[node name="CampaignStudio" parent="GameUI" instance=ExtResource("13_g87en")]
 layout_mode = 1

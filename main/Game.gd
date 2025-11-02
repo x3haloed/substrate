@@ -20,6 +20,8 @@ class_name Game
 @onready var campaign_browser: Control = $GameUI/CampaignBrowser
 @onready var campaign_detail: Control = $GameUI/CampaignDetail
 @onready var campaigns_button: Button = $GameUI/game_container/header/HBoxContainer/button_group/campaigns_button
+@onready var studio_button: Button = $GameUI/game_container/header/HBoxContainer/button_group/studio_button
+@onready var campaign_studio: Control = $GameUI/CampaignStudio
 
 var llm_settings: LLMSettings
 var llm_client: LLMClient
@@ -84,6 +86,8 @@ func _ready():
 		saveload_button.pressed.connect(_on_saveload_button_pressed)
 	if campaigns_button:
 		campaigns_button.pressed.connect(_on_campaigns_button_pressed)
+	if studio_button:
+		studio_button.pressed.connect(_on_studio_button_pressed)
 	
 	# Setup autosave
 	_setup_autosave()
@@ -108,6 +112,8 @@ func _ready():
 	if campaign_detail:
 		campaign_detail.start_new_game.connect(_on_campaign_new_game)
 		campaign_detail.load_slot_requested.connect(_on_campaign_load_slot)
+	if campaign_studio:
+		campaign_studio.closed.connect(_on_campaign_studio_closed)
 
 func _load_settings():
 	var defaults_path = "res://llm/settings.tres"
@@ -144,14 +150,14 @@ func _start_game():
 
 func _display_envelope(envelope: ResolutionEnvelope):
 	# Display narration
+	var narration_current_scene_id = world_db.flags.get("current_scene", "")
+	var narration_current_scene = world_db.get_scene(narration_current_scene_id)
 	for narr in envelope.narration:
 		# Naively auto-tag scene entity IDs in narration so ChatWindow can link them
-		var scene_id = world_db.flags.get("current_scene", "")
-		var scene = world_db.get_scene(scene_id)
 		var tagged_text = narr.text
-		if scene:
+		if narration_current_scene:
 			var entity_ids: Array[String] = []
-			for e in scene.entities:
+			for e in narration_current_scene.entities:
 				entity_ids.append(e.id)
 			tagged_text = Narrator.auto_tag_entities(narr.text, entity_ids)
 		chat_window.add_message(tagged_text, narr.style, narr.speaker)
@@ -480,6 +486,29 @@ func _on_card_manager_closed():
 	
 	# Hide card manager
 	card_manager.visible = false
+
+func _on_studio_button_pressed():
+	# Hide main game UI
+	var game_container = $GameUI/game_container
+	game_container.visible = false
+	lore_panel.visible = false
+	settings_panel.visible = false
+	card_editor.visible = false
+	card_manager.visible = false
+	save_load_panel.visible = false
+	campaign_browser.visible = false
+	campaign_detail.visible = false
+	# Show studio
+	if campaign_studio:
+		campaign_studio.visible = true
+
+func _on_campaign_studio_closed():
+	# Show main game UI
+	var game_container = $GameUI/game_container
+	game_container.visible = true
+	# Hide studio
+	if campaign_studio:
+		campaign_studio.visible = false
 
 func _notification(what):
 	# Save on exit
