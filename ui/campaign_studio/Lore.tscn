@@ -178,6 +178,7 @@ layout_mode = 2
 text = "Summary"
 
 [node name="SummaryEdit" type="TextEdit" parent="Margin/HBox/RightPanel/Scroll/Form"]
+custom_minimum_size = Vector2(0, 120)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 2
@@ -199,6 +200,7 @@ layout_mode = 2
 text = "Unlock Conditions"
 
 [node name="UnlockEdit" type="TextEdit" parent="Margin/HBox/RightPanel/Scroll/Form"]
+custom_minimum_size = Vector2(0, 120)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 2
@@ -221,6 +223,7 @@ layout_mode = 2
 text = "Notes (author only)"
 
 [node name="NotesEdit" type="TextEdit" parent="Margin/HBox/RightPanel/Scroll/Form"]
+custom_minimum_size = Vector2(0, 120)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 2
