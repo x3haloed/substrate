@@ -120,6 +120,10 @@ func _save_to_path(path: String) -> bool:
 		push_error("No campaign loaded to save")
 		return false
 	
+	# Persist current UI metadata edits into world flags
+	if dashboard and dashboard.has_method("_save_metadata_to_world"):
+		dashboard._save_metadata_to_world()
+
 	# Build metadata from world flags
 	var meta := {
 		"id": current_world_db.flags.get("campaign_id", "campaign"),
@@ -146,6 +150,9 @@ func _export_to_path(path: String) -> bool:
 	if current_world_db == null:
 		push_error("No campaign loaded to export")
 		return false
+	# Persist current UI metadata edits into world flags
+	if dashboard and dashboard.has_method("_save_metadata_to_world"):
+		dashboard._save_metadata_to_world()
 	# Build metadata from world flags
 	var meta := {
 		"id": current_world_db.flags.get("campaign_id", "campaign"),

@@ -22,8 +22,7 @@ var editor_campaigns: Array[Dictionary] = [] # Array of {path: String, cartridge
 var importer: WorldImporter = null
 
 func _ready():
-	importer = WorldImporter.new()
-	add_child(importer)
+	# No need for WorldImporter here; we'll use CartridgeManager for editor store
 	
 	# Connect signals
 	campaign_list.item_selected.connect(_on_campaign_selected)
@@ -176,13 +175,17 @@ func _load_and_emit(index: int):
 	var entry: Dictionary = editor_campaigns[index]
 	var path: String = entry.path
 	
-	# Import the cartridge
-	var world_db := importer.import_cartridge(path)
+	# Use CartridgeManager in EDITOR store to import and build world_db under user://editor/worlds/
+	var cart_id := CartridgeManagerTool.import_cartridge(path, CartridgeManager.StoreKind.EDITOR)
+	if cart_id == "":
+		push_error("Failed to import campaign: " + path)
+		return
+	var world_db: WorldDB = CartridgeManagerTool.build_world_db_from_import(cart_id, CartridgeManager.StoreKind.EDITOR)
 	if world_db == null:
-		push_error("Failed to load campaign from: " + path)
+		push_error("Failed to build world from imported campaign: " + cart_id)
 		return
 	
-	# Store the source path for save operations
+	# Remember the original zip path for Save
 	world_db.flags["editor_cartridge_path"] = path
 	
 	campaign_selected.emit(path, world_db)
