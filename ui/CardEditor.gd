@@ -11,7 +11,7 @@ var current_profile: CharacterProfile = null
 var current_path: String = ""  # Path for save (without .scrd extension)
 
 # File dialogs
-var save_file_dialog: FileDialog
+var export_file_dialog: FileDialog
 var open_file_dialog: FileDialog
 var import_file_dialog: FileDialog
 var portrait_file_dialog: FileDialog
@@ -107,7 +107,7 @@ var portrait_file_dialog: FileDialog
 @onready var open_button: Button = $HSplitContainer/VBox/Toolbar/OpenButton
 @onready var import_button: Button = $HSplitContainer/LeftPanel/LeftToolbar/ImportButton
 @onready var save_button: Button = $HSplitContainer/VBox/Toolbar/SaveButton
-@onready var save_as_button: Button = $HSplitContainer/VBox/Toolbar/SaveAsButton
+@onready var export_button: Button = $HSplitContainer/VBox/Toolbar/ExportButton
 @onready var close_button: Button = $HSplitContainer/LeftPanel/LeftToolbar/CloseButton
 
 var editor_cards: Array[Dictionary] = [] # Array of {path: String, profile: CharacterProfile}
@@ -124,7 +124,7 @@ func _ready():
 	open_button.pressed.connect(_on_open_pressed)
 	import_button.pressed.connect(_on_import_pressed)
 	save_button.pressed.connect(_on_save_pressed)
-	save_as_button.pressed.connect(_on_save_as_pressed)
+	export_button.pressed.connect(_on_export_pressed)
 	close_button.pressed.connect(_on_close_pressed)
 	
 	# Connect card list
@@ -195,13 +195,13 @@ func _ready():
 	visible = false
 
 func _setup_file_dialogs():
-	# Save file dialog
-	save_file_dialog = FileDialog.new()
-	save_file_dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
-	save_file_dialog.add_filter("*.tres ; Godot Resource Files")
-	save_file_dialog.access = FileDialog.ACCESS_FILESYSTEM
-	save_file_dialog.file_selected.connect(_on_save_file_selected)
-	add_child(save_file_dialog)
+	# Export file dialog (.scrd only)
+	export_file_dialog = FileDialog.new()
+	export_file_dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
+	export_file_dialog.add_filter("*.scrd ; Substrate Card Files")
+	export_file_dialog.access = FileDialog.ACCESS_FILESYSTEM
+	export_file_dialog.file_selected.connect(_on_export_file_selected)
+	add_child(export_file_dialog)
 	
 	# Open file dialog
 	open_file_dialog = FileDialog.new()
@@ -467,6 +467,23 @@ func _save_to_path(path: String) -> bool:
 	_refresh_card_list()
 	return true
 
+func _export_to_path(path: String) -> bool:
+	# Export as .scrd by saving to a temporary .tres then renaming
+	_save_profile_from_ui()
+	var temp_tres := "user://__temp_export_card.tres"
+	var error = ResourceSaver.save(current_profile, temp_tres)
+	if error != OK:
+		push_error("Failed to prepare export: " + str(error))
+		return false
+	# Remove existing target if present
+	if FileAccess.file_exists(path):
+		DirAccess.remove_absolute(path)
+	var success := DirAccess.rename_absolute(temp_tres, path)
+	if success != OK:
+		push_error("Failed to write .scrd export: " + str(success))
+		return false
+	return true
+
 # Toolbar handlers
 func _on_new_pressed():
 	create_new_profile()
@@ -488,23 +505,31 @@ func _on_open_file_selected(path: String):
 	scroll_container.visible = true
 
 func _on_save_pressed():
-	if current_path == "":
-		_on_save_as_pressed()
-	else:
+	# Save to editor store, overwrite if existing in editor repo; otherwise create new
+	var editor_dir := CardRepository.get_repo_dir(CardRepository.StoreKind.EDITOR)
+	if current_path != "" and current_path.begins_with(editor_dir):
 		_save_to_path(current_path)
+		return
+	# No current editor path: insert into repo to get a path, then overwrite to ensure latest content
+	var ensured := CardRepository.add_card_to_repo(current_profile, CardRepository.StoreKind.EDITOR)
+	if ensured == "":
+		push_error("Failed to determine save path in editor repository")
+		return
+	_save_to_path(ensured)
 
-func _on_save_as_pressed():
-	# Use editor repository directory
-	save_file_dialog.current_dir = CardRepository.get_repo_dir(CardRepository.StoreKind.EDITOR)
-	# Suggest filename based on character name if available
+func _on_export_pressed():
+	# Suggest .scrd file name based on card name
 	if current_profile and current_profile.name != "":
 		var suggested_name = current_profile.name.to_lower().replace(" ", "_")
-		save_file_dialog.current_file = suggested_name + ".tres"
-	save_file_dialog.popup_centered_ratio(0.75)
+		export_file_dialog.current_file = suggested_name + ".scrd"
+	export_file_dialog.popup_centered_ratio(0.75)
 
-func _on_save_file_selected(path: String):
-	if _save_to_path(path):
-		print("Profile saved to: " + path)
+func _on_export_file_selected(path: String):
+	var out_path := path
+	if not out_path.to_lower().ends_with(".scrd"):
+		out_path += ".scrd"
+	if _export_to_path(out_path):
+		print("Card exported to: " + out_path)
 
 func _on_close_pressed():
 	closed.emit()
