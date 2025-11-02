@@ -41,13 +41,27 @@ func enter_scene(scene_id: String) -> ResolutionEnvelope:
 		"entities": _get_entity_summaries(scene)
 	}
 	
-	# Optional scene image: include URL in narrator request only if supported
-	var scene_image_url := ""
+	# Optional scene image: load from image_path and pass Image to narrator
+	var scene_image: Image = null
 	if typeof(scene.image_path) == TYPE_STRING and scene.image_path != "":
 		var ip := str(scene.image_path)
-		if ip.begins_with("http://") or ip.begins_with("https://"):
-			scene_image_url = ip
-	var narration_text = await prompt_engine.process_narrator_request(context, scene_image_url)
+		var load_path := ""
+		if ip.begins_with("res://") or ip.begins_with("user://") or ip.begins_with("/"):
+			load_path = ip
+		else:
+			var base := _resolve_world_base_path()
+			if base != "":
+				load_path = (base.rstrip("/") + "/" + ip.lstrip("/"))
+			else:
+				load_path = "user://" + ip.lstrip("/")
+		if load_path != "":
+			var img := Image.new()
+			var err := img.load(load_path)
+			if err == OK:
+				scene_image = img
+			else:
+				push_warning("Failed to load scene image: " + load_path)
+	var narration_text = await prompt_engine.process_narrator_request(context, scene_image)
 	
 	var envelope = ResolutionEnvelope.new()
 	var narr = NarrationEvent.new()
@@ -68,11 +82,11 @@ func enter_scene(scene_id: String) -> ResolutionEnvelope:
 		if ip2.begins_with("http://") or ip2.begins_with("https://") or ip2.begins_with("res://") or ip2.begins_with("user://"):
 			resolved_path = ip2
 		else:
-			var base := str(world_db.flags.get("cartridge_base_path", ""))
+			var base := _resolve_world_base_path()
 			if base != "":
 				resolved_path = (base.rstrip("/") + "/" + ip2.lstrip("/"))
 			else:
-				resolved_path = ip2
+				resolved_path = "user://" + ip2.lstrip("/")
 	envelope.scene_image_path = resolved_path
 	# Notify listeners so UI can update
 	action_resolved.emit(envelope)
@@ -651,6 +665,27 @@ func _load_open_area_def(area_id: String) -> OpenAreaDef:
 	if ResourceLoader.exists(path):
 		return load(path) as OpenAreaDef
 	return null
+
+## Resolve the base directory for the active world to locate relative asset paths.
+## Prefers explicit cartridge_base_path, then derives from any scene path (…/scenes/<id>.tres),
+## and finally falls back to editor storage using cartridge_id.
+func _resolve_world_base_path() -> String:
+	# 1) Explicit base provided (e.g., res://worlds/<id>)
+	var base := str(world_db.flags.get("cartridge_base_path", ""))
+	if base != "":
+		return base
+	# 2) Derive from any scene path in the world DB
+	for sid in world_db.scenes.keys():
+		var v = world_db.scenes[sid]
+		if v is String:
+			var dir := String(v).get_base_dir()
+			if dir.ends_with("/scenes"):
+				return dir.get_base_dir()
+	# 3) Fallback to editor worlds location if cartridge_id is known
+	var cid := str(world_db.flags.get("cartridge_id", ""))
+	if cid != "":
+		return "user://editor/worlds/" + cid
+	return ""
 
 func _maybe_complete_open_area() -> ResolutionEnvelope:
 	if _active_open_area.is_empty():
