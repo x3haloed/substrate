@@ -1,6 +1,7 @@
 extends Control
 
 signal campaign_selected(cartridge: Cartridge, file_path: String)
+signal closed()
 
 @onready var grid: GridContainer = $MarginContainer/VBox/Scroll/Grid
 
@@ -95,3 +96,7 @@ func _load_thumbnail_from_zip(zip_path: String, internal_path: String) -> Textur
 		return null
 	var tex := ImageTexture.create_from_image(img)
 	return tex
+
+func hide_browser():
+	visible = false
+	closed.emit()

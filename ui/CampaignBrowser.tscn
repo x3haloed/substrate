@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=2 format=3 uid="uid://pj4t0x4141sl"]
 
-[ext_resource type="Script" path="res://ui/CampaignBrowser.gd" id="1_wv04q"]
+[ext_resource type="Script" uid="uid://bb0bmigt3gfjx" path="res://ui/CampaignBrowser.gd" id="1_wv04q"]
 
 [node name="CampaignBrowser" type="Control"]
 layout_mode = 3
@@ -11,8 +11,17 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_wv04q")
 
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.06, 0.06, 0.06, 1)
+
 [node name="MarginContainer" type="MarginContainer" parent="."]
-layout_mode = 2
+layout_mode = 0
 offset_left = 16.0
 offset_top = 16.0
 offset_right = -16.0
@@ -34,6 +43,10 @@ size_flags_horizontal = 3
 layout_mode = 2
 text = "Campaign Browser"
 
+[node name="CloseBtn" type="Button" parent="MarginContainer/VBox/Header"]
+layout_mode = 2
+text = "Close"
+
 [node name="Scroll" type="ScrollContainer" parent="MarginContainer/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
@@ -46,3 +59,4 @@ size_flags_vertical = 3
 columns = 3
 
 
+[connection signal="pressed" from="MarginContainer/VBox/Header/CloseBtn" to="." method="hide_browser"]
