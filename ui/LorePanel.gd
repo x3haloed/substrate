@@ -14,6 +14,7 @@ signal closed()
 
 var world_db: WorldDB
 var current_entity_id: String = ""
+var _current_entry: LoreEntry = null
 
 func _ready():
 	close_button.pressed.connect(_on_close_pressed)
@@ -27,6 +28,11 @@ func show_entity(entity_id: String):
 		return
 	
 	current_entity_id = entity_id
+	_current_entry = world_db.get_lore_entry_for_entity(entity_id)
+	if _current_entry:
+		_show_lore_entry(_current_entry)
+		return
+	
 	var scene = world_db.get_scene(world_db.flags.get("current_scene", ""))
 	if not scene:
 		return
@@ -36,6 +42,12 @@ func show_entity(entity_id: String):
 		# Try world DB entities
 		if world_db.entities.has(entity_id):
 			var entity_data = world_db.entities[entity_id]
+			if entity_data is Dictionary and entity_data.has("lore_entry_id"):
+				var explicit_entry = world_db.get_lore_entry(str(entity_data.lore_entry_id))
+				if explicit_entry:
+					_current_entry = explicit_entry
+					_show_lore_entry(explicit_entry)
+					return
 			title_label.text = entity_id
 			_update_all_tabs(null, entity_data)
 			visible = true
@@ -85,19 +97,19 @@ func _update_lore_tab(entity, entity_data):
 	if content == "":
 		content = "No information available about this entity."
 	
-	lore_content.text = content
+	lore_content.bbcode_text = content
 
 func _update_timeline_tab(entity):
 	var content = ""
 	
 	if not entity:
-		timeline_content.text = "No timeline data available."
+		timeline_content.bbcode_text = "No timeline data available."
 		return
 	
 	var history = world_db.get_entity_history(entity.id)
 	
 	if history.size() == 0:
-		timeline_content.text = "No history recorded for this entity."
+		timeline_content.bbcode_text = "No history recorded for this entity."
 		return
 	
 	content += "[b]Entity History[/b]\n\n"
@@ -138,19 +150,19 @@ func _update_timeline_tab(entity):
 	if content == "":
 		content = "No timeline events recorded."
 	
-	timeline_content.text = content
+	timeline_content.bbcode_text = content
 
 func _update_relationships_tab(entity):
 	var content = ""
 	
 	if not entity:
-		relationships_content.text = "No relationship data available."
+		relationships_content.bbcode_text = "No relationship data available."
 		return
 	
 	var relationships = world_db.get_entity_relationships(entity.id)
 	
 	if relationships.size() == 0:
-		relationships_content.text = "No relationships recorded for this entity."
+		relationships_content.bbcode_text = "No relationships recorded for this entity."
 		return
 	
 	content += "[b]Entity Relationships[/b]\n\n"
@@ -173,8 +185,42 @@ func _update_relationships_tab(entity):
 	if content == "":
 		content = "No relationships recorded."
 	
-	relationships_content.text = content
+	relationships_content.bbcode_text = content
 
 func _on_close_pressed():
 	visible = false
 	closed.emit()
+
+func show_lore_entry(entry_id: String):
+	if not world_db:
+		return
+	var entry := world_db.get_lore_entry(entry_id)
+	if entry == null:
+		push_warning("Lore entry not found: " + entry_id)
+		return
+	_current_entry = entry
+	_show_lore_entry(entry)
+
+func _show_lore_entry(entry: LoreEntry):
+	if entry == null:
+		return
+	var can_view := entry.is_unlocked(world_db)
+	title_label.text = entry.title if entry.title != "" else entry.entry_id
+	# default to Lore tab
+	if tab_container:
+		tab_container.current_tab = 0
+	if can_view:
+		var content := ""
+		if entry.summary != "":
+			content += entry.summary.strip_edges() + "\n\n"
+		if entry.article != "":
+			content += entry.article.strip_edges()
+		_update_lore_tab_from_text(content if content != "" else "No lore details available.")
+	else:
+		_update_lore_tab_from_text("You have not unlocked this lore yet.")
+	_update_timeline_tab(null)
+	_update_relationships_tab(null)
+	visible = true
+
+func _update_lore_tab_from_text(text: String):
+	lore_content.bbcode_text = text

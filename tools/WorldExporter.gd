@@ -53,6 +53,41 @@ func export_world(world: WorldDB, export_path: String, meta: Dictionary = {}, op
 		if _copy_file(csrc, stage_dir + "/characters/" + cid + ".tres"):
 			character_ids.append(cid)
 
+	# 1b) Stage lore entries (optional)
+	var lore_ids: Array[String] = []
+	if world.lore_db != null:
+		var lore_dir := stage_dir + "/lore"
+		DirAccess.make_dir_recursive_absolute(lore_dir)
+		var export_lore_db := LoreDB.new()
+		var index := 1
+		var existing_files: Dictionary = {}
+		for entry in world.lore_db.list_entries():
+			if entry == null:
+				continue
+			var entry_id := entry.entry_id
+			if entry_id == "":
+				entry_id = "lore_entry_%02d" % index
+			var filename := _safe_filename(entry_id)
+			if filename == "":
+				filename = "lore_entry_%02d" % index
+			var final_name := filename
+			var suffix := 1
+			while existing_files.has(final_name):
+				final_name = "%s_%d" % [filename, suffix]
+				suffix += 1
+			existing_files[final_name] = true
+			var out_path := lore_dir.rstrip("/") + "/" + final_name + ".tres"
+			var entry_copy: LoreEntry = entry.duplicate(true)
+			entry_copy.entry_id = entry_id
+			var err := ResourceSaver.save(entry_copy, out_path)
+			if err == OK:
+				lore_ids.append(entry_id)
+				export_lore_db.entries[entry_id] = "lore/" + final_name + ".tres"
+			index += 1
+		if not export_lore_db.entries.is_empty():
+			var lore_db_path := lore_dir.rstrip("/") + "/lore_db.tres"
+			ResourceSaver.save(export_lore_db, lore_db_path)
+
 	# 2) manifest.json
 	var cart := Cartridge.new()
 	cart.id = cart_id
@@ -63,6 +98,7 @@ func export_world(world: WorldDB, export_path: String, meta: Dictionary = {}, op
 	cart.initial_scene_id = str(meta.get("initial_scene_id", world.flags.get("current_scene", world.flags.get("initial_scene_id", ""))))
 	cart.scenes = scene_ids
 	cart.characters = character_ids
+	cart.lore_entries = lore_ids
 
 	var manifest_path := stage_dir + "/manifest.json"
 	var j := JSON.stringify(cart.to_manifest_dict(), "  ")
@@ -129,6 +165,27 @@ func _copy_file(src: Variant, dst: String) -> bool:
 	else:
 		push_warning("Unsupported source type for export: " + str(typeof(src)))
 		return false
+
+func _safe_filename(source: String) -> String:
+	var base := source.strip_edges().to_lower()
+	if base == "":
+		return ""
+	var rx := RegEx.new()
+	if rx.compile("[^a-z0-9_\\-]+") != OK:
+		return base
+	var sanitized := rx.sub(base, "_", true)
+	# Collapse repeated underscores
+	var rx2 := RegEx.new()
+	if rx2.compile("_+") == OK:
+		sanitized = rx2.sub(sanitized, "_", true)
+	# Remove leading/trailing underscores (strip_edges only trims whitespace)
+	while sanitized.begins_with("_"):
+		sanitized = sanitized.substr(1)
+	while sanitized.ends_with("_"):
+		sanitized = sanitized.substr(0, sanitized.length() - 1)
+	if sanitized == "":
+		return base.replace(" ", "_")
+	return sanitized
 
 func _write_text_file(path: String, text: String) -> bool:
 	DirAccess.make_dir_recursive_absolute(path.get_base_dir())

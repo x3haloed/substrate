@@ -49,6 +49,8 @@ func _ready():
 	world_db.ensure_player_entity()
 	# Ensure player inventory exists (Phase 2)
 	world_db.ensure_player_inventory()
+	# Ensure lore database is initialized for UI/editor features
+	world_db.ensure_lore_database()
 	
 	# Initialize LLM client (must be a Node in the scene tree)
 	llm_client = LLMClient.new(llm_settings)
@@ -75,6 +77,7 @@ func _ready():
 	# Bind NPC panel to world DB
 	npc_panel.set_world_db(world_db)
 	lore_panel.set_world_db(world_db)
+	world_db.lore_entry_unlocked.connect(_on_lore_entry_unlocked)
 	settings_panel.settings_saved.connect(_on_settings_saved)
 	settings_button.pressed.connect(_on_settings_button_pressed)
 	card_editor.closed.connect(_on_card_editor_closed)
@@ -271,7 +274,18 @@ func _update_chat_address_options():
 	chat_window.set_address_options(talkables)
 
 func _on_entity_clicked(entity_id: String):
-	lore_panel.show_entity(entity_id)
+	var target_id := entity_id
+	if entity_id.begins_with("lore:"):
+		target_id = entity_id.substr(5)
+	if world_db:
+		var lore_entry := world_db.get_lore_entry(target_id)
+		if lore_entry:
+			lore_panel.show_lore_entry(target_id)
+			return
+	if entity_id.begins_with("lore:"):
+		# Lore link without backing entry; bail quietly.
+		return
+	lore_panel.show_entity(target_id)
 
 func _on_action_resolved(envelope: ResolutionEnvelope):
 	_display_envelope(envelope)
@@ -308,6 +322,14 @@ func _on_llm_request_started(meta: Dictionary):
 
 func _on_llm_request_finished(_meta: Dictionary):
 	chat_window.hide_typing()
+
+func _on_lore_entry_unlocked(entry_id: String):
+	var entry := world_db.get_lore_entry(entry_id) if world_db else null
+	if entry:
+		var title := entry.title if entry.title != "" else entry.entry_id
+		chat_window.add_message("New lore unlocked: [url=lore:" + entry_id + "]" + title + "[/url]", "world")
+	else:
+		chat_window.add_message("New lore unlocked: [url=lore:" + entry_id + "]" + entry_id + "[/url]", "world")
 
 func _setup_autosave():
 	autosave_timer = Timer.new()

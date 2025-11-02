@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://bfqo6mc1kpx4l"]
+[gd_scene load_steps=7 format=3 uid="uid://bfqo6mc1kpx4l"]
 
 [ext_resource type="Script" uid="uid://dckpdcc3c2u2g" path="res://ui/CampaignStudio.gd" id="1_t7h39"]
 [ext_resource type="PackedScene" uid="uid://b0vbcjb1wt1f7" path="res://ui/campaign_studio/Dashboard.tscn" id="2_07ydc"]
 [ext_resource type="PackedScene" uid="uid://dx4j2vypsxfu" path="res://ui/campaign_studio/Scenes.tscn" id="3_e8t26"]
 [ext_resource type="PackedScene" uid="uid://b8n4umhd26y1h" path="res://ui/campaign_studio/Graph.tscn" id="4_y4mxt"]
 [ext_resource type="PackedScene" uid="uid://c7e83vmeguy1o" path="res://ui/campaign_studio/Characters.tscn" id="5_characters"]
+[ext_resource type="PackedScene" uid="uid://b0k4x0fs8wmyi" path="res://ui/campaign_studio/Lore.tscn" id="6_lore"]
 
 [node name="CampaignStudio" type="Control"]
 visible = false
@@ -81,19 +82,24 @@ layout_mode = 2
 visible = false
 layout_mode = 2
 
-[node name="Characters" parent="Margin/VBox/Tabs" instance=ExtResource("5_characters")]
+[node name="Lore" parent="Margin/VBox/Tabs" instance=ExtResource("6_lore")]
 visible = false
 layout_mode = 2
 metadata/_tab_index = 3
 
-[node name="Playtest" type="Control" parent="Margin/VBox/Tabs"]
+[node name="Characters" parent="Margin/VBox/Tabs" instance=ExtResource("5_characters")]
 visible = false
 layout_mode = 2
 metadata/_tab_index = 4
 
-[node name="Packaging" type="Control" parent="Margin/VBox/Tabs"]
+[node name="Playtest" type="Control" parent="Margin/VBox/Tabs"]
 visible = false
 layout_mode = 2
 metadata/_tab_index = 5
+
+[node name="Packaging" type="Control" parent="Margin/VBox/Tabs"]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 6
 
 [connection signal="pressed" from="Margin/VBox/Header/CloseBtn" to="." method="hide_studio"]

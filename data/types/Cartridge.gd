@@ -15,6 +15,7 @@ class_name Cartridge
 # Contents listed by ids
 @export var scenes: Array[String] = []
 @export var characters: Array[String] = []
+@export var lore_entries: Array[String] = []
 
 # Optional link graph resource path inside the cartridge
 @export var links_path: String = ""
@@ -53,6 +54,11 @@ static func from_manifest_dict(manifest: Dictionary) -> Cartridge:
             c.characters = []
             for cid in ch:
                 c.characters.append(str(cid))
+        var lore_list = contents.get("lore", [])
+        if lore_list is Array:
+            c.lore_entries = []
+            for entry_id in lore_list:
+                c.lore_entries.append(str(entry_id))
 
     # Optional hints
     c.links_path = str(manifest.get("links_path", c.links_path))
@@ -70,6 +76,8 @@ func to_manifest_dict() -> Dictionary:
         "scenes": scenes.duplicate(),
         "characters": characters.duplicate()
     }
+    if not lore_entries.is_empty():
+        contents["lore"] = lore_entries.duplicate()
     var out := {
         "id": id,
         "name": name,
@@ -106,5 +114,3 @@ func get_thumbnail_path(preferred_size: int = 512) -> String:
         if thumbnails.has(k):
             return str(thumbnails[k])
     return ""
-
-

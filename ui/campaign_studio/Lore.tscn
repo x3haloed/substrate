@@ -1,0 +1,224 @@
+[gd_scene load_steps=2 format=3 uid="uid://b0k4x0fs8wmyi"]
+
+[ext_resource type="Script" uid="uid://bnjew0sns2o30" path="res://ui/campaign_studio/Lore.gd" id="1_zunqm"]
+
+[node name="Lore" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_zunqm")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="HBox" type="HBoxContainer" parent="Margin"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="LeftPanel" type="VBoxContainer" parent="Margin/HBox"]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+size_flags_horizontal = 2
+size_flags_vertical = 3
+
+[node name="Header" type="HBoxContainer" parent="Margin/HBox/LeftPanel"]
+layout_mode = 2
+
+[node name="HeaderLabel" type="Label" parent="Margin/HBox/LeftPanel/Header"]
+layout_mode = 2
+text = "Lore Entries"
+
+[node name="HeaderSpacer" type="Control" parent="Margin/HBox/LeftPanel/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AddButton" type="Button" parent="Margin/HBox/LeftPanel/Header"]
+layout_mode = 2
+text = "Add"
+
+[node name="DeleteButton" type="Button" parent="Margin/HBox/LeftPanel/Header"]
+layout_mode = 2
+disabled = true
+text = "Delete"
+
+[node name="EntryList" type="ItemList" parent="Margin/HBox/LeftPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+select_mode = 1
+
+[node name="RightPanel" type="VBoxContainer" parent="Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="NoSelection" type="Label" parent="Margin/HBox/RightPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Select a lore entry to edit."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Scroll" type="ScrollContainer" parent="Margin/HBox/RightPanel"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Form" type="VBoxContainer" parent="Margin/HBox/RightPanel/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="FormHeader" type="Label" parent="Margin/HBox/RightPanel/Scroll/Form"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Entry Details"
+
+[node name="EntryIdRow" type="HBoxContainer" parent="Margin/HBox/RightPanel/Scroll/Form"]
+layout_mode = 2
+
+[node name="EntryIdLabel" type="Label" parent="Margin/HBox/RightPanel/Scroll/Form/EntryIdRow"]
+layout_mode = 2
+text = "Entry ID"
+
+[node name="EntryIdEdit" type="LineEdit" parent="Margin/HBox/RightPanel/Scroll/Form/EntryIdRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TitleRow" type="HBoxContainer" parent="Margin/HBox/RightPanel/Scroll/Form"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="Margin/HBox/RightPanel/Scroll/Form/TitleRow"]
+layout_mode = 2
+text = "Title"
+
+[node name="TitleEdit" type="LineEdit" parent="Margin/HBox/RightPanel/Scroll/Form/TitleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CategoryRow" type="HBoxContainer" parent="Margin/HBox/RightPanel/Scroll/Form"]
+layout_mode = 2
+
+[node name="CategoryLabel" type="Label" parent="Margin/HBox/RightPanel/Scroll/Form/CategoryRow"]
+layout_mode = 2
+text = "Category"
+
+[node name="CategoryEdit" type="LineEdit" parent="Margin/HBox/RightPanel/Scroll/Form/CategoryRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "npc, item, faction..."
+
+[node name="VisibilityRow" type="HBoxContainer" parent="Margin/HBox/RightPanel/Scroll/Form"]
+layout_mode = 2
+
+[node name="VisibilityLabel" type="Label" parent="Margin/HBox/RightPanel/Scroll/Form/VisibilityRow"]
+layout_mode = 2
+text = "Visibility"
+
+[node name="VisibilityOption" type="OptionButton" parent="Margin/HBox/RightPanel/Scroll/Form/VisibilityRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RelatedSectionLabel" type="Label" parent="Margin/HBox/RightPanel/Scroll/Form"]
+layout_mode = 2
+text = "Related Entities"
+
+[node name="RelatedEntities" type="ItemList" parent="Margin/HBox/RightPanel/Scroll/Form"]
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 2
+select_mode = 1
+
+[node name="RelatedButtons" type="HBoxContainer" parent="Margin/HBox/RightPanel/Scroll/Form"]
+layout_mode = 2
+
+[node name="EntityPicker" type="OptionButton" parent="Margin/HBox/RightPanel/Scroll/Form/RelatedButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AddRelatedButton" type="Button" parent="Margin/HBox/RightPanel/Scroll/Form/RelatedButtons"]
+layout_mode = 2
+text = "Add"
+
+[node name="RemoveRelatedButton" type="Button" parent="Margin/HBox/RightPanel/Scroll/Form/RelatedButtons"]
+layout_mode = 2
+text = "Remove"
+
+[node name="AssignGlobalButton" type="Button" parent="Margin/HBox/RightPanel/Scroll/Form/RelatedButtons"]
+layout_mode = 2
+text = "Link as Global"
+
+[node name="SummaryLabel" type="Label" parent="Margin/HBox/RightPanel/Scroll/Form"]
+layout_mode = 2
+text = "Summary"
+
+[node name="SummaryEdit" type="TextEdit" parent="Margin/HBox/RightPanel/Scroll/Form"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 2
+placeholder_text = "Short synopsis shown above the article."
+
+[node name="ArticleLabel" type="Label" parent="Margin/HBox/RightPanel/Scroll/Form"]
+layout_mode = 2
+text = "Article"
+
+[node name="ArticleEdit" type="TextEdit" parent="Margin/HBox/RightPanel/Scroll/Form"]
+custom_minimum_size = Vector2(0, 240)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+placeholder_text = "Full lore article (BBCode supported)."
+
+[node name="UnlockLabel" type="Label" parent="Margin/HBox/RightPanel/Scroll/Form"]
+layout_mode = 2
+text = "Unlock Conditions"
+
+[node name="UnlockEdit" type="TextEdit" parent="Margin/HBox/RightPanel/Scroll/Form"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 2
+placeholder_text = "One condition per line (e.g. discover:entity_id, flag:quest.complete)"
+
+[node name="TagsRow" type="HBoxContainer" parent="Margin/HBox/RightPanel/Scroll/Form"]
+layout_mode = 2
+
+[node name="TagsLabel" type="Label" parent="Margin/HBox/RightPanel/Scroll/Form/TagsRow"]
+layout_mode = 2
+text = "Tags"
+
+[node name="TagsEdit" type="LineEdit" parent="Margin/HBox/RightPanel/Scroll/Form/TagsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Comma separated labels"
+
+[node name="NotesLabel" type="Label" parent="Margin/HBox/RightPanel/Scroll/Form"]
+layout_mode = 2
+text = "Notes (author only)"
+
+[node name="NotesEdit" type="TextEdit" parent="Margin/HBox/RightPanel/Scroll/Form"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 2
+placeholder_text = "Internal notes or change log."
+
+[node name="SaveButton" type="Button" parent="Margin/HBox/RightPanel/Scroll/Form"]
+layout_mode = 2
+text = "Save Changes"

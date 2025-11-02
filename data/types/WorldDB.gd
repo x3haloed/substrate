@@ -2,6 +2,8 @@ extends Resource
 class_name WorldDB
 
 ## Canonical world state database
+signal lore_entry_unlocked(entry_id: String)
+
 @export var scenes: Dictionary = {}  # scene_id -> SceneGraph resource path
 @export var entities: Dictionary = {}  # entity_id -> Entity data
 @export var characters: Dictionary = {}  # character_id -> CharacterProfile resource path
@@ -12,6 +14,9 @@ class_name WorldDB
 @export var player_inventory: Inventory
 @export var party: Array[String] = []  # Current player party member IDs
 @export var generated_scenes: Array[String] = []  # IDs of scenes generated at runtime (LLM-assisted)
+@export var lore_db: LoreDB
+@export var entity_discovery_state: Dictionary = {}  # entity_id -> {discovered_by: Array[String], first_seen_ts: String}
+@export var unlocked_lore_entries: Dictionary = {}  # entry_id -> true
 
 var _loaded_scenes: Dictionary = {}
 var _loaded_characters: Dictionary = {}
@@ -149,6 +154,8 @@ func record_entity_discovery(entity_id: String, actor_id: String, scene_id: Stri
 				entity_data["discovered_by"] = []
 			if not actor_id in entity_data.discovered_by:
 				entity_data.discovered_by.append(actor_id)
+	_update_discovery_state(entity_id, actor_id)
+	_unlock_lore_for_discovery(entity_id, actor_id)
 	
 	# Record in global history
 	add_history_entry({
@@ -323,3 +330,106 @@ func ensure_player_inventory() -> void:
 	if player_inventory == null:
 		player_inventory = Inventory.new()
 
+func ensure_lore_database() -> LoreDB:
+	if lore_db == null:
+		lore_db = LoreDB.new()
+	return lore_db
+
+func get_lore_entry(entry_id: String) -> LoreEntry:
+	if lore_db == null:
+		return null
+	return lore_db.get_entry(entry_id)
+
+func get_lore_entry_for_entity(entity_id: String) -> LoreEntry:
+	if lore_db == null:
+		return null
+	var entry = lore_db.get_entry(entity_id)
+	if entry:
+		return entry
+	# Check current scene entity metadata
+	var scene = get_scene(flags.get("current_scene", ""))
+	if scene:
+		var entity := scene.get_entity(entity_id)
+		if entity:
+			var lore_id := ""
+			if entity.props.has("lore_entry_id"):
+				lore_id = str(entity.props.get("lore_entry_id"))
+			elif entity.lore.has("entry_id"):
+				lore_id = str(entity.lore.get("entry_id"))
+			if lore_id != "":
+				var from_entity := lore_db.get_entry(lore_id)
+				if from_entity:
+					return from_entity
+	# Fallback: allow entities to define explicit lore_entry_id in data dictionary.
+	if entities.has(entity_id):
+		var entity_data = entities[entity_id]
+		if entity_data is Dictionary and entity_data.has("lore_entry_id"):
+			return lore_db.get_entry(str(entity_data.lore_entry_id))
+	return null
+
+func has_entity_been_discovered(entity_id: String) -> bool:
+	if entity_id == "":
+		return false
+	if entity_discovery_state.has(entity_id):
+		var state = entity_discovery_state[entity_id]
+		if state is Dictionary:
+			var discovered_list = state.get("discovered_by", [])
+			if discovered_list is Array and discovered_list.size() > 0:
+				return true
+	# Fallback: check scene entities
+	var scene = get_scene(flags.get("current_scene", ""))
+	if scene:
+		var entity = scene.get_entity(entity_id)
+		if entity:
+			return entity.get_discoveries().size() > 0
+	# Check world entities cache flag
+	if entities.has(entity_id):
+		var entity_data = entities[entity_id]
+		if entity_data is Dictionary and entity_data.get("seen", false):
+			return true
+		if entity_data is Dictionary and entity_data.has("discovered_by"):
+			var discovered_list = entity_data.discovered_by
+			if discovered_list is Array and discovered_list.size() > 0:
+				return true
+	return false
+
+func record_lore_unlock(entry_id: String, source: String = "") -> void:
+	if entry_id == "":
+		return
+	if lore_db == null:
+		return
+	if unlocked_lore_entries.get(entry_id, false):
+		return
+	var entry = lore_db.get_entry(entry_id)
+	if entry == null:
+		return
+	# Currently unlocks are passive; in future we can record explicit state.
+	add_history_entry({
+		"event": "lore_unlock",
+		"entry_id": entry_id,
+		"source": source
+	})
+	unlocked_lore_entries[entry_id] = true
+	lore_entry_unlocked.emit(entry_id)
+
+func _update_discovery_state(entity_id: String, actor_id: String) -> void:
+	if entity_id == "":
+		return
+	var state: Dictionary = entity_discovery_state.get(entity_id, {
+		"discovered_by": [],
+		"first_seen_ts": Time.get_datetime_string_from_system()
+	})
+	if not state.has("discovered_by") or not (state.get("discovered_by") is Array):
+		state["discovered_by"] = []
+	var discovered_by: Array = state.get("discovered_by")
+	if not actor_id in discovered_by:
+		discovered_by.append(actor_id)
+		state["discovered_by"] = discovered_by
+	entity_discovery_state[entity_id] = state
+
+func _unlock_lore_for_discovery(entity_id: String, actor_id: String) -> void:
+	if lore_db == null:
+		return
+	var entry = get_lore_entry_for_entity(entity_id)
+	if entry and entry.is_unlocked(self, actor_id):
+		record_lore_unlock(entry.entry_id, "discovery")
