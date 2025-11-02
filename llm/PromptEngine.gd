@@ -355,9 +355,80 @@ func process_freeform_input(scene: SceneGraph, player_text: String) -> Resolutio
 		return _create_error_envelope("LLM request failed")
 	return _parse_response(response_text)
 
+## Remove meta-thought tags and code fences from model output
+static func _sanitize_llm_text(text: String) -> String:
+	var out := text
+	# Strip common code fences
+	out = out.replace("```json", "")
+	out = out.replace("```JSON", "")
+	out = out.replace("```", "")
+	# Strip leading/trailing whitespace early
+	out = out.strip_edges()
+	# Remove <think>...</think> and <thinking>...</thinking> blocks (can appear multiple times)
+	var open_close_pairs := [
+		["<think>", "</think>"],
+		["<thinking>", "</thinking>"]
+	]
+	for pair in open_close_pairs:
+		var open_tag: String = pair[0]
+		var close_tag: String = pair[1]
+		while true:
+			var s := out.find(open_tag)
+			if s == -1:
+				break
+			var e := out.find(close_tag, s + open_tag.length())
+			if e == -1:
+				# No closing tag; drop the opening tag only
+				out = out.substr(0, s) + out.substr(s + open_tag.length())
+				break
+			out = out.substr(0, s) + out.substr(e + close_tag.length())
+		out = out.strip_edges()
+	return out
+
+## Extract the first top-level JSON object from arbitrary text
+static func _extract_first_json_object(text: String) -> String:
+	var s := text
+	var start := -1
+	var depth := 0
+	var in_string := false
+	var escape_next := false
+	for i in s.length():
+		var ch := s[i]
+		if start == -1:
+			if ch == '{':
+				start = i
+				depth = 1
+				in_string = false
+				escape_next = false
+			continue
+		# After we've started scanning an object
+		if in_string:
+			if escape_next:
+				escape_next = false
+			elif ch == '\\':
+				escape_next = true
+			elif ch == '"':
+				in_string = false
+		else:
+			if ch == '"':
+				in_string = true
+			elif ch == '{':
+				depth += 1
+			elif ch == '}':
+				depth -= 1
+				if depth == 0:
+					var end_inclusive := i
+					return s.substr(start, end_inclusive - start + 1)
+	return ""
+
+
 func _parse_response(json_text: String) -> ResolutionEnvelope:
+	# Clean known wrappers and extract the first JSON object if extra text exists
+	var cleaned := _sanitize_llm_text(json_text)
+	var candidate := _extract_first_json_object(cleaned)
+	var to_parse := candidate if candidate != "" else cleaned
 	var json = JSON.new()
-	var parse_error = json.parse(json_text)
+	var parse_error = json.parse(to_parse)
 	if parse_error != OK:
 		push_error("Failed to parse LLM response: " + json_text)
 		if llm_client and llm_client.settings and llm_client.settings.debug_trace:
