@@ -45,15 +45,7 @@ func enter_scene(scene_id: String) -> ResolutionEnvelope:
 	var scene_image: Image = null
 	if typeof(scene.image_path) == TYPE_STRING and scene.image_path != "":
 		var ip := str(scene.image_path)
-		var load_path := ""
-		if ip.begins_with("res://") or ip.begins_with("user://") or ip.begins_with("/"):
-			load_path = ip
-		else:
-			var base := _resolve_world_base_path()
-			if base != "":
-				load_path = (base.rstrip("/") + "/" + ip.lstrip("/"))
-			else:
-				load_path = "user://" + ip.lstrip("/")
+		var load_path := PathResolver.resolve_path(ip, world_db)
 		if load_path != "":
 			var img := Image.new()
 			var err := img.load(load_path)
@@ -79,14 +71,7 @@ func enter_scene(scene_id: String) -> ResolutionEnvelope:
 	var resolved_path := ""
 	if typeof(scene.image_path) == TYPE_STRING and scene.image_path != "":
 		var ip2 := str(scene.image_path)
-		if ip2.begins_with("res://") or ip2.begins_with("user://") or ip2.begins_with("/"):
-			resolved_path = ip2
-		else:
-			var base := _resolve_world_base_path()
-			if base != "":
-				resolved_path = (base.rstrip("/") + "/" + ip2.lstrip("/"))
-			else:
-				resolved_path = "user://" + ip2.lstrip("/")
+		resolved_path = PathResolver.resolve_path(ip2, world_db)
 	envelope.scene_image_path = resolved_path
 	# Notify listeners so UI can update
 	action_resolved.emit(envelope)
@@ -658,34 +643,13 @@ func _emit_queue_update():
 	action_queue_updated.emit(preview, current)
 
 func _load_open_area_def(area_id: String) -> OpenAreaDef:
-	var base := str(world_db.flags.get("cartridge_base_path", ""))
+	var base := PathResolver.resolve_world_base_path(world_db)
 	if base == "":
 		return null
 	var path := base + "/open_areas/" + area_id + ".tres"
 	if ResourceLoader.exists(path):
 		return load(path) as OpenAreaDef
 	return null
-
-## Resolve the base directory for the active world to locate relative asset paths.
-## Prefers explicit cartridge_base_path, then derives from any scene path (…/scenes/<id>.tres),
-## and finally falls back to editor storage using cartridge_id.
-func _resolve_world_base_path() -> String:
-	# 1) Explicit base provided (e.g., res://worlds/<id>)
-	var base := str(world_db.flags.get("cartridge_base_path", ""))
-	if base != "":
-		return base
-	# 2) Derive from any scene path in the world DB
-	for sid in world_db.scenes.keys():
-		var v = world_db.scenes[sid]
-		if v is String:
-			var dir := String(v).get_base_dir()
-			if dir.ends_with("/scenes"):
-				return dir.get_base_dir()
-	# 3) Fallback to editor worlds location if cartridge_id is known
-	var cid := str(world_db.flags.get("cartridge_id", ""))
-	if cid != "":
-		return "user://editor/worlds/" + cid
-	return ""
 
 func _maybe_complete_open_area() -> ResolutionEnvelope:
 	if _active_open_area.is_empty():

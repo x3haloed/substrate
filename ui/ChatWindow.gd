@@ -12,10 +12,15 @@ signal message_sent(text: String)
 @onready var input_line: LineEdit = $VBox/InputBox/InputLine
 @onready var send_button: Button = $VBox/InputBox/SendButton
 
+var world_db: WorldDB = null
+
 func _ready():
 	send_button.pressed.connect(_on_send_pressed)
 	input_line.text_submitted.connect(_on_input_submitted)
 	chat_log.meta_clicked.connect(_on_meta_clicked)
+func set_world_db(db: WorldDB) -> void:
+	world_db = db
+
 
 func add_message(text: String, style: String = "world", speaker: String = ""):
 	var formatted = Narrator.format_narration(text, style)
@@ -65,23 +70,10 @@ func _load_image_texture(path: String) -> Texture2D:
 	if typeof(path) != TYPE_STRING or path == "":
 		return null
 	
-	# Local file path resolution: prefer explicit paths; resolve relatives to user:// and res://
-	var img := Image.new()
-	var err := ERR_CANT_OPEN
-	var candidates: Array[String] = []
-	
-	if path.begins_with("res://") or path.begins_with("user://") or path.begins_with("/"):
-		candidates.append(path)
-	else:
-		candidates.append("user://" + path.lstrip("/"))
-		candidates.append("res://" + path.lstrip("/"))
-	
-	for p in candidates:
-		if FileAccess.file_exists(p):
-			err = img.load(p)
-			if err == OK:
-				return ImageTexture.create_from_image(img)
-	
+	# Resolve via centralized PathResolver
+	var img := PathResolver.try_load_image(path, world_db)
+	if img != null:
+		return ImageTexture.create_from_image(img)
 	push_warning("Failed to load image from path: " + path)
 	return null
 

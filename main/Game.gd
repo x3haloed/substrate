@@ -77,6 +77,8 @@ func _ready():
 	# Bind NPC panel to world DB
 	npc_panel.set_world_db(world_db)
 	lore_panel.set_world_db(world_db)
+	# Provide world context to chat window for asset resolution
+	chat_window.set_world_db(world_db)
 	world_db.lore_entry_unlocked.connect(_on_lore_entry_unlocked)
 	settings_panel.settings_saved.connect(_on_settings_saved)
 	settings_button.pressed.connect(_on_settings_button_pressed)
