@@ -102,6 +102,13 @@ text = "Entry ID"
 layout_mode = 2
 size_flags_horizontal = 3
 
+[node name="EntryIdHint" type="Label" parent="Margin/HBox/RightPanel/Scroll/Form"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 12
+text = "Match this ID to an entity id to auto-open this lore when players click its name."
+
 [node name="TitleRow" type="HBoxContainer" parent="Margin/HBox/RightPanel/Scroll/Form"]
 layout_mode = 2
 
