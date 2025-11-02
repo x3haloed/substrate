@@ -6,10 +6,12 @@ class_name CardManager
 signal closed
 
 const CardRepositoryRef = preload("res://tools/CardRepository.gd")
+const CharacterCardLoaderRef = preload("res://tools/CharacterCardLoader.gd")
 
 @onready var card_shelf: HBoxContainer = %CardShelf
 @onready var exit_button: Button = %ExitButton
 @onready var help_button: Button = %HelpButton
+@onready var import_button: Button = %ImportButton
 @onready var scroll_left_button: Button = %ScrollLeftButton
 @onready var scroll_right_button: Button = %ScrollRightButton
 @onready var auto_scroll_button: Button = %AutoScrollButton
@@ -28,6 +30,7 @@ var character_cards: Array[CharacterProfile] = []
 var current_scroll_index: int = 0
 var auto_scrolling: bool = false
 var auto_scroll_timer: Timer
+var open_file_dialog: FileDialog
 
 const CARD_WIDTH: int = 112  # 96px + 16px gap
 
@@ -38,6 +41,7 @@ func _ready():
 	_connect_signals()
 	_setup_auto_scroll_timer()
 	_update_total_cards_label()
+	_setup_import_dialog()
 
 func _setup_sort_options():
 	sort_option.clear()
@@ -115,10 +119,56 @@ func _on_card_clicked(character: CharacterProfile):
 func _connect_signals():
 	exit_button.pressed.connect(_on_exit_pressed)
 	help_button.pressed.connect(_on_help_pressed)
+	import_button.pressed.connect(_on_import_pressed)
 	scroll_left_button.pressed.connect(_on_scroll_left)
 	scroll_right_button.pressed.connect(_on_scroll_right)
 	auto_scroll_button.pressed.connect(_on_auto_scroll_toggled)
 	shuffle_button.pressed.connect(_on_shuffle_pressed)
+
+func _setup_import_dialog():
+	open_file_dialog = FileDialog.new()
+	open_file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	open_file_dialog.add_filter("*.json ; CC v2 JSON Files")
+	open_file_dialog.add_filter("*.png ; CC v2 PNG Files")
+	open_file_dialog.add_filter("*.scrd ; Substrate Card Files")
+	open_file_dialog.access = FileDialog.ACCESS_FILESYSTEM
+	open_file_dialog.file_selected.connect(_on_import_file_selected)
+	add_child(open_file_dialog)
+
+func _on_import_pressed():
+	open_file_dialog.popup_centered_ratio(0.75)
+
+func _on_import_file_selected(path: String):
+	var profile: CharacterProfile = null
+	var lower := path.to_lower()
+	if lower.ends_with(".png"):
+		profile = CharacterCardLoaderRef.import_from_png(path)
+	elif lower.ends_with(".json"):
+		profile = CharacterCardLoaderRef.import_from_json(path)
+	elif lower.ends_with(".scrd"):
+		var tres_path := "user://__temp_load.tres"
+		DirAccess.copy_absolute(path, tres_path)
+		var res := load(tres_path)
+		if res is CharacterProfile:
+			profile = res
+		DirAccess.remove_absolute(tres_path)
+	else:
+		push_error("Unsupported file type: " + path)
+		return
+
+	if profile == null:
+		push_error("Failed to import character card from file: " + path)
+		return
+
+	var saved_path := CardRepositoryRef.add_card_to_repo(profile)
+	if saved_path == "":
+		push_error("Failed to save imported card to repository")
+		return
+
+	# Refresh UI to show the newly imported card
+	_load_character_cards()
+	_populate_card_shelf()
+	_update_total_cards_label()
 
 func _on_exit_pressed():
 	closed.emit()

@@ -57,6 +57,11 @@ size_flags_horizontal = 3
 layout_mode = 2
 theme_override_constants/separation = 8
 
+[node name="ImportButton" type="Button" parent="VBoxContainer/Header/MarginContainer/HBoxContainer/ButtonGroup"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "IMPORT"
+
 [node name="HelpButton" type="Button" parent="VBoxContainer/Header/MarginContainer/HBoxContainer/ButtonGroup"]
 unique_name_in_owner = true
 layout_mode = 2
