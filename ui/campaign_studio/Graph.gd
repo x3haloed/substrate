@@ -170,6 +170,10 @@ func _create_graph_node(node_def: Dictionary) -> GraphNode:
 	
 	# Add to graph
 	graph_edit.add_child(graph_node)
+
+	# Handle double-clicks on the node to open its editor without
+	# interfering with drag operations
+	graph_node.gui_input.connect(_on_graph_node_gui_input.bind(graph_node))
 	
 	# Position (try to load from node_def or use auto-layout later)
 	if node_def.has("position") and node_def.position is Vector2:
@@ -285,12 +289,13 @@ func _on_graph_disconnection_request(from_node: StringName, from_port: int, to_n
 	
 	_save_links_data()
 
-func _on_graph_node_selected(node: Node) -> void:
-	if not (node is GraphNode):
-		return
-	
-	var node_id: String = node.name
-	
+func _on_graph_node_gui_input(event: InputEvent, node: GraphNode) -> void:
+	if event is InputEventMouseButton:
+		var mb := event as InputEventMouseButton
+		if mb.button_index == MOUSE_BUTTON_LEFT and mb.double_click and mb.pressed:
+			_open_node_by_id(node.name)
+
+func _open_node_by_id(node_id: String) -> void:
 	# Find node in links_data
 	var node_def: Dictionary = _find_node_in_links(node_id)
 	

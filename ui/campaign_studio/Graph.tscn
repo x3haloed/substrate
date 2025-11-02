@@ -170,7 +170,6 @@ text = "Save"
 
 [connection signal="connection_request" from="GraphEdit" to="." method="_on_graph_connection_request"]
 [connection signal="disconnection_request" from="GraphEdit" to="." method="_on_graph_disconnection_request"]
-[connection signal="node_selected" from="GraphEdit" to="." method="_on_graph_node_selected"]
 [connection signal="close_requested" from="OpenAreaDialog" to="." method="_on_open_area_dialog_close"]
 [connection signal="pressed" from="OpenAreaDialog/OpenAreaContent/VBox/ButtonSection/CancelBtn" to="." method="_on_open_area_dialog_close"]
 [connection signal="pressed" from="OpenAreaDialog/OpenAreaContent/VBox/ButtonSection/SaveBtn" to="." method="_on_open_area_save_pressed"]
