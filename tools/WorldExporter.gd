@@ -32,16 +32,14 @@ func export_world(world: WorldDB, export_path: String, meta: Dictionary = {}, op
 		# Copy image asset into assets/ and rewrite path to a relative path inside the cartridge
 		if typeof(scene_res.image_path) == TYPE_STRING and scene_res.image_path != "":
 			var ip := str(scene_res.image_path)
-			if ip.begins_with("http://") or ip.begins_with("https://"):
-				# Leave remote URL as-is
-				pass
-			else:
-				var assets_dir := stage_dir + "/assets/scene_images"
-				DirAccess.make_dir_recursive_absolute(assets_dir)
-				var filename := ip.get_file()
-				var dest := assets_dir.rstrip("/") + "/" + filename
-				_copy_file(ip, dest)
-				scene_res.image_path = "assets/scene_images/" + filename
+			var assets_dir := stage_dir + "/assets/scene_images"
+			DirAccess.make_dir_recursive_absolute(assets_dir)
+			var filename := ip.get_file()
+			var dest := assets_dir.rstrip("/") + "/" + filename
+			var rbase := scene_res.resource_path.get_base_dir()
+			var ip_abs := rbase.trim_suffix("scenes/").trim_suffix("scenes") + "/" + ip.lstrip("/")
+			_copy_file(ip_abs, dest)
+			scene_res.image_path = "assets/scene_images/" + filename
 		# Save rewritten scene resource into staging
 		var out_scene_path: String = stage_dir + "/scenes/" + sid + ".tres"
 		DirAccess.make_dir_recursive_absolute(out_scene_path.get_base_dir())
