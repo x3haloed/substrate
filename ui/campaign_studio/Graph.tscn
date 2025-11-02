@@ -1,0 +1,176 @@
+[gd_scene load_steps=2 format=3 uid="uid://b8n4umhd26y1h"]
+
+[ext_resource type="Script" uid="uid://d3ndpvlmxki6w" path="res://ui/campaign_studio/Graph.gd" id="1_eb2im"]
+
+[node name="Graph" type="VBoxContainer"]
+script = ExtResource("1_eb2im")
+metadata/_tab_index = 2
+
+[node name="Toolbar" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Toolbar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 16
+text = "Link Graph"
+
+[node name="RefreshGraphBtn" type="Button" parent="Toolbar"]
+layout_mode = 2
+text = "🔄 Refresh"
+
+[node name="AddSceneNodeBtn" type="Button" parent="Toolbar"]
+layout_mode = 2
+text = "+ Scene Node"
+
+[node name="AddOpenAreaBtn" type="Button" parent="Toolbar"]
+layout_mode = 2
+text = "+ Open Area"
+
+[node name="AutoLayoutBtn" type="Button" parent="Toolbar"]
+layout_mode = 2
+text = "🎨 Auto Layout"
+
+[node name="GraphEdit" type="GraphEdit" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+right_disconnects = true
+zoom_min = 0.25
+zoom_max = 2.0
+
+[node name="OpenAreaDialog" type="Window" parent="."]
+title = "Open Area Editor"
+initial_position = 1
+size = Vector2i(550, 600)
+visible = false
+
+[node name="OpenAreaContent" type="MarginContainer" parent="OpenAreaDialog"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="OpenAreaDialog/OpenAreaContent"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="InfoLabel" type="Label" parent="OpenAreaDialog/OpenAreaContent/VBox"]
+layout_mode = 2
+text = "Configure an open-ended exploration area."
+autowrap_mode = 3
+
+[node name="NodeIdSection" type="VBoxContainer" parent="OpenAreaDialog/OpenAreaContent/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="OpenAreaDialog/OpenAreaContent/VBox/NodeIdSection"]
+layout_mode = 2
+text = "Node ID"
+
+[node name="NodeIdField" type="LineEdit" parent="OpenAreaDialog/OpenAreaContent/VBox/NodeIdSection"]
+layout_mode = 2
+placeholder_text = "area_node_id"
+
+[node name="LabelSection" type="VBoxContainer" parent="OpenAreaDialog/OpenAreaContent/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="OpenAreaDialog/OpenAreaContent/VBox/LabelSection"]
+layout_mode = 2
+text = "Display Label"
+
+[node name="LabelField" type="LineEdit" parent="OpenAreaDialog/OpenAreaContent/VBox/LabelSection"]
+layout_mode = 2
+placeholder_text = "Exploration Area Name"
+
+[node name="EntrySceneSection" type="VBoxContainer" parent="OpenAreaDialog/OpenAreaContent/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="OpenAreaDialog/OpenAreaContent/VBox/EntrySceneSection"]
+layout_mode = 2
+text = "Entry Scene (Template)"
+
+[node name="EntrySceneField" type="LineEdit" parent="OpenAreaDialog/OpenAreaContent/VBox/EntrySceneSection"]
+layout_mode = 2
+placeholder_text = "scene_id"
+
+[node name="HSeparator" type="HSeparator" parent="OpenAreaDialog/OpenAreaContent/VBox"]
+layout_mode = 2
+
+[node name="ObjectiveSection" type="VBoxContainer" parent="OpenAreaDialog/OpenAreaContent/VBox"]
+layout_mode = 2
+
+[node name="ObjectiveLabel" type="Label" parent="OpenAreaDialog/OpenAreaContent/VBox/ObjectiveSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Objective"
+
+[node name="ObjectiveKindSection" type="VBoxContainer" parent="OpenAreaDialog/OpenAreaContent/VBox/ObjectiveSection"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="OpenAreaDialog/OpenAreaContent/VBox/ObjectiveSection/ObjectiveKindSection"]
+layout_mode = 2
+text = "Kind"
+
+[node name="ObjectiveKindOption" type="OptionButton" parent="OpenAreaDialog/OpenAreaContent/VBox/ObjectiveSection/ObjectiveKindSection"]
+layout_mode = 2
+
+[node name="ObjectiveEntitySection" type="VBoxContainer" parent="OpenAreaDialog/OpenAreaContent/VBox/ObjectiveSection"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="OpenAreaDialog/OpenAreaContent/VBox/ObjectiveSection/ObjectiveEntitySection"]
+layout_mode = 2
+text = "Entity ID (for discover/interact)"
+
+[node name="ObjectiveEntityField" type="LineEdit" parent="OpenAreaDialog/OpenAreaContent/VBox/ObjectiveSection/ObjectiveEntitySection"]
+layout_mode = 2
+placeholder_text = "entity_id"
+
+[node name="ObjectiveFlagSection" type="VBoxContainer" parent="OpenAreaDialog/OpenAreaContent/VBox/ObjectiveSection"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="OpenAreaDialog/OpenAreaContent/VBox/ObjectiveSection/ObjectiveFlagSection"]
+layout_mode = 2
+text = "Flag (for flag_equals)"
+
+[node name="ObjectiveFlagField" type="LineEdit" parent="OpenAreaDialog/OpenAreaContent/VBox/ObjectiveSection/ObjectiveFlagSection"]
+layout_mode = 2
+placeholder_text = "flag_name=value"
+
+[node name="HSeparator2" type="HSeparator" parent="OpenAreaDialog/OpenAreaContent/VBox"]
+layout_mode = 2
+
+[node name="CompletionSection" type="VBoxContainer" parent="OpenAreaDialog/OpenAreaContent/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="OpenAreaDialog/OpenAreaContent/VBox/CompletionSection"]
+layout_mode = 2
+text = "On Completion - Go To Scene"
+
+[node name="CompletionSceneField" type="LineEdit" parent="OpenAreaDialog/OpenAreaContent/VBox/CompletionSection"]
+layout_mode = 2
+placeholder_text = "target_scene_id"
+
+[node name="ButtonSection" type="HBoxContainer" parent="OpenAreaDialog/OpenAreaContent/VBox"]
+layout_mode = 2
+size_flags_vertical = 8
+alignment = 2
+
+[node name="CancelBtn" type="Button" parent="OpenAreaDialog/OpenAreaContent/VBox/ButtonSection"]
+layout_mode = 2
+text = "Cancel"
+
+[node name="SaveBtn" type="Button" parent="OpenAreaDialog/OpenAreaContent/VBox/ButtonSection"]
+layout_mode = 2
+text = "Save"
+
+[connection signal="connection_request" from="GraphEdit" to="." method="_on_graph_connection_request"]
+[connection signal="disconnection_request" from="GraphEdit" to="." method="_on_graph_disconnection_request"]
+[connection signal="node_selected" from="GraphEdit" to="." method="_on_graph_node_selected"]
+[connection signal="close_requested" from="OpenAreaDialog" to="." method="_on_open_area_dialog_close"]
+[connection signal="pressed" from="OpenAreaDialog/OpenAreaContent/VBox/ButtonSection/CancelBtn" to="." method="_on_open_area_dialog_close"]
+[connection signal="pressed" from="OpenAreaDialog/OpenAreaContent/VBox/ButtonSection/SaveBtn" to="." method="_on_open_area_save_pressed"]

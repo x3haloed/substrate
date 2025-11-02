@@ -1,0 +1,160 @@
+[gd_scene load_steps=2 format=3 uid="uid://b0vbcjb1wt1f7"]
+
+[ext_resource type="Script" uid="uid://bdop6v1nvbr16" path="res://ui/campaign_studio/Dashboard.gd" id="1_dp2vx"]
+
+[node name="Dashboard" type="ScrollContainer"]
+script = ExtResource("1_dp2vx")
+metadata/_tab_index = 0
+
+[node name="DashboardContent" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="MetadataSection" type="VBoxContainer" parent="DashboardContent"]
+layout_mode = 2
+
+[node name="MetadataTitle" type="Label" parent="DashboardContent/MetadataSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Campaign Metadata"
+
+[node name="MetadataGrid" type="GridContainer" parent="DashboardContent/MetadataSection"]
+layout_mode = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 8
+columns = 2
+
+[node name="IdLabel" type="Label" parent="DashboardContent/MetadataSection/MetadataGrid"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "ID:"
+
+[node name="IdField" type="LineEdit" parent="DashboardContent/MetadataSection/MetadataGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "campaign_id"
+
+[node name="NameLabel" type="Label" parent="DashboardContent/MetadataSection/MetadataGrid"]
+layout_mode = 2
+text = "Name:"
+
+[node name="NameField" type="LineEdit" parent="DashboardContent/MetadataSection/MetadataGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Campaign Name"
+
+[node name="VersionLabel" type="Label" parent="DashboardContent/MetadataSection/MetadataGrid"]
+layout_mode = 2
+text = "Version:"
+
+[node name="VersionField" type="LineEdit" parent="DashboardContent/MetadataSection/MetadataGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "1.0.0"
+
+[node name="AuthorLabel" type="Label" parent="DashboardContent/MetadataSection/MetadataGrid"]
+layout_mode = 2
+text = "Author:"
+
+[node name="AuthorField" type="LineEdit" parent="DashboardContent/MetadataSection/MetadataGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Author Name"
+
+[node name="InitialSceneLabel" type="Label" parent="DashboardContent/MetadataSection/MetadataGrid"]
+layout_mode = 2
+text = "Initial Scene:"
+
+[node name="InitialSceneField" type="LineEdit" parent="DashboardContent/MetadataSection/MetadataGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "scene_id"
+
+[node name="DescLabel" type="Label" parent="DashboardContent/MetadataSection"]
+layout_mode = 2
+text = "Description:"
+
+[node name="DescField" type="TextEdit" parent="DashboardContent/MetadataSection"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+placeholder_text = "Campaign description..."
+
+[node name="HSeparator1" type="HSeparator" parent="DashboardContent"]
+layout_mode = 2
+
+[node name="ContentSection" type="VBoxContainer" parent="DashboardContent"]
+layout_mode = 2
+
+[node name="ContentTitle" type="Label" parent="DashboardContent/ContentSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Content Summary"
+
+[node name="ContentStats" type="HBoxContainer" parent="DashboardContent/ContentSection"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="ScenesCount" type="Label" parent="DashboardContent/ContentSection/ContentStats"]
+layout_mode = 2
+text = "Scenes: 0"
+
+[node name="CharactersCount" type="Label" parent="DashboardContent/ContentSection/ContentStats"]
+layout_mode = 2
+text = "Characters: 0"
+
+[node name="WarningsTitle" type="Label" parent="DashboardContent/ContentSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Validation Warnings"
+
+[node name="WarningsList" type="RichTextLabel" parent="DashboardContent/ContentSection"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_following = true
+
+[node name="HSeparator2" type="HSeparator" parent="DashboardContent"]
+layout_mode = 2
+
+[node name="ActionsSection" type="VBoxContainer" parent="DashboardContent"]
+layout_mode = 2
+
+[node name="ActionsTitle" type="Label" parent="DashboardContent/ActionsSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Actions"
+
+[node name="ActionsButtons" type="HBoxContainer" parent="DashboardContent/ActionsSection"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ValidateBtn" type="Button" parent="DashboardContent/ActionsSection/ActionsButtons"]
+layout_mode = 2
+text = "🔍 Validate"
+
+[node name="PlaytestBtn" type="Button" parent="DashboardContent/ActionsSection/ActionsButtons"]
+layout_mode = 2
+text = "▶ Playtest"
+
+[node name="ExportBtn" type="Button" parent="DashboardContent/ActionsSection/ActionsButtons"]
+layout_mode = 2
+text = "📦 Export .scrt"
+
+[node name="RefreshBtn" type="Button" parent="DashboardContent/ActionsSection/ActionsButtons"]
+layout_mode = 2
+text = "🔄 Refresh"
+
+[node name="ExportDialog" type="FileDialog" parent="."]
+title = "Export Campaign (.scrt)"
+size = Vector2i(600, 400)
+ok_button_text = "Export"
+access = 2
+filters = PackedStringArray("*.scrt ; Substrate Cartridge")
+
+[connection signal="pressed" from="DashboardContent/ActionsSection/ActionsButtons/ValidateBtn" to="." method="_on_validate_pressed"]
+[connection signal="pressed" from="DashboardContent/ActionsSection/ActionsButtons/PlaytestBtn" to="." method="_on_playtest_pressed"]
+[connection signal="pressed" from="DashboardContent/ActionsSection/ActionsButtons/ExportBtn" to="." method="_on_export_pressed"]
+[connection signal="pressed" from="DashboardContent/ActionsSection/ActionsButtons/RefreshBtn" to="." method="_on_refresh_pressed"]
+[connection signal="dir_selected" from="ExportDialog" to="." method="_on_export_dialog_dir_selected"]
