@@ -24,6 +24,8 @@ func refresh():
 	if mgr == null:
 		return
 	var items := mgr.get_library()
+	# Use the player library by default in the campaign browser
+	items = mgr.get_library(CartridgeManager.StoreKind.PLAYER)
 	for item in items:
 		var file_path := str(item.get("path", ""))
 		var cart: Cartridge = item.get("cartridge", null)

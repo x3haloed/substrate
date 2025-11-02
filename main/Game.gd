@@ -33,7 +33,7 @@ var autosave_interval: float = 300.0  # 5 minutes
 
 func _enter_tree():
 	# Ensure the user's card repository is initialized with builtin cards
-	CardRepository.sync_builtin_cards_to_repo()
+	CardRepository.sync_builtin_cards_to_repo(CardRepository.StoreKind.PLAYER)
 
 func _ready():
 	# Load or create LLM settings
@@ -331,11 +331,11 @@ func switch_cartridge(file_path: String, slot: String = "") -> void:
 		f.close()
 
 	# Import and load the new cartridge
-	var new_id := CartridgeManagerTool.import_cartridge(file_path)
+	var new_id := CartridgeManagerTool.import_cartridge(file_path, CartridgeManager.StoreKind.PLAYER)
 	if new_id == "":
 		chat_window.add_message("Failed to import cartridge.", "world")
 		return
-	var new_world: WorldDB = CartridgeManagerTool.build_world_db_from_import(new_id)
+	var new_world: WorldDB = CartridgeManagerTool.build_world_db_from_import(new_id, CartridgeManager.StoreKind.PLAYER)
 	if new_world == null:
 		chat_window.add_message("Failed to load cartridge world.", "world")
 		return
@@ -348,7 +348,7 @@ func switch_cartridge(file_path: String, slot: String = "") -> void:
 			if loaded:
 				_apply_world_db(loaded)
 	# Enter initial or current scene
-	var sid: String = world_db.flags.get("current_scene", world_db.flags.get("initial_scene_id", "tavern_common"))
+	var sid: String = str(world_db.flags.get("current_scene", world_db.flags.get("initial_scene_id", "tavern_common")))
 	var env: ResolutionEnvelope = await director.enter_scene(sid)
 	_display_envelope(env)
 	chat_window.add_message("Switched to cartridge '%s'." % new_id, "world")
@@ -455,7 +455,7 @@ func _on_load_requested(slot: String):
 		return
 	_apply_world_db(new_world)
 	# Enter the saved or initial scene
-	var sid: String = new_world.flags.get("current_scene", new_world.flags.get("initial_scene_id", "tavern_common"))
+	var sid: String = str(new_world.flags.get("current_scene", new_world.flags.get("initial_scene_id", "tavern_common")))
 	var env: ResolutionEnvelope = await director.enter_scene(sid)
 	_display_envelope(env)
 	chat_window.add_message("Loaded slot '%s'." % slot, "world")

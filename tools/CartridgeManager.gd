@@ -6,30 +6,41 @@ signal cartridge_imported(cartridge_id: String)
 
 const SCRT_EXTENSION := ".scrt"
 
-var library_dir: String = "user://cartridges"
-var _library_cache: Array = [] # Array of { path: String, cartridge: Cartridge }
+enum StoreKind { PLAYER, EDITOR }
+
+const PLAYER_LIBRARY_DIR := "user://player/cartridges"
+const EDITOR_LIBRARY_DIR := "user://editor/cartridges"
+
+const PLAYER_WORLDS_BASE := "user://player/worlds/"
+const EDITOR_WORLDS_BASE := "res://worlds_editor/"
+
+var _library_cache_by_kind: Dictionary = { # kind -> Array of { path: String, cartridge: Cartridge }
+    StoreKind.PLAYER: [],
+    StoreKind.EDITOR: []
+}
 
 func _ready():
-    _ensure_library_dir()
-    refresh_library()
+    _ensure_library_dir(StoreKind.PLAYER)
+    _ensure_library_dir(StoreKind.EDITOR)
+    refresh_library(StoreKind.PLAYER)
+    refresh_library(StoreKind.EDITOR)
 
-func set_library_dir(dir: String) -> void:
-    if dir.strip_edges() == "":
+# Deprecated: Prefer store-kind aware APIs
+func set_library_dir(_dir: String) -> void:
+    return
+
+func _ensure_library_dir(kind: int = StoreKind.PLAYER) -> void:
+    var root := DirAccess.open("user://")
+    if root == null:
         return
-    library_dir = dir
-    _ensure_library_dir()
-    refresh_library()
+    var lib_dir := PLAYER_LIBRARY_DIR if kind == StoreKind.PLAYER else EDITOR_LIBRARY_DIR
+    if not root.dir_exists(lib_dir):
+        root.make_dir_recursive(lib_dir)
 
-func _ensure_library_dir() -> void:
-    var d := DirAccess.open("user://")
-    if d == null:
-        return
-    if not d.dir_exists(library_dir):
-        d.make_dir_recursive(library_dir)
-
-func refresh_library() -> void:
-    _library_cache.clear()
-    var d := DirAccess.open(library_dir)
+func refresh_library(kind: int = StoreKind.PLAYER) -> void:
+    var lib_dir := PLAYER_LIBRARY_DIR if kind == StoreKind.PLAYER else EDITOR_LIBRARY_DIR
+    _library_cache_by_kind[kind] = []
+    var d := DirAccess.open(lib_dir)
     if d == null:
         library_updated.emit()
         return
@@ -42,15 +53,15 @@ func refresh_library() -> void:
             continue
         if not entry_name.to_lower().ends_with(SCRT_EXTENSION):
             continue
-        var path := library_dir.rstrip("/") + "/" + entry_name
+        var path := lib_dir.rstrip("/") + "/" + entry_name
         var cart := _read_cartridge_manifest(path)
         if cart != null:
-            _library_cache.append({"path": path, "cartridge": cart})
+            _library_cache_by_kind[kind].append({"path": path, "cartridge": cart})
     d.list_dir_end()
     library_updated.emit()
 
-func get_library() -> Array:
-    return _library_cache.duplicate(true)
+func get_library(kind: int = StoreKind.PLAYER) -> Array:
+    return (_library_cache_by_kind.get(kind, []) as Array).duplicate(true)
 
 func _read_cartridge_manifest(file_path: String) -> Cartridge:
     # Use ZIPReader to read manifest.json without extracting
@@ -85,7 +96,7 @@ func _read_cartridge_manifest(file_path: String) -> Cartridge:
     cart.thumbnails = thumbs
     return cart
 
-func import_cartridge(file_path: String) -> String:
+func import_cartridge(file_path: String, kind: int = StoreKind.PLAYER) -> String:
     # Returns imported cartridge id (folder name) or ""
     var zip := ZIPReader.new()
     var err := zip.open(file_path)
@@ -104,12 +115,13 @@ func import_cartridge(file_path: String) -> String:
         # Fallback to filename sans extension
         cart_id = file_path.get_file().get_basename()
 
-    var base_dest := "res://worlds/" + cart_id
+    var base_dest := (PLAYER_WORLDS_BASE if kind == StoreKind.PLAYER else EDITOR_WORLDS_BASE) + cart_id
     # Ensure destination directory exists
-    var root := DirAccess.open("res://")
+    var scheme := "user://" if kind == StoreKind.PLAYER else "res://"
+    var root := DirAccess.open(scheme)
     if root == null:
         zip.close()
-        push_error("Cannot open res:// for import")
+        push_error("Cannot open " + scheme + " for import")
         return ""
     root.make_dir_recursive(base_dest)
 
@@ -136,8 +148,8 @@ func import_cartridge(file_path: String) -> String:
     cartridge_imported.emit(cart_id)
     return cart_id
 
-func build_world_db_from_import(cart_id: String) -> WorldDB:
-    var base := "res://worlds/" + cart_id + "/"
+func build_world_db_from_import(cart_id: String, kind: int = StoreKind.PLAYER) -> WorldDB:
+    var base := (PLAYER_WORLDS_BASE if kind == StoreKind.PLAYER else EDITOR_WORLDS_BASE) + cart_id + "/"
     var manifest_path := base + "manifest.json"
     var world_path := base + "world.json"
     var world := WorldDB.new()

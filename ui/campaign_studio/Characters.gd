@@ -39,7 +39,7 @@ func _ready() -> void:
 	no_selection_label.visible = true
 	
 	# Sync built-in cards to repository on startup
-	CardRepository.sync_builtin_cards_to_repo()
+	CardRepository.sync_builtin_cards_to_repo(CardRepository.StoreKind.EDITOR)
 
 func refresh_characters_list() -> void:
 	if current_world_db == null:
@@ -103,7 +103,7 @@ func _on_add_character_pressed() -> void:
 
 func _populate_card_picker() -> void:
 	picker_list.clear()
-	var all_cards := CardRepository.load_cards()
+	var all_cards := CardRepository.load_cards(CardRepository.StoreKind.EDITOR)
 	available_cards.clear()
 	
 	# Filter out characters already in campaign
@@ -162,7 +162,7 @@ func _add_character_to_campaign(card: CharacterProfile) -> void:
 		return
 	
 	# Add to repository if not already there
-	var card_path := CardRepository.add_card_to_repo(card)
+	var card_path := CardRepository.add_card_to_repo(card, CardRepository.StoreKind.EDITOR)
 	if card_path.is_empty():
 		push_error("Failed to add character to repository")
 		return
