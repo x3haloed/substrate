@@ -142,6 +142,7 @@ func _load_settings():
 		llm_settings.api_key = str(cfg.get_value("llm", "api_key", llm_settings.api_key))
 		llm_settings.model = str(cfg.get_value("llm", "model", llm_settings.model))
 		llm_settings.debug_trace = bool(cfg.get_value("llm", "debug_trace", llm_settings.debug_trace))
+		llm_settings.supports_vision = bool(cfg.get_value("llm", "supports_vision", llm_settings.supports_vision))
 	
 	settings_panel.load_settings(llm_settings)
 
@@ -154,6 +155,9 @@ func _start_game():
 
 func _display_envelope(envelope: ResolutionEnvelope):
 	# Display narration
+	# Show scene image first if provided
+	if envelope.scene_image_path != "":
+		chat_window.add_image_from_path(envelope.scene_image_path)
 	var narration_current_scene_id = world_db.flags.get("current_scene", "")
 	var narration_current_scene = world_db.get_scene(narration_current_scene_id)
 	for narr in envelope.narration:

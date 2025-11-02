@@ -4,6 +4,7 @@ class_name SceneGraph
 ## Authored scene topology
 @export var scene_id: String = ""
 @export var description: String = ""
+@export var image_path: String = ""  # Optional: file/URL for scene image (no base64)
 @export var entities: Array[Entity] = []
 @export var rules: Dictionary = {}  # "on_enter", "combat_allowed", etc.
 

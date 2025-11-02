@@ -8,6 +8,10 @@ extends HSplitContainer
 @onready var scene_id_field: LineEdit = $"SceneEditor/EditorContent/EditorPanel/SceneIdSection/SceneIdField"
 @onready var scene_desc_field: TextEdit = $"SceneEditor/EditorContent/EditorPanel/DescSection/DescField"
 @onready var rules_field: TextEdit = $"SceneEditor/EditorContent/EditorPanel/RulesSection/RulesField"
+@onready var scene_image_preview: TextureRect = $"SceneEditor/EditorContent/EditorPanel/ImageSection/ImageRow/SceneImagePreview"
+@onready var set_image_btn: Button = $"SceneEditor/EditorContent/EditorPanel/ImageSection/ImageRow/ImageButtons/SetImageBtn"
+@onready var clear_image_btn: Button = $"SceneEditor/EditorContent/EditorPanel/ImageSection/ImageRow/ImageButtons/ClearImageBtn"
+@onready var scene_image_dialog: FileDialog = $"SceneImageFileDialog"
 @onready var entities_list: VBoxContainer = $"SceneEditor/EditorContent/EditorPanel/EntitiesSection/EntitiesList"
 @onready var status_label: Label = $"SceneEditor/EditorContent/EditorPanel/SaveSection/StatusLabel"
 
@@ -185,6 +189,8 @@ func _load_scene_into_editor(scene_id: String) -> void:
 	scene_id_field.text = current_scene.scene_id
 	scene_desc_field.text = current_scene.description
 	rules_field.text = JSON.stringify(current_scene.rules, "  ")
+	# Image preview
+	_update_scene_image_preview()
 	
 	# Populate entities list
 	_refresh_entities_list()
@@ -352,6 +358,87 @@ func _on_revert_scene_pressed() -> void:
 func _mark_scene_dirty() -> void:
 	scene_dirty = true
 	status_label.text = "● Unsaved changes"
+
+func _on_set_scene_image_pressed() -> void:
+	if current_scene == null:
+		return
+	scene_image_dialog.popup_centered_ratio(0.75)
+
+func _on_scene_image_file_selected(path: String) -> void:
+	if current_scene == null:
+		return
+	var dest := _copy_scene_image_into_cart(path)
+	if dest != "":
+		current_scene.image_path = dest
+		_update_scene_image_preview()
+		_mark_scene_dirty()
+
+func _on_clear_scene_image_pressed() -> void:
+	if current_scene == null:
+		return
+	current_scene.image_path = ""
+	_update_scene_image_preview()
+	_mark_scene_dirty()
+
+func _update_scene_image_preview() -> void:
+	if current_scene == null:
+		scene_image_preview.texture = null
+		return
+	var ip := str(current_scene.image_path)
+	if ip == "":
+		scene_image_preview.texture = null
+		return
+	var img := Image.new()
+	var err := img.load(ip)
+	if err != OK:
+		# Try resolve relative to editor cart base
+		var base := _resolve_editor_world_base()
+		if base != "":
+			var alt := base.rstrip("/") + "/" + ip.lstrip("/")
+			var img2 := Image.new()
+			if img2.load(alt) == OK:
+				img = img2
+				err = OK
+	if err == OK:
+		scene_image_preview.texture = ImageTexture.create_from_image(img)
+	else:
+		scene_image_preview.texture = null
+
+func _copy_scene_image_into_cart(src_path: String) -> String:
+	# Return a cart-relative path like "assets/scene_images/<file>" if successful, else ""
+	if typeof(src_path) != TYPE_STRING or src_path == "":
+		return ""
+	var base := _resolve_editor_world_base()
+	if base == "":
+		# Fallback to editor temp
+		base = "user://editor/worlds/temp"
+	DirAccess.make_dir_recursive_absolute(base + "/assets/scene_images")
+	var filename := src_path.get_file()
+	var dest_abs := base.rstrip("/") + "/assets/scene_images/" + filename
+	var bytes := FileAccess.get_file_as_bytes(src_path)
+	if bytes.is_empty():
+		return ""
+	var f := FileAccess.open(dest_abs, FileAccess.WRITE)
+	if f == null:
+		return ""
+	f.store_buffer(bytes)
+	f.close()
+	# Store as cart-relative for portability
+	return "assets/scene_images/" + filename
+
+func _resolve_editor_world_base() -> String:
+	# Try flag
+	var cid := str(current_world_db.flags.get("cartridge_id", ""))
+	if cid != "":
+		return "user://editor/worlds/" + cid
+	# Derive from any scene path in world DB
+	for sid in current_world_db.scenes.keys():
+		var v = current_world_db.scenes[sid]
+		if v is String:
+			var dir := String(v).get_base_dir()
+			if dir.ends_with("/scenes"):
+				return dir.get_base_dir()
+	return ""
 
 ## ========================================
 ## ENTITY EDITOR DIALOG

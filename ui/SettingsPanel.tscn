@@ -94,6 +94,17 @@ layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "gpt-4o-mini"
 
+[node name="VisionBox" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="VisionLabel" type="Label" parent="VBox/VisionBox"]
+layout_mode = 2
+size_flags_horizontal = 2
+text = "Model supports vision:"
+
+[node name="VisionSupportCheck" type="CheckBox" parent="VBox/VisionBox"]
+layout_mode = 2
+
 [node name="SaveButton" type="Button" parent="VBox"]
 layout_mode = 2
 text = "Save"

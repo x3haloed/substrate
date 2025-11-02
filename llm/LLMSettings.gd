@@ -7,6 +7,7 @@ class_name LLMSettings
 @export var api_key: String = ""
 @export var model: String = "gpt-5-nano"
 @export var debug_trace: bool = false
+@export var supports_vision: bool = false
 
 const PROVIDER_URLS = {
 	"openai": "https://api.openai.com/v1",

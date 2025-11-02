@@ -41,6 +41,39 @@ func add_message(text: String, style: String = "world", speaker: String = ""):
 func clear_chat():
 	chat_log.clear()
 
+func add_image_from_path(path: String):
+	# Best-effort image display in chat log
+	if typeof(path) != TYPE_STRING or path == "":
+		return
+	var texture: Texture2D = null
+	if path.begins_with("http://") or path.begins_with("https://"):
+		# RichTextLabel in Godot does not fetch remote images; fall back to showing the URL
+		chat_log.append_text("[image] " + path + "\n")
+		await get_tree().process_frame
+		chat_log.scroll_to_line(chat_log.get_line_count())
+		return
+	# Local file path (res:// or user:// or absolute)
+	var img := Image.new()
+	var err := img.load(path)
+	if err != OK:
+		# Try resolving relative to user://
+		if not path.begins_with("res://") and not path.begins_with("user://"):
+			var alt := "user://" + path.lstrip("/")
+			var img2 := Image.new()
+			if img2.load(alt) == OK:
+				img = img2
+				err = OK
+	if err == OK:
+		texture = ImageTexture.create_from_image(img)
+		if texture:
+			if chat_log.has_method("push_image"):
+				chat_log.call("push_image", texture)
+			else:
+				# Fallback if API differs
+				chat_log.append_text("[image]\n")
+			await get_tree().process_frame
+			chat_log.scroll_to_line(chat_log.get_line_count())
+
 func show_typing(source: String, name_hint: String = "") -> void:
 	if typing_indicator:
 		typing_indicator.start(source, name_hint)

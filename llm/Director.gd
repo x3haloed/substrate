@@ -41,7 +41,13 @@ func enter_scene(scene_id: String) -> ResolutionEnvelope:
 		"entities": _get_entity_summaries(scene)
 	}
 	
-	var narration_text = await prompt_engine.process_narrator_request(context)
+	# Optional scene image: include URL in narrator request only if supported
+	var scene_image_url := ""
+	if typeof(scene.image_path) == TYPE_STRING and scene.image_path != "":
+		var ip := str(scene.image_path)
+		if ip.begins_with("http://") or ip.begins_with("https://"):
+			scene_image_url = ip
+	var narration_text = await prompt_engine.process_narrator_request(context, scene_image_url)
 	
 	var envelope = ResolutionEnvelope.new()
 	var narr = NarrationEvent.new()
@@ -55,6 +61,19 @@ func enter_scene(scene_id: String) -> ResolutionEnvelope:
 	
 	# Generate initial UI choices
 	envelope.ui_choices = _generate_ui_choices(scene)
+	# Resolve image path for UI display (absolute path or URL)
+	var resolved_path := ""
+	if typeof(scene.image_path) == TYPE_STRING and scene.image_path != "":
+		var ip2 := str(scene.image_path)
+		if ip2.begins_with("http://") or ip2.begins_with("https://") or ip2.begins_with("res://") or ip2.begins_with("user://"):
+			resolved_path = ip2
+		else:
+			var base := str(world_db.flags.get("cartridge_base_path", ""))
+			if base != "":
+				resolved_path = (base.rstrip("/") + "/" + ip2.lstrip("/"))
+			else:
+				resolved_path = ip2
+	envelope.scene_image_path = resolved_path
 	# Notify listeners so UI can update
 	action_resolved.emit(envelope)
 	return envelope

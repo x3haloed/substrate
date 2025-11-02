@@ -10,6 +10,7 @@ signal closed()
 @onready var api_url_edit: LineEdit = $VBox/URLBox/APIUrlEdit
 @onready var api_key_edit: LineEdit = $VBox/KeyBox/APIKeyEdit
 @onready var model_edit: LineEdit = $VBox/ModelBox/ModelEdit
+@onready var vision_check: CheckBox = $VBox/VisionBox/VisionSupportCheck
 @onready var save_button: Button = $VBox/SaveButton
 @onready var close_button: Button = $VBox/CloseButton
 
@@ -50,6 +51,7 @@ func load_settings(p_settings: LLMSettings):
 	api_url_edit.text = settings.api_base_url
 	api_key_edit.text = settings.api_key
 	model_edit.text = settings.model
+	vision_check.button_pressed = settings.supports_vision
 	
 	_update_url_edit_state()
 
@@ -81,6 +83,7 @@ func _on_save_pressed():
 	settings.api_base_url = api_url_edit.text
 	settings.api_key = api_key_edit.text
 	settings.model = model_edit.text
+	settings.supports_vision = vision_check.button_pressed
 	
 	# Persist to user storage (works on Web via IndexedDB)
 	var cfg := ConfigFile.new()
@@ -88,6 +91,7 @@ func _on_save_pressed():
 	cfg.set_value("llm", "api_base_url", settings.api_base_url)
 	cfg.set_value("llm", "api_key", settings.api_key)
 	cfg.set_value("llm", "model", settings.model)
+	cfg.set_value("llm", "supports_vision", settings.supports_vision)
 	cfg.set_value("llm", "debug_trace", settings.debug_trace)
 	cfg.save("user://llm_settings.cfg")
 	

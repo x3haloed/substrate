@@ -57,14 +57,25 @@ func _init(p_llm_client: LLMClient, p_world_db: WorldDB):
 	llm_client = p_llm_client
 	world_db = p_world_db
 
-func build_narrator_prompt(scene_context: Dictionary) -> Array[Dictionary]:
+func build_narrator_prompt(scene_context: Dictionary, image_url: String = "") -> Array[Dictionary]:
 	var brief := format_scene_brief(scene_context)
 	# Build recent chat snapshot to give narrator strong situational awareness
 	var chat_snapshot = _build_chat_snapshot()
-	var user_content = "Scene brief:\n" + brief + "\n\n" + "Recent chat snapshot:\n" + JSON.stringify(chat_snapshot, "\t") + "\n\nWrite a concise atmospheric paragraph (3-5 sentences)."
+	var user_text = "Scene brief:\n" + brief + "\n\n" + "Recent chat snapshot:\n" + JSON.stringify(chat_snapshot, "\t") + "\n\nWrite a concise atmospheric paragraph (3-5 sentences)."
+	var system_msg = {"role": "system", "content": NARRATOR_SYSTEM_PROMPT + "\n\n" + "Respond only with prose. Do not output JSON or code fences."}
+	# If vision supported and image_url provided, use multimodal content structure
+	if llm_client and llm_client.settings and llm_client.settings.supports_vision and image_url != "":
+		return [
+			system_msg,
+			{"role": "user", "content": [
+				{"type": "text", "text": user_text},
+				{"type": "image_url", "image_url": {"url": image_url}}
+			]}
+		]
+	# Fallback: text-only
 	return [
-		{"role": "system", "content": NARRATOR_SYSTEM_PROMPT + "\n\n" + "Respond only with prose. Do not output JSON or code fences."},
-		{"role": "user", "content": user_content}
+		system_msg,
+		{"role": "user", "content": user_text}
 	]
 
 ## Convert scene context JSON into a human-friendly brief to nudge prose outputs
@@ -329,8 +340,8 @@ func _summarize_character_book(book: CharacterBook) -> String:
 		return "\n".join(summaries)
 	return ""
 
-func process_narrator_request(context: Dictionary) -> String:
-	var messages = build_narrator_prompt(context)
+func process_narrator_request(context: Dictionary, image_url: String = "") -> String:
+	var messages = build_narrator_prompt(context, image_url)
 	var response_text = await _make_llm_request(messages, {}, {"source": "narrator"})
 	return response_text
 

@@ -88,6 +88,32 @@ custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
 placeholder_text = "Describe the scene for the narrator..."
 
+[node name="ImageSection" type="VBoxContainer" parent="SceneEditor/EditorContent/EditorPanel"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="SceneEditor/EditorContent/EditorPanel/ImageSection"]
+layout_mode = 2
+text = "Scene Image"
+
+[node name="ImageRow" type="HBoxContainer" parent="SceneEditor/EditorContent/EditorPanel/ImageSection"]
+layout_mode = 2
+
+[node name="SceneImagePreview" type="TextureRect" parent="SceneEditor/EditorContent/EditorPanel/ImageSection/ImageRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(160, 90)
+stretch_mode = 5
+
+[node name="ImageButtons" type="VBoxContainer" parent="SceneEditor/EditorContent/EditorPanel/ImageSection/ImageRow"]
+layout_mode = 2
+
+[node name="SetImageBtn" type="Button" parent="SceneEditor/EditorContent/EditorPanel/ImageSection/ImageRow/ImageButtons"]
+layout_mode = 2
+text = "Set Image"
+
+[node name="ClearImageBtn" type="Button" parent="SceneEditor/EditorContent/EditorPanel/ImageSection/ImageRow/ImageButtons"]
+layout_mode = 2
+text = "Clear Image"
+
 [node name="RulesSection" type="VBoxContainer" parent="SceneEditor/EditorContent/EditorPanel"]
 layout_mode = 2
 
@@ -147,6 +173,12 @@ text = "↶ Revert Changes"
 layout_mode = 2
 size_flags_horizontal = 3
 horizontal_alignment = 2
+
+[node name="SceneImageFileDialog" type="FileDialog" parent="."]
+title = "Select Scene Image"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.png ; PNG Images", "*.jpg, *.jpeg ; JPEG Images", "*.webp ; WebP Images", "*.bmp ; BMP Images", "*.tga ; TGA Images", "*.* ; All Files")
 
 [node name="EntityEditorDialog" type="Window" parent="."]
 title = "Edit Entity"
@@ -330,6 +362,9 @@ text = "Create Exit"
 [connection signal="pressed" from="SceneEditor/EditorContent/EditorPanel/EntitiesSection/EntitiesHeader/ExitWizardBtn" to="." method="_on_exit_wizard_pressed"]
 [connection signal="pressed" from="SceneEditor/EditorContent/EditorPanel/SaveSection/SaveSceneBtn" to="." method="_on_save_scene_pressed"]
 [connection signal="pressed" from="SceneEditor/EditorContent/EditorPanel/SaveSection/RevertBtn" to="." method="_on_revert_scene_pressed"]
+[connection signal="pressed" from="SceneEditor/EditorContent/EditorPanel/ImageSection/ImageRow/ImageButtons/SetImageBtn" to="." method="_on_set_scene_image_pressed"]
+[connection signal="pressed" from="SceneEditor/EditorContent/EditorPanel/ImageSection/ImageRow/ImageButtons/ClearImageBtn" to="." method="_on_clear_scene_image_pressed"]
+[connection signal="file_selected" from="SceneImageFileDialog" to="." method="_on_scene_image_file_selected"]
 [connection signal="close_requested" from="EntityEditorDialog" to="." method="_on_entity_editor_close"]
 [connection signal="pressed" from="EntityEditorDialog/EntityEditorContent/VBox/ButtonSection/CancelBtn" to="." method="_on_entity_editor_close"]
 [connection signal="pressed" from="EntityEditorDialog/EntityEditorContent/VBox/ButtonSection/SaveBtn" to="." method="_on_entity_save_pressed"]
