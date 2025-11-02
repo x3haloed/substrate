@@ -4,6 +4,7 @@ extends Control
 @onready var dashboard: Node = $Margin/VBox/Tabs/Dashboard
 @onready var scenes: Node = $Margin/VBox/Tabs/Scenes
 @onready var graph: Node = $Margin/VBox/Tabs/Graph
+@onready var characters: Node = $Margin/VBox/Tabs/Characters
 
 signal closed()
 signal playtest_requested(world_db: WorldDB)
@@ -37,6 +38,8 @@ func open_with_world(world_db: WorldDB) -> void:
 		scenes.current_world_db = world_db
 	if graph:
 		graph.current_world_db = world_db
+	if characters:
+		characters.current_world_db = world_db
 
 	# Share exporter with dashboard for packaging actions
 	if dashboard:
@@ -51,6 +54,8 @@ func open_with_world(world_db: WorldDB) -> void:
 		graph._load_links_data()
 	if graph and graph.has_method("_rebuild_graph"):
 		graph._rebuild_graph()
+	if characters and characters.has_method("refresh_characters_list"):
+		characters.refresh_characters_list()
 	show_studio()
 
 ## ========================================

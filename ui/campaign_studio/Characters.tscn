@@ -1,0 +1,169 @@
+[gd_scene load_steps=2 format=3 uid="uid://c7e83vmeguy1o"]
+
+[ext_resource type="Script" uid="uid://sysap83diunp" path="res://ui/campaign_studio/Characters.gd" id="1_characters"]
+
+[node name="Characters" type="VBoxContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_characters")
+
+[node name="Toolbar" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Toolbar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 16
+text = "Campaign Characters"
+
+[node name="AddCharacterBtn" type="Button" parent="Toolbar"]
+layout_mode = 2
+text = "+ Add Character"
+
+[node name="RefreshBtn" type="Button" parent="Toolbar"]
+layout_mode = 2
+text = "🔄 Refresh"
+
+[node name="HBox" type="HSplitContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CharacterList" type="ItemList" parent="HBox"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+
+[node name="DetailPanel" type="VBoxContainer" parent="HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NoSelection" type="Label" parent="HBox/DetailPanel"]
+layout_mode = 2
+text = "Select a character to view details"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CharacterInfo" type="VBoxContainer" parent="HBox/DetailPanel"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="PortraitPreview" type="TextureRect" parent="HBox/DetailPanel/CharacterInfo"]
+custom_minimum_size = Vector2(256, 256)
+layout_mode = 2
+size_flags_horizontal = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="HBox/DetailPanel/CharacterInfo"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Character Name"
+
+[node name="VersionLabel" type="Label" parent="HBox/DetailPanel/CharacterInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+text = "Version: 1.0"
+
+[node name="HSeparator" type="HSeparator" parent="HBox/DetailPanel/CharacterInfo"]
+layout_mode = 2
+
+[node name="DescLabel" type="Label" parent="HBox/DetailPanel/CharacterInfo"]
+layout_mode = 2
+text = "Character description appears here..."
+autowrap_mode = 3
+
+[node name="HSeparator2" type="HSeparator" parent="HBox/DetailPanel/CharacterInfo"]
+layout_mode = 2
+
+[node name="ButtonSection" type="HBoxContainer" parent="HBox/DetailPanel/CharacterInfo"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="AddToPartyBtn" type="Button" parent="HBox/DetailPanel/CharacterInfo/ButtonSection"]
+layout_mode = 2
+text = "➕ Add to Party"
+
+[node name="RemoveFromCampaignBtn" type="Button" parent="HBox/DetailPanel/CharacterInfo/ButtonSection"]
+layout_mode = 2
+text = "🗑 Remove from Campaign"
+
+[node name="CardPickerDialog" type="Window" parent="."]
+title = "Add Character from Repository"
+initial_position = 1
+size = Vector2i(700, 500)
+visible = false
+
+[node name="PickerContent" type="MarginContainer" parent="CardPickerDialog"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="CardPickerDialog/PickerContent"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="InfoLabel" type="Label" parent="CardPickerDialog/PickerContent/VBox"]
+layout_mode = 2
+text = "Select a character card from your repository to add to this campaign."
+autowrap_mode = 3
+
+[node name="HSplitContainer" type="HSplitContainer" parent="CardPickerDialog/PickerContent/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PickerList" type="ItemList" parent="CardPickerDialog/PickerContent/VBox/HSplitContainer"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+
+[node name="PreviewSection" type="VBoxContainer" parent="CardPickerDialog/PickerContent/VBox/HSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="PortraitPreview" type="TextureRect" parent="CardPickerDialog/PickerContent/VBox/HSplitContainer/PreviewSection"]
+custom_minimum_size = Vector2(200, 200)
+layout_mode = 2
+size_flags_horizontal = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="CardPickerDialog/PickerContent/VBox/HSplitContainer/PreviewSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Select a character..."
+horizontal_alignment = 1
+
+[node name="DescLabel" type="Label" parent="CardPickerDialog/PickerContent/VBox/HSplitContainer/PreviewSection"]
+layout_mode = 2
+text = "Description will appear here."
+autowrap_mode = 3
+
+[node name="ButtonSection" type="HBoxContainer" parent="CardPickerDialog/PickerContent/VBox"]
+layout_mode = 2
+alignment = 2
+
+[node name="CancelBtn" type="Button" parent="CardPickerDialog/PickerContent/VBox/ButtonSection"]
+layout_mode = 2
+text = "Cancel"
+
+[node name="AddBtn" type="Button" parent="CardPickerDialog/PickerContent/VBox/ButtonSection"]
+layout_mode = 2
+text = "Add to Campaign"
+
+[connection signal="pressed" from="Toolbar/AddCharacterBtn" to="." method="_on_add_character_pressed"]
+[connection signal="pressed" from="Toolbar/RefreshBtn" to="." method="refresh_characters_list"]
+[connection signal="pressed" from="HBox/DetailPanel/CharacterInfo/ButtonSection/AddToPartyBtn" to="." method="_on_add_to_party_pressed"]
+[connection signal="pressed" from="HBox/DetailPanel/CharacterInfo/ButtonSection/RemoveFromCampaignBtn" to="." method="_on_remove_from_campaign_pressed"]
+[connection signal="close_requested" from="CardPickerDialog" to="." method="_on_picker_cancel_pressed"]
+[connection signal="pressed" from="CardPickerDialog/PickerContent/VBox/ButtonSection/CancelBtn" to="." method="_on_picker_cancel_pressed"]
+[connection signal="pressed" from="CardPickerDialog/PickerContent/VBox/ButtonSection/AddBtn" to="." method="_on_picker_add_pressed"]
