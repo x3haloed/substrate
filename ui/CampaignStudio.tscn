@@ -200,8 +200,325 @@ file_mode = 4
 access = 2
 filters = PackedStringArray("*.scrt ; Substrate Cartridge")
 
-[node name="Scenes" type="Control" parent="Margin/VBox/Tabs"]
+[node name="Scenes" type="HSplitContainer" parent="Margin/VBox/Tabs"]
 layout_mode = 2
+
+[node name="SceneList" type="VBoxContainer" parent="Margin/VBox/Tabs/Scenes"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+
+[node name="ListHeader" type="HBoxContainer" parent="Margin/VBox/Tabs/Scenes/SceneList"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Margin/VBox/Tabs/Scenes/SceneList/ListHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Scenes"
+theme_override_font_sizes/font_size = 16
+
+[node name="AddSceneBtn" type="Button" parent="Margin/VBox/Tabs/Scenes/SceneList/ListHeader"]
+layout_mode = 2
+text = "+"
+tooltip_text = "Add new scene"
+
+[node name="SearchBox" type="LineEdit" parent="Margin/VBox/Tabs/Scenes/SceneList"]
+layout_mode = 2
+placeholder_text = "Search scenes..."
+
+[node name="SceneItemList" type="ItemList" parent="Margin/VBox/Tabs/Scenes/SceneList"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SceneEditor" type="ScrollContainer" parent="Margin/VBox/Tabs/Scenes"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EditorContent" type="VBoxContainer" parent="Margin/VBox/Tabs/Scenes/SceneEditor"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="NoSelectionLabel" type="Label" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent"]
+layout_mode = 2
+text = "Select a scene to edit"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EditorPanel" type="VBoxContainer" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="SceneHeader" type="HBoxContainer" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel"]
+layout_mode = 2
+
+[node name="SceneTitle" type="Label" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel/SceneHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Scene Editor"
+theme_override_font_sizes/font_size = 18
+
+[node name="DeleteSceneBtn" type="Button" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel/SceneHeader"]
+layout_mode = 2
+text = "🗑 Delete Scene"
+
+[node name="SceneIdSection" type="VBoxContainer" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel/SceneIdSection"]
+layout_mode = 2
+text = "Scene ID"
+
+[node name="SceneIdField" type="LineEdit" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel/SceneIdSection"]
+layout_mode = 2
+placeholder_text = "unique_scene_id"
+
+[node name="DescSection" type="VBoxContainer" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel/DescSection"]
+layout_mode = 2
+text = "Description"
+
+[node name="DescField" type="TextEdit" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel/DescSection"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 80)
+placeholder_text = "Describe the scene for the narrator..."
+
+[node name="RulesSection" type="VBoxContainer" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel"]
+layout_mode = 2
+
+[node name="RulesHeader" type="HBoxContainer" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel/RulesSection"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel/RulesSection/RulesHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Rules (JSON)"
+
+[node name="RulesField" type="TextEdit" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel/RulesSection"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 80)
+placeholder_text = "{\"combat_allowed\": false}"
+
+[node name="HSeparator" type="HSeparator" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel"]
+layout_mode = 2
+
+[node name="EntitiesSection" type="VBoxContainer" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel"]
+layout_mode = 2
+
+[node name="EntitiesHeader" type="HBoxContainer" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel/EntitiesSection"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel/EntitiesSection/EntitiesHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Entities"
+theme_override_font_sizes/font_size = 16
+
+[node name="AddEntityBtn" type="Button" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel/EntitiesSection/EntitiesHeader"]
+layout_mode = 2
+text = "+ Add Entity"
+
+[node name="ExitWizardBtn" type="Button" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel/EntitiesSection/EntitiesHeader"]
+layout_mode = 2
+text = "🚪 Exit Wizard"
+
+[node name="EntitiesList" type="VBoxContainer" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel/EntitiesSection"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SaveSection" type="HBoxContainer" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="SaveSceneBtn" type="Button" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel/SaveSection"]
+layout_mode = 2
+text = "💾 Save Scene"
+
+[node name="RevertBtn" type="Button" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel/SaveSection"]
+layout_mode = 2
+text = "↶ Revert Changes"
+
+[node name="StatusLabel" type="Label" parent="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel/SaveSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = ""
+horizontal_alignment = 2
+
+[node name="EntityEditorDialog" type="Window" parent="Margin/VBox/Tabs/Scenes"]
+title = "Edit Entity"
+initial_position = 1
+size = Vector2i(500, 600)
+visible = false
+
+[node name="EntityEditorContent" type="MarginContainer" parent="Margin/VBox/Tabs/Scenes/EntityEditorDialog"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="Margin/VBox/Tabs/Scenes/EntityEditorDialog/EntityEditorContent"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="EntityIdSection" type="VBoxContainer" parent="Margin/VBox/Tabs/Scenes/EntityEditorDialog/EntityEditorContent/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Margin/VBox/Tabs/Scenes/EntityEditorDialog/EntityEditorContent/VBox/EntityIdSection"]
+layout_mode = 2
+text = "Entity ID"
+
+[node name="EntityIdField" type="LineEdit" parent="Margin/VBox/Tabs/Scenes/EntityEditorDialog/EntityEditorContent/VBox/EntityIdSection"]
+layout_mode = 2
+placeholder_text = "entity_id"
+
+[node name="TypeSection" type="VBoxContainer" parent="Margin/VBox/Tabs/Scenes/EntityEditorDialog/EntityEditorContent/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Margin/VBox/Tabs/Scenes/EntityEditorDialog/EntityEditorContent/VBox/TypeSection"]
+layout_mode = 2
+text = "Type"
+
+[node name="TypeField" type="LineEdit" parent="Margin/VBox/Tabs/Scenes/EntityEditorDialog/EntityEditorContent/VBox/TypeSection"]
+layout_mode = 2
+placeholder_text = "npc, item, exit, etc."
+
+[node name="VerbsSection" type="VBoxContainer" parent="Margin/VBox/Tabs/Scenes/EntityEditorDialog/EntityEditorContent/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Margin/VBox/Tabs/Scenes/EntityEditorDialog/EntityEditorContent/VBox/VerbsSection"]
+layout_mode = 2
+text = "Verbs (comma-separated)"
+
+[node name="VerbsField" type="LineEdit" parent="Margin/VBox/Tabs/Scenes/EntityEditorDialog/EntityEditorContent/VBox/VerbsSection"]
+layout_mode = 2
+placeholder_text = "talk, examine, take"
+
+[node name="TagsSection" type="VBoxContainer" parent="Margin/VBox/Tabs/Scenes/EntityEditorDialog/EntityEditorContent/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Margin/VBox/Tabs/Scenes/EntityEditorDialog/EntityEditorContent/VBox/TagsSection"]
+layout_mode = 2
+text = "Tags (comma-separated)"
+
+[node name="TagsField" type="LineEdit" parent="Margin/VBox/Tabs/Scenes/EntityEditorDialog/EntityEditorContent/VBox/TagsSection"]
+layout_mode = 2
+placeholder_text = "human, companion, etc."
+
+[node name="PropsSection" type="VBoxContainer" parent="Margin/VBox/Tabs/Scenes/EntityEditorDialog/EntityEditorContent/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Label" type="Label" parent="Margin/VBox/Tabs/Scenes/EntityEditorDialog/EntityEditorContent/VBox/PropsSection"]
+layout_mode = 2
+text = "Properties (JSON)"
+
+[node name="PropsField" type="TextEdit" parent="Margin/VBox/Tabs/Scenes/EntityEditorDialog/EntityEditorContent/VBox/PropsSection"]
+layout_mode = 2
+size_flags_vertical = 3
+placeholder_text = "{\"description\": \"...\", \"leads\": \"scene_id\"}"
+
+[node name="ButtonSection" type="HBoxContainer" parent="Margin/VBox/Tabs/Scenes/EntityEditorDialog/EntityEditorContent/VBox"]
+layout_mode = 2
+alignment = 2
+
+[node name="CancelBtn" type="Button" parent="Margin/VBox/Tabs/Scenes/EntityEditorDialog/EntityEditorContent/VBox/ButtonSection"]
+layout_mode = 2
+text = "Cancel"
+
+[node name="SaveBtn" type="Button" parent="Margin/VBox/Tabs/Scenes/EntityEditorDialog/EntityEditorContent/VBox/ButtonSection"]
+layout_mode = 2
+text = "Save Entity"
+
+[node name="ExitWizardDialog" type="Window" parent="Margin/VBox/Tabs/Scenes"]
+title = "Exit Wizard"
+initial_position = 1
+size = Vector2i(450, 400)
+visible = false
+
+[node name="WizardContent" type="MarginContainer" parent="Margin/VBox/Tabs/Scenes/ExitWizardDialog"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="Margin/VBox/Tabs/Scenes/ExitWizardDialog/WizardContent"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="InfoLabel" type="Label" parent="Margin/VBox/Tabs/Scenes/ExitWizardDialog/WizardContent/VBox"]
+layout_mode = 2
+text = "Create an exit entity that connects to another scene."
+autowrap_mode = 3
+
+[node name="ExitIdSection" type="VBoxContainer" parent="Margin/VBox/Tabs/Scenes/ExitWizardDialog/WizardContent/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Margin/VBox/Tabs/Scenes/ExitWizardDialog/WizardContent/VBox/ExitIdSection"]
+layout_mode = 2
+text = "Exit ID"
+
+[node name="ExitIdField" type="LineEdit" parent="Margin/VBox/Tabs/Scenes/ExitWizardDialog/WizardContent/VBox/ExitIdSection"]
+layout_mode = 2
+placeholder_text = "door_north"
+
+[node name="LabelSection" type="VBoxContainer" parent="Margin/VBox/Tabs/Scenes/ExitWizardDialog/WizardContent/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Margin/VBox/Tabs/Scenes/ExitWizardDialog/WizardContent/VBox/LabelSection"]
+layout_mode = 2
+text = "Display Label (for Travel UI)"
+
+[node name="LabelField" type="LineEdit" parent="Margin/VBox/Tabs/Scenes/ExitWizardDialog/WizardContent/VBox/LabelSection"]
+layout_mode = 2
+placeholder_text = "North Door"
+
+[node name="DescSection" type="VBoxContainer" parent="Margin/VBox/Tabs/Scenes/ExitWizardDialog/WizardContent/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Margin/VBox/Tabs/Scenes/ExitWizardDialog/WizardContent/VBox/DescSection"]
+layout_mode = 2
+text = "Description"
+
+[node name="DescField" type="TextEdit" parent="Margin/VBox/Tabs/Scenes/ExitWizardDialog/WizardContent/VBox/DescSection"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 60)
+placeholder_text = "A wooden door leading north..."
+
+[node name="LeadsToSection" type="VBoxContainer" parent="Margin/VBox/Tabs/Scenes/ExitWizardDialog/WizardContent/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Margin/VBox/Tabs/Scenes/ExitWizardDialog/WizardContent/VBox/LeadsToSection"]
+layout_mode = 2
+text = "Leads To (scene_id)"
+
+[node name="LeadsToField" type="LineEdit" parent="Margin/VBox/Tabs/Scenes/ExitWizardDialog/WizardContent/VBox/LeadsToSection"]
+layout_mode = 2
+placeholder_text = "target_scene_id"
+
+[node name="ButtonSection" type="HBoxContainer" parent="Margin/VBox/Tabs/Scenes/ExitWizardDialog/WizardContent/VBox"]
+layout_mode = 2
+size_flags_vertical = 8
+alignment = 2
+
+[node name="CancelBtn" type="Button" parent="Margin/VBox/Tabs/Scenes/ExitWizardDialog/WizardContent/VBox/ButtonSection"]
+layout_mode = 2
+text = "Cancel"
+
+[node name="CreateBtn" type="Button" parent="Margin/VBox/Tabs/Scenes/ExitWizardDialog/WizardContent/VBox/ButtonSection"]
+layout_mode = 2
+text = "Create Exit"
 
 [node name="Graph" type="Control" parent="Margin/VBox/Tabs"]
 layout_mode = 2
@@ -221,5 +538,19 @@ layout_mode = 2
 [connection signal="pressed" from="Margin/VBox/Tabs/Dashboard/DashboardContent/ActionsSection/ActionsButtons/ExportBtn" to="." method="_on_export_pressed"]
 [connection signal="pressed" from="Margin/VBox/Tabs/Dashboard/DashboardContent/ActionsSection/ActionsButtons/RefreshBtn" to="." method="_on_refresh_pressed"]
 [connection signal="dir_selected" from="Margin/VBox/Tabs/Dashboard/ExportDialog" to="." method="_on_export_dialog_dir_selected"]
+[connection signal="pressed" from="Margin/VBox/Tabs/Scenes/SceneList/ListHeader/AddSceneBtn" to="." method="_on_add_scene_pressed"]
+[connection signal="text_changed" from="Margin/VBox/Tabs/Scenes/SceneList/SearchBox" to="." method="_on_search_scenes"]
+[connection signal="item_selected" from="Margin/VBox/Tabs/Scenes/SceneList/SceneItemList" to="." method="_on_scene_selected"]
+[connection signal="pressed" from="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel/SceneHeader/DeleteSceneBtn" to="." method="_on_delete_scene_pressed"]
+[connection signal="pressed" from="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel/EntitiesSection/EntitiesHeader/AddEntityBtn" to="." method="_on_add_entity_pressed"]
+[connection signal="pressed" from="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel/EntitiesSection/EntitiesHeader/ExitWizardBtn" to="." method="_on_exit_wizard_pressed"]
+[connection signal="pressed" from="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel/SaveSection/SaveSceneBtn" to="." method="_on_save_scene_pressed"]
+[connection signal="pressed" from="Margin/VBox/Tabs/Scenes/SceneEditor/EditorContent/EditorPanel/SaveSection/RevertBtn" to="." method="_on_revert_scene_pressed"]
+[connection signal="close_requested" from="Margin/VBox/Tabs/Scenes/EntityEditorDialog" to="." method="_on_entity_editor_close"]
+[connection signal="pressed" from="Margin/VBox/Tabs/Scenes/EntityEditorDialog/EntityEditorContent/VBox/ButtonSection/CancelBtn" to="." method="_on_entity_editor_close"]
+[connection signal="pressed" from="Margin/VBox/Tabs/Scenes/EntityEditorDialog/EntityEditorContent/VBox/ButtonSection/SaveBtn" to="." method="_on_entity_save_pressed"]
+[connection signal="close_requested" from="Margin/VBox/Tabs/Scenes/ExitWizardDialog" to="." method="_on_exit_wizard_close"]
+[connection signal="pressed" from="Margin/VBox/Tabs/Scenes/ExitWizardDialog/WizardContent/VBox/ButtonSection/CancelBtn" to="." method="_on_exit_wizard_close"]
+[connection signal="pressed" from="Margin/VBox/Tabs/Scenes/ExitWizardDialog/WizardContent/VBox/ButtonSection/CreateBtn" to="." method="_on_exit_wizard_create"]
 
 
