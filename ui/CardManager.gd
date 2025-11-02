@@ -67,61 +67,20 @@ func _populate_card_shelf():
 		_show_card_preview(character_cards[0])
 
 func _create_card_button(character: CharacterProfile) -> Control:
-	# Create a panel container for the card
-	var panel = PanelContainer.new()
-	panel.custom_minimum_size = Vector2(96, 144)
-	panel.mouse_filter = Control.MOUSE_FILTER_PASS
-	
-	# Create a clickable button overlay
-	var button = Button.new()
-	button.flat = true
-	button.mouse_filter = Control.MOUSE_FILTER_PASS
+	var card = preload("res://ui/ShelfCard.tscn").instantiate()
+	var button = card.get_node("Button") as Button
 	button.pressed.connect(func(): _on_card_clicked(character))
 	
-	# Create a VBoxContainer for the card layout
-	var vbox = VBoxContainer.new()
-	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	
-	# Add margin container for padding
-	var margin = MarginContainer.new()
-	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	margin.add_theme_constant_override("margin_left", 8)
-	margin.add_theme_constant_override("margin_top", 8)
-	margin.add_theme_constant_override("margin_right", 8)
-	margin.add_theme_constant_override("margin_bottom", 8)
-	
-	# Add portrait texture
-	var texture_rect = TextureRect.new()
-	texture_rect.custom_minimum_size = Vector2(80, 100)
-	texture_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-	texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	
+	var texture_rect = card.get_node("Margin/VBox/TextureRect") as TextureRect
+
 	var portrait = character.get_portrait_texture()
 	if portrait:
 		texture_rect.texture = portrait
 	
-	vbox.add_child(texture_rect)
-	
-	# Add character name label
-	var name_label = Label.new()
+	var name_label = card.get_node("Margin/VBox/NameLabel") as Label
 	name_label.text = character.name if character.name != "" else "UNKNOWN"
-	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_label.add_theme_font_size_override("font_size", 10)
-	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vbox.add_child(name_label)
 	
-	margin.add_child(vbox)
-	panel.add_child(margin)
-	
-	# Add button overlay
-	button.anchors_preset = Control.PRESET_FULL_RECT
-	button.anchor_right = 1.0
-	button.anchor_bottom = 1.0
-	panel.add_child(button)
-	
-	return panel
+	return card
 
 func _show_card_preview(character: CharacterProfile):
 	# Update preview texture
