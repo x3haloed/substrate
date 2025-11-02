@@ -389,20 +389,24 @@ func _update_scene_image_preview() -> void:
 		scene_image_preview.texture = null
 		return
 	var img := Image.new()
-	var err := img.load(ip)
-	if err != OK:
-		# Try resolve relative to editor cart base
+	# Only attempt to load if the file actually exists to avoid debugger errors
+	var candidate_path := ""
+	if FileAccess.file_exists(ip):
+		candidate_path = ip
+	else:
+		# Try resolve relative to editor cart base and check existence
 		var base := _resolve_editor_world_base()
 		if base != "":
 			var alt := base.rstrip("/") + "/" + ip.lstrip("/")
-			var img2 := Image.new()
-			if img2.load(alt) == OK:
-				img = img2
-				err = OK
-	if err == OK:
-		scene_image_preview.texture = ImageTexture.create_from_image(img)
-	else:
-		scene_image_preview.texture = null
+			if FileAccess.file_exists(alt):
+				candidate_path = alt
+	if candidate_path != "":
+		var err := img.load(candidate_path)
+		if err == OK:
+			scene_image_preview.texture = ImageTexture.create_from_image(img)
+			return
+	# Fallback: clear preview if no valid image could be loaded
+	scene_image_preview.texture = null
 
 func _copy_scene_image_into_cart(src_path: String) -> String:
 	# Return a cart-relative path like "assets/scene_images/<file>" if successful, else ""
