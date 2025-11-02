@@ -61,8 +61,10 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="ContentLabel" type="RichTextLabel" parent="VBox/TabContainer/Lore/ScrollContainer"]
+clip_contents = false
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
 bbcode_enabled = true
 
 [node name="Timeline" type="Control" parent="VBox/TabContainer"]

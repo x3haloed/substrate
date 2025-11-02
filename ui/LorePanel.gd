@@ -97,19 +97,19 @@ func _update_lore_tab(entity, entity_data):
 	if content == "":
 		content = "No information available about this entity."
 	
-	lore_content.bbcode_text = content
+	_set_rich_text(lore_content, content)
 
 func _update_timeline_tab(entity):
 	var content = ""
 	
 	if not entity:
-		timeline_content.bbcode_text = "No timeline data available."
+		_set_rich_text(timeline_content, "No timeline data available.")
 		return
 	
 	var history = world_db.get_entity_history(entity.id)
 	
 	if history.size() == 0:
-		timeline_content.bbcode_text = "No history recorded for this entity."
+		_set_rich_text(timeline_content, "No history recorded for this entity.")
 		return
 	
 	content += "[b]Entity History[/b]\n\n"
@@ -150,19 +150,19 @@ func _update_timeline_tab(entity):
 	if content == "":
 		content = "No timeline events recorded."
 	
-	timeline_content.bbcode_text = content
+	_set_rich_text(timeline_content, content)
 
 func _update_relationships_tab(entity):
 	var content = ""
 	
 	if not entity:
-		relationships_content.bbcode_text = "No relationship data available."
+		_set_rich_text(relationships_content, "No relationship data available.")
 		return
 	
 	var relationships = world_db.get_entity_relationships(entity.id)
 	
 	if relationships.size() == 0:
-		relationships_content.bbcode_text = "No relationships recorded for this entity."
+		_set_rich_text(relationships_content, "No relationships recorded for this entity.")
 		return
 	
 	content += "[b]Entity Relationships[/b]\n\n"
@@ -185,7 +185,7 @@ func _update_relationships_tab(entity):
 	if content == "":
 		content = "No relationships recorded."
 	
-	relationships_content.bbcode_text = content
+	_set_rich_text(relationships_content, content)
 
 func _on_close_pressed():
 	visible = false
@@ -223,4 +223,12 @@ func _show_lore_entry(entry: LoreEntry):
 	visible = true
 
 func _update_lore_tab_from_text(text: String):
-	lore_content.bbcode_text = text
+	_set_rich_text(lore_content, text)
+
+func _set_rich_text(label: RichTextLabel, text: String):
+	if label == null:
+		return
+	label.clear()
+	if text == "":
+		return
+	label.append_text(text)
