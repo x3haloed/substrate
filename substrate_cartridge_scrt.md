@@ -1,7 +1,7 @@
 ## Substrate Cartridge (.scrt) — ZIP-backed World Package
 
 ### Purpose
-- Bundle a complete playable world (scenes, characters, flags, relationships, optional runtime state) into a single portable file that can be shared and mounted at runtime.
+- Bundle a complete playable campaign/world (scenes, characters, flags, relationships, optional runtime state) into a single portable file that can be shared and mounted at runtime.
 - Support macOS Quick Look thumbnails and file association without custom binary parsers.
 
 ### Container
