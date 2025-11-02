@@ -163,9 +163,27 @@ func build_world_db_from_import(cart_id: String, kind: int = StoreKind.PLAYER) -
 				world.scenes[sid] = base + "scenes/" + sid + ".tres"
 			for cid in cart.characters:
 				world.characters[cid] = base + "characters/" + cid + ".tres"
+			var lore_db_path := base + "lore/lore_db.tres"
+			if FileAccess.file_exists(lore_db_path):
+				var imported_lore := load(lore_db_path) as LoreDB
+				if imported_lore:
+					var resolved := LoreDB.new()
+					for entry_id in imported_lore.entries.keys():
+						var value = imported_lore.entries[entry_id]
+						if value is String:
+							var path := str(value)
+							if path.begins_with("res://") or path.begins_with("uid://") or path.begins_with("user://"):
+								resolved.entries[entry_id] = path
+							else:
+								resolved.entries[entry_id] = base + path
+						else:
+							resolved.entries[entry_id] = value
+					world.lore_db = resolved
 			# Initial scene hint
 			if cart.initial_scene_id != "":
 				world.flags["initial_scene_id"] = cart.initial_scene_id
+			world.flags["cartridge_id"] = cart_id
+			world.flags["cartridge_base_path"] = base.rstrip("/")
 
 	# Optional runtime snapshot
 	if FileAccess.file_exists(world_path):
