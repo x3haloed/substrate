@@ -49,8 +49,156 @@ text = "Close"
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="Dashboard" type="Control" parent="Margin/VBox/Tabs"]
+[node name="Dashboard" type="ScrollContainer" parent="Margin/VBox/Tabs"]
 layout_mode = 2
+
+[node name="DashboardContent" type="VBoxContainer" parent="Margin/VBox/Tabs/Dashboard"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="MetadataSection" type="VBoxContainer" parent="Margin/VBox/Tabs/Dashboard/DashboardContent"]
+layout_mode = 2
+
+[node name="MetadataTitle" type="Label" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/MetadataSection"]
+layout_mode = 2
+text = "Campaign Metadata"
+theme_override_font_sizes/font_size = 18
+
+[node name="MetadataGrid" type="GridContainer" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/MetadataSection"]
+layout_mode = 2
+columns = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 8
+
+[node name="IdLabel" type="Label" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/MetadataSection/MetadataGrid"]
+layout_mode = 2
+text = "ID:"
+size_flags_horizontal = 0
+
+[node name="IdField" type="LineEdit" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/MetadataSection/MetadataGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "campaign_id"
+
+[node name="NameLabel" type="Label" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/MetadataSection/MetadataGrid"]
+layout_mode = 2
+text = "Name:"
+
+[node name="NameField" type="LineEdit" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/MetadataSection/MetadataGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Campaign Name"
+
+[node name="VersionLabel" type="Label" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/MetadataSection/MetadataGrid"]
+layout_mode = 2
+text = "Version:"
+
+[node name="VersionField" type="LineEdit" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/MetadataSection/MetadataGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "1.0.0"
+
+[node name="AuthorLabel" type="Label" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/MetadataSection/MetadataGrid"]
+layout_mode = 2
+text = "Author:"
+
+[node name="AuthorField" type="LineEdit" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/MetadataSection/MetadataGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Author Name"
+
+[node name="InitialSceneLabel" type="Label" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/MetadataSection/MetadataGrid"]
+layout_mode = 2
+text = "Initial Scene:"
+
+[node name="InitialSceneField" type="LineEdit" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/MetadataSection/MetadataGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "scene_id"
+
+[node name="DescLabel" type="Label" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/MetadataSection"]
+layout_mode = 2
+text = "Description:"
+
+[node name="DescField" type="TextEdit" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/MetadataSection"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 80)
+placeholder_text = "Campaign description..."
+
+[node name="HSeparator1" type="HSeparator" parent="Margin/VBox/Tabs/Dashboard/DashboardContent"]
+layout_mode = 2
+
+[node name="ContentSection" type="VBoxContainer" parent="Margin/VBox/Tabs/Dashboard/DashboardContent"]
+layout_mode = 2
+
+[node name="ContentTitle" type="Label" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/ContentSection"]
+layout_mode = 2
+text = "Content Summary"
+theme_override_font_sizes/font_size = 18
+
+[node name="ContentStats" type="HBoxContainer" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/ContentSection"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="ScenesCount" type="Label" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/ContentSection/ContentStats"]
+layout_mode = 2
+text = "Scenes: 0"
+
+[node name="CharactersCount" type="Label" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/ContentSection/ContentStats"]
+layout_mode = 2
+text = "Characters: 0"
+
+[node name="WarningsTitle" type="Label" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/ContentSection"]
+layout_mode = 2
+text = "Validation Warnings"
+theme_override_font_sizes/font_size = 14
+
+[node name="WarningsList" type="RichTextLabel" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/ContentSection"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 150)
+bbcode_enabled = true
+fit_content = true
+scroll_following = true
+
+[node name="HSeparator2" type="HSeparator" parent="Margin/VBox/Tabs/Dashboard/DashboardContent"]
+layout_mode = 2
+
+[node name="ActionsSection" type="VBoxContainer" parent="Margin/VBox/Tabs/Dashboard/DashboardContent"]
+layout_mode = 2
+
+[node name="ActionsTitle" type="Label" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/ActionsSection"]
+layout_mode = 2
+text = "Actions"
+theme_override_font_sizes/font_size = 18
+
+[node name="ActionsButtons" type="HBoxContainer" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/ActionsSection"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ValidateBtn" type="Button" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/ActionsSection/ActionsButtons"]
+layout_mode = 2
+text = "🔍 Validate"
+
+[node name="PlaytestBtn" type="Button" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/ActionsSection/ActionsButtons"]
+layout_mode = 2
+text = "▶ Playtest"
+
+[node name="ExportBtn" type="Button" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/ActionsSection/ActionsButtons"]
+layout_mode = 2
+text = "📦 Export .scrt"
+
+[node name="RefreshBtn" type="Button" parent="Margin/VBox/Tabs/Dashboard/DashboardContent/ActionsSection/ActionsButtons"]
+layout_mode = 2
+text = "🔄 Refresh"
+
+[node name="ExportDialog" type="FileDialog" parent="Margin/VBox/Tabs/Dashboard"]
+title = "Export Campaign (.scrt)"
+size = Vector2i(600, 400)
+ok_button_text = "Export"
+file_mode = 4
+access = 2
+filters = PackedStringArray("*.scrt ; Substrate Cartridge")
 
 [node name="Scenes" type="Control" parent="Margin/VBox/Tabs"]
 layout_mode = 2
@@ -68,5 +216,10 @@ layout_mode = 2
 layout_mode = 2
 
 [connection signal="pressed" from="Margin/VBox/Header/CloseBtn" to="." method="hide_studio"]
+[connection signal="pressed" from="Margin/VBox/Tabs/Dashboard/DashboardContent/ActionsSection/ActionsButtons/ValidateBtn" to="." method="_on_validate_pressed"]
+[connection signal="pressed" from="Margin/VBox/Tabs/Dashboard/DashboardContent/ActionsSection/ActionsButtons/PlaytestBtn" to="." method="_on_playtest_pressed"]
+[connection signal="pressed" from="Margin/VBox/Tabs/Dashboard/DashboardContent/ActionsSection/ActionsButtons/ExportBtn" to="." method="_on_export_pressed"]
+[connection signal="pressed" from="Margin/VBox/Tabs/Dashboard/DashboardContent/ActionsSection/ActionsButtons/RefreshBtn" to="." method="_on_refresh_pressed"]
+[connection signal="dir_selected" from="Margin/VBox/Tabs/Dashboard/ExportDialog" to="." method="_on_export_dialog_dir_selected"]
 
 

@@ -114,6 +114,7 @@ func _ready():
 		campaign_detail.load_slot_requested.connect(_on_campaign_load_slot)
 	if campaign_studio:
 		campaign_studio.closed.connect(_on_campaign_studio_closed)
+		campaign_studio.playtest_requested.connect(_on_studio_playtest_requested)
 
 func _load_settings():
 	var defaults_path = "res://llm/settings.tres"
@@ -498,9 +499,9 @@ func _on_studio_button_pressed():
 	save_load_panel.visible = false
 	campaign_browser.visible = false
 	campaign_detail.visible = false
-	# Show studio
+	# Show studio with current world_db
 	if campaign_studio:
-		campaign_studio.visible = true
+		campaign_studio.open_with_world(world_db)
 
 func _on_campaign_studio_closed():
 	# Show main game UI
@@ -509,6 +510,17 @@ func _on_campaign_studio_closed():
 	# Hide studio
 	if campaign_studio:
 		campaign_studio.visible = false
+
+func _on_studio_playtest_requested(test_world_db: WorldDB):
+	# Close the studio
+	_on_campaign_studio_closed()
+	# TODO: Optionally load the test_world_db into the game
+	# For now, we'll just return to the current game
+	# In the future, you might want to:
+	# 1. Save current world state
+	# 2. Load test_world_db
+	# 3. Enter the initial scene
+	print("Playtest requested for campaign: ", test_world_db.flags.get("campaign_name", ""))
 
 func _notification(what):
 	# Save on exit
