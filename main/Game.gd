@@ -149,9 +149,8 @@ func _start_game():
 	chat_window.clear_chat()
 	chat_window.add_message("Welcome to Substrate.", "world")
 	
-	# Enter initial scene
-	var envelope: ResolutionEnvelope = await director.enter_scene("tavern_common")
-	_display_envelope(envelope)
+	# Enter initial scene (display via action_resolved)
+	await director.enter_scene("tavern_common")
 
 func _display_envelope(envelope: ResolutionEnvelope):
 	# Display narration
@@ -353,8 +352,7 @@ func switch_cartridge(file_path: String, slot: String = "") -> void:
 				_apply_world_db(loaded)
 	# Enter initial or current scene
 	var sid: String = str(world_db.flags.get("current_scene", world_db.flags.get("initial_scene_id", "tavern_common")))
-	var env: ResolutionEnvelope = await director.enter_scene(sid)
-	_display_envelope(env)
+	await director.enter_scene(sid)
 	chat_window.add_message("Switched to cartridge '%s'." % new_id, "world")
 
 func _on_editor_button_pressed():
@@ -458,10 +456,9 @@ func _on_load_requested(slot: String):
 		chat_window.add_message("Failed to load slot '%s'." % slot, "world")
 		return
 	_apply_world_db(new_world)
-	# Enter the saved or initial scene
+	# Enter the saved or initial scene (display via action_resolved)
 	var sid: String = str(new_world.flags.get("current_scene", new_world.flags.get("initial_scene_id", "tavern_common")))
-	var env: ResolutionEnvelope = await director.enter_scene(sid)
-	_display_envelope(env)
+	await director.enter_scene(sid)
 	chat_window.add_message("Loaded slot '%s'." % slot, "world")
 	save_load_panel.visible = false
 
@@ -508,13 +505,16 @@ func _on_campaign_studio_closed():
 func _on_studio_playtest_requested(test_world_db: WorldDB):
 	# Close the studio
 	_on_campaign_studio_closed()
-	# TODO: Optionally load the test_world_db into the game
-	# For now, we'll just return to the current game
-	# In the future, you might want to:
-	# 1. Save current world state
-	# 2. Load test_world_db
-	# 3. Enter the initial scene
-	print("Playtest requested for campaign: ", test_world_db.flags.get("campaign_name", ""))
+	# Start with a clean chat log for the playtest session
+	chat_window.clear_chat()
+	# Apply the test world and enter its start scene
+	if test_world_db == null:
+		return
+	_apply_world_db(test_world_db)
+	# Determine starting scene (current -> initial -> fallback)
+	var sid: String = str(world_db.flags.get("current_scene", world_db.flags.get("initial_scene_id", "tavern_common")))
+	await director.enter_scene(sid)
+	chat_window.add_message("Playtesting campaign '%s'." % world_db.flags.get("campaign_name", "unnamed"), "world")
 
 func _on_campaign_picker_selected(cart_path: String, loaded_world: WorldDB):
 	# Hide main game UI

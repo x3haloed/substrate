@@ -55,7 +55,8 @@ func enter_scene(scene_id: String) -> ResolutionEnvelope:
 	
 	# Generate initial UI choices
 	envelope.ui_choices = _generate_ui_choices(scene)
-	
+	# Notify listeners so UI can update
+	action_resolved.emit(envelope)
 	return envelope
 
 func process_player_action(action: ActionRequest) -> ResolutionEnvelope:
