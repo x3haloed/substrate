@@ -34,45 +34,60 @@ func add_message(text: String, style: String = "world", speaker: String = ""):
 		formatted = "[b]" + speaker + ":[/b] " + formatted
 	
 	chat_log.append_text(formatted + "\n")
-	# Scroll to bottom
-	await get_tree().process_frame
-	chat_log.scroll_to_line(chat_log.get_line_count())
+	_scroll_to_bottom()
 
 func clear_chat():
 	chat_log.clear()
 
 func add_image_from_path(path: String):
-	# Best-effort image display in chat log
+	var texture := _load_image_texture(path)
+	if texture:
+		add_image(texture)
+
+func add_image(texture: Texture2D):
+	if not texture:
+		return
+	# Scale image to fit chat width while preserving aspect ratio
+	var chat_width := chat_log.size.x - 32  # Account for padding/scrollbar
+	var img_size := texture.get_size()
+	var scale_factor := 1.0
+	if img_size.x > chat_width:
+		scale_factor = chat_width / img_size.x
+	var display_width := int(img_size.x * scale_factor)
+	var display_height := int(img_size.y * scale_factor)
+	
+	# Add image using RichTextLabel's built-in BBCode support
+	chat_log.add_image(texture, display_width, display_height)
+	chat_log.append_text("\n")
+	_scroll_to_bottom()
+
+func _load_image_texture(path: String) -> Texture2D:
 	if typeof(path) != TYPE_STRING or path == "":
-		return
-	var texture: Texture2D = null
-	if path.begins_with("http://") or path.begins_with("https://"):
-		# RichTextLabel in Godot does not fetch remote images; fall back to showing the URL
-		chat_log.append_text("[image] " + path + "\n")
-		await get_tree().process_frame
-		chat_log.scroll_to_line(chat_log.get_line_count())
-		return
-	# Local file path (res:// or user:// or absolute)
+		return null
+	
+	# Local file path resolution: prefer explicit paths; resolve relatives to user:// and res://
 	var img := Image.new()
-	var err := img.load(path)
-	if err != OK:
-		# Try resolving relative to user://
-		if not path.begins_with("res://") and not path.begins_with("user://"):
-			var alt := "user://" + path.lstrip("/")
-			var img2 := Image.new()
-			if img2.load(alt) == OK:
-				img = img2
-				err = OK
-	if err == OK:
-		texture = ImageTexture.create_from_image(img)
-		if texture:
-			if chat_log.has_method("push_image"):
-				chat_log.call("push_image", texture)
-			else:
-				# Fallback if API differs
-				chat_log.append_text("[image]\n")
-			await get_tree().process_frame
-			chat_log.scroll_to_line(chat_log.get_line_count())
+	var err := ERR_CANT_OPEN
+	var candidates: Array[String] = []
+	
+	if path.begins_with("res://") or path.begins_with("user://") or path.begins_with("/"):
+		candidates.append(path)
+	else:
+		candidates.append("user://" + path.lstrip("/"))
+		candidates.append("res://" + path.lstrip("/"))
+	
+	for p in candidates:
+		if FileAccess.file_exists(p):
+			err = img.load(p)
+			if err == OK:
+				return ImageTexture.create_from_image(img)
+	
+	push_warning("Failed to load image from path: " + path)
+	return null
+
+func _scroll_to_bottom():
+	await get_tree().process_frame
+	chat_log.scroll_to_line(chat_log.get_line_count())
 
 func show_typing(source: String, name_hint: String = "") -> void:
 	if typing_indicator:

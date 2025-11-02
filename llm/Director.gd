@@ -75,11 +75,11 @@ func enter_scene(scene_id: String) -> ResolutionEnvelope:
 	
 	# Generate initial UI choices
 	envelope.ui_choices = _generate_ui_choices(scene)
-	# Resolve image path for UI display (absolute path or URL)
+	# Resolve image path for UI display (absolute or local path)
 	var resolved_path := ""
 	if typeof(scene.image_path) == TYPE_STRING and scene.image_path != "":
 		var ip2 := str(scene.image_path)
-		if ip2.begins_with("http://") or ip2.begins_with("https://") or ip2.begins_with("res://") or ip2.begins_with("user://"):
+		if ip2.begins_with("res://") or ip2.begins_with("user://") or ip2.begins_with("/"):
 			resolved_path = ip2
 		else:
 			var base := _resolve_world_base_path()
