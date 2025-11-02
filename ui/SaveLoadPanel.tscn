@@ -1,0 +1,90 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/SaveLoadPanel.gd" id="1_2sv5m"]
+
+[node name="SaveLoadPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -360.0
+offset_top = -260.0
+offset_right = 360.0
+offset_bottom = 260.0
+grow_horizontal = 2
+grow_vertical = 2
+visible = false
+script = ExtResource("1_2sv5m")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.08, 0.08, 0.08, 0.95)
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Header" type="Label" parent="Margin/VBox"]
+layout_mode = 2
+text = "Save / Load"
+theme_override_font_sizes/font_size = 22
+
+[node name="Actions" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+
+[node name="SlotName" type="LineEdit" parent="Margin/VBox/Actions"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "slot-name"
+
+[node name="SaveBtn" type="Button" parent="Margin/VBox/Actions"]
+layout_mode = 2
+text = "Save"
+
+[node name="LoadBtn" type="Button" parent="Margin/VBox/Actions"]
+layout_mode = 2
+text = "Load Selected"
+
+[node name="DeleteBtn" type="Button" parent="Margin/VBox/Actions"]
+layout_mode = 2
+text = "Delete Selected"
+
+[node name="Slots" type="VBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+
+[node name="SlotLabel" type="Label" parent="Margin/VBox/Slots"]
+layout_mode = 2
+text = "Save Slots"
+
+[node name="SlotList" type="ItemList" parent="Margin/VBox/Slots"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CloseRow" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+
+[node name="CloseBtn" type="Button" parent="Margin/VBox/CloseRow"]
+layout_mode = 2
+text = "Close"
+
+[connection signal="pressed" from="Margin/VBox/Actions/SaveBtn" to="." method="_on_save_pressed"]
+[connection signal="pressed" from="Margin/VBox/Actions/LoadBtn" to="." method="_on_load_pressed"]
+[connection signal="pressed" from="Margin/VBox/Actions/DeleteBtn" to="." method="_on_delete_pressed"]
+[connection signal="pressed" from="Margin/VBox/CloseRow/CloseBtn" to="." method="hide"]
+
+

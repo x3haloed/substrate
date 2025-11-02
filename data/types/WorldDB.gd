@@ -11,6 +11,7 @@ class_name WorldDB
 @export var relationships: Dictionary = {}  # entity_id -> {related_entity_id: relationship_type}
 @export var player_inventory: Inventory
 @export var party: Array[String] = []  # Current player party member IDs
+@export var generated_scenes: Array[String] = []  # IDs of scenes generated at runtime (LLM-assisted)
 
 var _loaded_scenes: Dictionary = {}
 var _loaded_characters: Dictionary = {}
@@ -27,6 +28,15 @@ func get_scene(scene_id: String) -> SceneGraph:
 				_loaded_scenes[scene_id] = scene
 				return scene
 	return null
+
+
+## Register a generated scene and persist mapping
+func register_generated_scene(scene_id: String, res_path: String) -> void:
+	if scene_id == "" or res_path == "":
+		return
+	scenes[scene_id] = res_path
+	if not (scene_id in generated_scenes):
+		generated_scenes.append(scene_id)
 
 ## Get character profile (preferred method)
 func get_character(character_id: String) -> CharacterProfile:

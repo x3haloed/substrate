@@ -26,6 +26,18 @@ layout_mode = 2
 layout_mode = 2
 text = "AVAILABLE ACTIONS"
 
+[node name="TravelRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="TravelLabel" type="Label" parent="VBox/TravelRow"]
+layout_mode = 2
+text = "Travel:"
+
+[node name="TravelDropdown" type="OptionButton" parent="VBox/TravelRow"]
+layout_mode = 2
+text = ""
+visible = false
+
 [node name="ScrollContainer" type="ScrollContainer" parent="VBox"]
 layout_mode = 2
 size_flags_vertical = 3

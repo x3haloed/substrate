@@ -15,12 +15,17 @@ class_name Game
 @onready var editor_button: Button = $GameUI/game_container/header/HBoxContainer/button_group/editor_button
 @onready var card_manager: CardManager = $GameUI/CardManager
 @onready var cards_button: Button = $GameUI/game_container/header/HBoxContainer/button_group/cards_button
+@onready var saveload_button: Button = $GameUI/game_container/header/HBoxContainer/button_group/saveload_button
+@onready var save_load_panel: Control = $GameUI/SaveLoadPanel
+@onready var campaign_browser: Control = $GameUI/CampaignBrowser
+@onready var campaign_detail: Control = $GameUI/CampaignDetail
+@onready var campaigns_button: Button = $GameUI/game_container/header/HBoxContainer/button_group/campaigns_button
 
 var llm_settings: LLMSettings
 var llm_client: LLMClient
 var prompt_engine: PromptEngine
 var world_db: WorldDB
-var director: Director
+var director: Node
 var autosave_timer: Timer
 var autosave_interval: float = 300.0  # 5 minutes
 
@@ -52,7 +57,8 @@ func _ready():
 	prompt_engine = PromptEngine.new(llm_client, world_db)
 	
 	# Initialize director
-	director = Director.new(prompt_engine, world_db)
+	var director_script = load("res://llm/Director.gd")
+	director = director_script.new(prompt_engine, world_db)
 	add_child(director)
 	director.action_resolved.connect(_on_action_resolved)
 	#director.action_queue_updated.connect(_on_action_queue_updated)
@@ -74,6 +80,10 @@ func _ready():
 	card_manager.closed.connect(_on_card_manager_closed)
 	if cards_button:
 		cards_button.pressed.connect(_on_cards_button_pressed)
+	if saveload_button:
+		saveload_button.pressed.connect(_on_saveload_button_pressed)
+	if campaigns_button:
+		campaigns_button.pressed.connect(_on_campaigns_button_pressed)
 	
 	# Setup autosave
 	_setup_autosave()
@@ -85,6 +95,19 @@ func _ready():
 	
 	# Start the game
 	_start_game()
+
+	# Initialize Save/Load panel context
+	if save_load_panel:
+		save_load_panel.set_context(world_db.flags.get("cartridge_id", "default"))
+		save_load_panel.save_requested.connect(_on_save_requested)
+		save_load_panel.load_requested.connect(_on_load_requested)
+
+	# Hook up campaign browser/detail
+	if campaign_browser:
+		campaign_browser.campaign_selected.connect(_on_campaign_selected)
+	if campaign_detail:
+		campaign_detail.start_new_game.connect(_on_campaign_new_game)
+		campaign_detail.load_slot_requested.connect(_on_campaign_load_slot)
 
 func _load_settings():
 	var defaults_path = "res://llm/settings.tres"
@@ -116,7 +139,7 @@ func _start_game():
 	chat_window.add_message("Welcome to Substrate.", "world")
 	
 	# Enter initial scene
-	var envelope = await director.enter_scene("tavern_common")
+	var envelope: ResolutionEnvelope = await director.enter_scene("tavern_common")
 	_display_envelope(envelope)
 
 func _display_envelope(envelope: ResolutionEnvelope):
@@ -145,6 +168,15 @@ func _display_envelope(envelope: ResolutionEnvelope):
 	
 	# Update choice panel
 	choice_panel.set_choices(envelope.ui_choices)
+	# Update Travel dropdown with exits present in scene
+	var exits: Array[Dictionary] = []
+	var current_scene := world_db.get_scene(world_db.flags.get("current_scene", ""))
+	if current_scene:
+		for e in current_scene.entities:
+			if e.type_name == "exit" and not e.state.get("taken", false):
+				var label := str(e.props.get("label", e.props.get("leads", e.id)))
+				exits.append({"label": label, "target": e.id})
+	choice_panel.set_travel_options(exits)
 	# Update chat address options with entities that support the talk verb
 	_update_chat_address_options()
 	# Refresh inventory panel to reflect any item transfers
@@ -275,6 +307,45 @@ func _on_autosave_timer():
 		world_db.autosave()
 		print("Autosave completed")
 
+func switch_cartridge(file_path: String, slot: String = "") -> void:
+	# Auto-save current session to last_played slot
+	var cid := str(world_db.flags.get("cartridge_id", "default"))
+	var last_slot := "last_played"
+	var dir := "user://saves/%s" % cid
+	DirAccess.make_dir_recursive_absolute(dir)
+	world_db.save_to_file("%s/%s.tres" % [dir, last_slot])
+	var last_meta := {
+		"scene": world_db.flags.get("current_scene", world_db.flags.get("initial_scene_id", "")),
+		"timestamp": Time.get_datetime_string_from_system()
+	}
+	var f := FileAccess.open("%s/%s.json" % [dir, last_slot], FileAccess.WRITE)
+	if f:
+		f.store_string(JSON.stringify(last_meta, "  "))
+		f.close()
+
+	# Import and load the new cartridge
+	var new_id := CartridgeManagerTool.import_cartridge(file_path)
+	if new_id == "":
+		chat_window.add_message("Failed to import cartridge.", "world")
+		return
+	var new_world: WorldDB = CartridgeManagerTool.build_world_db_from_import(new_id)
+	if new_world == null:
+		chat_window.add_message("Failed to load cartridge world.", "world")
+		return
+	_apply_world_db(new_world)
+	# Load requested slot if provided
+	if slot != "":
+		var sp := "user://saves/%s/%s.tres" % [new_id, slot]
+		if FileAccess.file_exists(sp):
+			var loaded: WorldDB = WorldDB.load_from_file(sp)
+			if loaded:
+				_apply_world_db(loaded)
+	# Enter initial or current scene
+	var sid: String = world_db.flags.get("current_scene", world_db.flags.get("initial_scene_id", "tavern_common"))
+	var env: ResolutionEnvelope = await director.enter_scene(sid)
+	_display_envelope(env)
+	chat_window.add_message("Switched to cartridge '%s'." % new_id, "world")
+
 func _on_editor_button_pressed():
 	# Hide main game UI
 	var game_container = $GameUI/game_container
@@ -303,6 +374,104 @@ func _on_cards_button_pressed():
 	
 	# Show card manager
 	card_manager.visible = true
+
+func _on_saveload_button_pressed():
+	# Hide other overlays
+	settings_panel.visible = false
+	card_editor.visible = false
+	card_manager.visible = false
+	# Show panel with current cartridge context
+	if save_load_panel:
+		save_load_panel.set_context(world_db.flags.get("cartridge_id", "default"))
+		save_load_panel.visible = true
+
+func _on_campaigns_button_pressed():
+	# Hide other overlays
+	settings_panel.visible = false
+	card_editor.visible = false
+	card_manager.visible = false
+	save_load_panel.visible = false
+	campaign_detail.visible = false
+	# Show browser
+	if campaign_browser:
+		campaign_browser.visible = true
+
+func _on_campaign_selected(cart, file_path: String):
+	# Open detail view for selected cartridge
+	campaign_browser.visible = false
+	if campaign_detail:
+		campaign_detail.set_cartridge(cart, file_path)
+		campaign_detail.visible = true
+
+func _on_campaign_new_game(_cart, file_path: String):
+	campaign_detail.visible = false
+	await switch_cartridge(file_path, "")
+
+func _on_campaign_load_slot(_cart, slot: String, file_path: String):
+	campaign_detail.visible = false
+	await switch_cartridge(file_path, slot)
+
+func _on_save_requested(slot: String):
+	var cid := str(world_db.flags.get("cartridge_id", "default"))
+	var dir := "user://saves/%s" % cid
+	var fname := "%s.tres" % slot
+	var path := "%s/%s" % [dir, fname]
+	# Ensure directory
+	var d := DirAccess.open("user://")
+	if d and not d.dir_exists(dir):
+		d.make_dir_recursive(dir)
+	# Save world
+	var ok: bool = world_db.save_to_file(path)
+	if ok:
+		# Write sidecar metadata
+		var meta := {
+			"scene": world_db.flags.get("current_scene", world_db.flags.get("initial_scene_id", "")),
+			"timestamp": Time.get_datetime_string_from_system()
+		}
+		var mpath := "%s/%s.json" % [dir, slot]
+		var f := FileAccess.open(mpath, FileAccess.WRITE)
+		if f:
+			f.store_string(JSON.stringify(meta, "  "))
+			f.close()
+		chat_window.add_message("Game saved to slot '%s'." % slot, "world")
+		save_load_panel.refresh_slots()
+
+func _on_load_requested(slot: String):
+	var cid := str(world_db.flags.get("cartridge_id", "default"))
+	var path := "user://saves/%s/%s.tres" % [cid, slot]
+	if not FileAccess.file_exists(path):
+		chat_window.add_message("Save slot not found: %s" % slot, "world")
+		return
+	var new_world: WorldDB = WorldDB.load_from_file(path)
+	if new_world == null:
+		chat_window.add_message("Failed to load slot '%s'." % slot, "world")
+		return
+	_apply_world_db(new_world)
+	# Enter the saved or initial scene
+	var sid: String = new_world.flags.get("current_scene", new_world.flags.get("initial_scene_id", "tavern_common"))
+	var env: ResolutionEnvelope = await director.enter_scene(sid)
+	_display_envelope(env)
+	chat_window.add_message("Loaded slot '%s'." % slot, "world")
+	save_load_panel.visible = false
+
+func _apply_world_db(new_world: WorldDB):
+	# Replace references and rebind UI
+	world_db = new_world
+	# Ensure essentials
+	world_db.ensure_player_entity()
+	world_db.ensure_player_inventory()
+	# Rebind UI panels
+	inventory_panel.set_inventory(world_db.player_inventory)
+	npc_panel.set_world_db(world_db)
+	lore_panel.set_world_db(world_db)
+	# Rebuild prompt engine and director
+	prompt_engine.world_db = world_db
+	if director:
+		director.queue_free()
+	var director_script = load("res://llm/Director.gd")
+	director = director_script.new(prompt_engine, world_db)
+	add_child(director)
+	director.action_resolved.connect(_on_action_resolved)
 
 func _on_card_manager_closed():
 	# Show main game UI

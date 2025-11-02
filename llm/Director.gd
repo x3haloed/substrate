@@ -12,12 +12,15 @@ var companion_ai: CompanionAI
 var trigger_registry: TriggerRegistry
 var current_scene_id: String = ""
 var action_queue: ActionQueue = ActionQueue.new()
+var open_area_generator: OpenAreaGenerator
+var _active_open_area: Dictionary = {} # { area_id, target_scene_id, condition, generated_scene_id }
 
 func _init(p_prompt_engine: PromptEngine, p_world_db: WorldDB):
 	prompt_engine = p_prompt_engine
 	world_db = p_world_db
 	trigger_registry = TriggerRegistry.new()
 	companion_ai = CompanionAI.new(world_db, trigger_registry)
+	open_area_generator = OpenAreaGenerator.new(prompt_engine, world_db)
 
 func enter_scene(scene_id: String) -> ResolutionEnvelope:
 	current_scene_id = scene_id
@@ -86,6 +89,24 @@ func process_player_action(action: ActionRequest) -> ResolutionEnvelope:
 		if destination_scene_id != "":
 			# Transition to new scene
 			return await enter_scene(destination_scene_id)
+
+	# Handle open area portals (LLM-assisted generation)
+	if action.verb == "enter" and target_entity.type_name == "portal":
+		var kind = str(target_entity.props.get("kind", ""))
+		if kind == "open_area":
+			var area_id = str(target_entity.props.get("area_id", ""))
+			if area_id != "":
+				var def := _load_open_area_def(area_id)
+				if def != null and def is OpenAreaDef:
+					var gen_scene_id := await open_area_generator.generate(def, str(world_db.flags.get("cartridge_id", "default")))
+					if gen_scene_id != "":
+						_active_open_area = {
+							"area_id": area_id,
+							"target_scene_id": def.completion.get("target_scene_id", ""),
+							"condition": def.completion.get("condition", {}),
+							"generated_scene_id": gen_scene_id
+						}
+						return await enter_scene(gen_scene_id)
 	
 	# Get character context if actor is an NPC
 	var character_context = {}
@@ -136,6 +157,10 @@ func process_player_action(action: ActionRequest) -> ResolutionEnvelope:
 	envelope.ui_choices = _generate_ui_choices(scene)
 	
 	action_resolved.emit(envelope)
+	# Evaluate open area completion after action
+	var maybe_transition := await _maybe_complete_open_area()
+	if maybe_transition != null:
+		return maybe_transition
 	return envelope
 
 func process_freeform_player_input(text: String) -> ResolutionEnvelope:
@@ -170,6 +195,9 @@ func process_freeform_player_input(text: String) -> ResolutionEnvelope:
 	# Refresh choices
 	envelope.ui_choices = _generate_ui_choices(scene)
 	action_resolved.emit(envelope)
+	var maybe_transition := await _maybe_complete_open_area()
+	if maybe_transition != null:
+		return maybe_transition
 	return envelope
 
 func process_companion_action(npc_id: String, verb: String, target: String, narration_override: String = "") -> ResolutionEnvelope:
@@ -594,6 +622,41 @@ func _emit_queue_update():
 	var preview = action_queue.get_queue_preview(3)
 	var current = action_queue.get_next_actor()
 	action_queue_updated.emit(preview, current)
+
+func _load_open_area_def(area_id: String) -> OpenAreaDef:
+	var base := str(world_db.flags.get("cartridge_base_path", ""))
+	if base == "":
+		return null
+	var path := base + "/open_areas/" + area_id + ".tres"
+	if ResourceLoader.exists(path):
+		return load(path) as OpenAreaDef
+	return null
+
+func _maybe_complete_open_area() -> ResolutionEnvelope:
+	if _active_open_area.is_empty():
+		return null
+	var cond: Dictionary = _active_open_area.get("condition", {})
+	var target := str(_active_open_area.get("target_scene_id", ""))
+	var gen_scene := str(_active_open_area.get("generated_scene_id", ""))
+	if current_scene_id != gen_scene or target == "":
+		return null
+	# Basic condition: { "discover_entity": "id" } or { "interact": "id" }
+	if cond is Dictionary:
+		var discover := str(cond.get("discover_entity", ""))
+		var interact := str(cond.get("interact", ""))
+		if discover != "":
+			var discovered := world_db.get_entities_discovered_by("player")
+			if discover in discovered:
+				_active_open_area = {}
+				return await enter_scene(target)
+		elif interact != "":
+			# Heuristic: check world history for last action on that target
+			for i in range(world_db.history.size() - 1, -1, -1):
+				var h = world_db.history[i]
+				if h.get("event", "") == "action" and h.get("target", "") == interact:
+					_active_open_area = {}
+					return await enter_scene(target)
+	return null
 
 func _create_error_envelope(message: String) -> ResolutionEnvelope:
 	var envelope = ResolutionEnvelope.new()

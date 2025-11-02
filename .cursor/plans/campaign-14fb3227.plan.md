@@ -111,20 +111,20 @@ props = { "kind": "open_area", "area_id": "forest_depths", "label": "Enter the s
 
 ### To-dos
 
-- [ ] Add `data/types/Cartridge.gd` resource for manifest metadata
-- [ ] Create `tools/CartridgeManager.gd` autoload for discover/import/load/switch
-- [ ] Build `ui/CampaignBrowser.tscn/.gd` listing library with thumbnails
-- [ ] Build `ui/CampaignDetail.tscn/.gd` with per-cartridge save slot manager
-- [ ] Implement `tools/WorldExporter.gd` to stage and zip `.scrt`
-- [ ] Implement `tools/WorldImporter.gd` to unpack/validate/build WorldDB
-- [ ] Add `data/types/LinkGraph.gd` and render Graph View in Studio
-- [ ] Add `data/types/OpenAreaDef.gd` for LLM-assisted areas
-- [ ] Create `llm/OpenAreaGenerator.gd` to synthesize SceneGraph and persist
-- [ ] Update `Director.gd` to handle portals/open areas and completion return
-- [ ] Extend `WorldDB.gd` to register and serialize generated scenes
-- [ ] Add Travel dropdown UI integrating with existing choices
-- [ ] Add Save/Load menus with slots under `user://saves/<cartridge_id>/`
-- [ ] Create `ui/CampaignStudio.tscn/.gd` shell with tabs/workspaces
-- [ ] Implement validation: broken exits, missing chars, unreachable scenes
-- [ ] Parse manifest.json into Cartridge via `ZIPReader` with fallback extract
-- [ ] Implement mid-session cartridge switching with auto-save of previous
+- [x] Add `data/types/Cartridge.gd` resource for manifest metadata
+- [x] Create `tools/CartridgeManager.gd` autoload for discover/import/load/switch
+- [x] Build `ui/CampaignBrowser.tscn/.gd` listing library with thumbnails
+- [x] Build `ui/CampaignDetail.tscn/.gd` with per-cartridge save slot manager
+- [x] Implement `tools/WorldExporter.gd` to stage and zip `.scrt`
+- [x] Implement `tools/WorldImporter.gd` to unpack/validate/build WorldDB
+- [x] Add `data/types/LinkGraph.gd` and render Graph View in Studio
+- [x] Add `data/types/OpenAreaDef.gd` for LLM-assisted areas
+- [x] Create `llm/OpenAreaGenerator.gd` to synthesize SceneGraph and persist
+- [x] Update `Director.gd` to handle portals/open areas and completion return
+- [x] Extend `WorldDB.gd` to register and serialize generated scenes
+- [x] Add Travel dropdown UI integrating with existing choices
+- [x] Add Save/Load menus with slots under `user://saves/<cartridge_id>/`
+- [x] Create `ui/CampaignStudio.tscn/.gd` shell with tabs/workspaces
+- [x] Implement validation: broken exits, missing chars, unreachable scenes
+- [x] Parse manifest.json into Cartridge via `ZIPReader` with fallback extract
+- [x] Implement mid-session cartridge switching with auto-save of previous
