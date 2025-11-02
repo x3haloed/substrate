@@ -358,25 +358,24 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="CostLabel" type="Label" parent="VBoxContainer/MainContainer/DetailsPanel/MarginContainer/ScrollContainer/VBoxContainer/CardPreview/MarginContainer/VBoxContainer/StatsSection"]
+[node name="VersionLabel" type="Label" parent="VBoxContainer/MainContainer/DetailsPanel/MarginContainer/ScrollContainer/VBoxContainer/CardPreview/MarginContainer/VBoxContainer/StatsSection"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
-text = "COST: -"
+text = "VERSION: -"
 
-[node name="PowerLabel" type="Label" parent="VBoxContainer/MainContainer/DetailsPanel/MarginContainer/ScrollContainer/VBoxContainer/CardPreview/MarginContainer/VBoxContainer/StatsSection"]
+[node name="CreatorLabel" type="Label" parent="VBoxContainer/MainContainer/DetailsPanel/MarginContainer/ScrollContainer/VBoxContainer/CardPreview/MarginContainer/VBoxContainer/StatsSection"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
-text = "POWER: -"
+text = "CREATOR: -"
 
-[node name="DefenseLabel" type="Label" parent="VBoxContainer/MainContainer/DetailsPanel/MarginContainer/ScrollContainer/VBoxContainer/CardPreview/MarginContainer/VBoxContainer/StatsSection"]
+[node name="TagsLabel" type="Label" parent="VBoxContainer/MainContainer/DetailsPanel/MarginContainer/ScrollContainer/VBoxContainer/CardPreview/MarginContainer/VBoxContainer/StatsSection"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
-text = "DEFENSE: -"
-
-[node name="RarityLabel" type="Label" parent="VBoxContainer/MainContainer/DetailsPanel/MarginContainer/ScrollContainer/VBoxContainer/CardPreview/MarginContainer/VBoxContainer/StatsSection"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "RARITY: -"
+text = "TAGS: -"
+autowrap_mode = 2
 
 [node name="DeckBuilder" type="PanelContainer" parent="VBoxContainer/MainContainer/DetailsPanel/MarginContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2

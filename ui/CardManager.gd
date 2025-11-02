@@ -20,6 +20,9 @@ const CardRepositoryRef = preload("res://tools/CardRepository.gd")
 @onready var card_preview_name: Label = %CardPreviewName
 @onready var total_cards_label: Label = %TotalCardsLabel
 @onready var sort_option: OptionButton = %SortOption
+@onready var version_label: Label = %VersionLabel
+@onready var creator_label: Label = %CreatorLabel
+@onready var tags_label: Label = %TagsLabel
 
 var character_cards: Array[CharacterProfile] = []
 var current_scroll_index: int = 0
@@ -92,6 +95,19 @@ func _show_card_preview(character: CharacterProfile):
 	
 	# Update preview name
 	card_preview_name.text = character.name if character.name != "" else "UNKNOWN"
+
+	# Update metadata fields
+	var version_text := character.character_version if character.character_version != "" else "-"
+	version_label.text = "VERSION: " + version_text
+
+	var creator_text := character.creator if character.creator != "" else "-"
+	creator_label.text = "CREATOR: " + creator_text
+
+	var tags_text := "-"
+	if character.tags and character.tags.size() > 0:
+		var ps: PackedStringArray = PackedStringArray(character.tags)
+		tags_text = ", ".join(ps)
+	tags_label.text = "TAGS: " + tags_text
 
 func _on_card_clicked(character: CharacterProfile):
 	_show_card_preview(character)
