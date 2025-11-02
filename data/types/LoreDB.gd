@@ -28,14 +28,14 @@ func get_entry(entry_id: String) -> LoreEntry:
 		_cache[entry_id] = entry
 	return entry
 
-func register_entry(entry: LoreEntry, resource_path: String = "") -> void:
+func register_entry(entry: LoreEntry, entry_resource_path: String = "") -> void:
 	if entry == null:
 		return
 	if entry.entry_id == "":
 		push_warning("LoreEntry missing entry_id; unable to register.")
 		return
-	if resource_path != "":
-		entries[entry.entry_id] = resource_path
+	if entry_resource_path != "":
+		entries[entry.entry_id] = entry_resource_path
 	else:
 		entries[entry.entry_id] = entry
 	_cache[entry.entry_id] = entry
