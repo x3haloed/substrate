@@ -52,7 +52,7 @@ func _setup_sort_options():
 
 func _load_character_cards():
 	character_cards.clear()
-	var cards: Array[CharacterProfile] = CardRepositoryRef.load_cards(CardRepositoryRef.StoreKind.PLAYER)
+	var cards: Array[CharacterProfile] = CardRepositoryRef.load_cards(CardRepositoryRef.StoreKind.EDITOR)
 	for character in cards:
 		if character:
 			# Warm the portrait cache to avoid lag during rendering
@@ -160,7 +160,7 @@ func _on_import_file_selected(path: String):
 		push_error("Failed to import character card from file: " + path)
 		return
 
-	var saved_path := CardRepositoryRef.add_card_to_repo(profile, CardRepositoryRef.StoreKind.PLAYER)
+	var saved_path := CardRepositoryRef.add_card_to_repo(profile, CardRepositoryRef.StoreKind.EDITOR)
 	if saved_path == "":
 		push_error("Failed to save imported card to repository")
 		return
