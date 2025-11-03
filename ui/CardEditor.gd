@@ -105,6 +105,12 @@ var portrait_file_dialog: FileDialog
 @onready var advanced_button: Button = %AdvancedButton
 @onready var scroll_container: ScrollContainer = %ScrollContainer
 
+# Chat test controls
+@onready var chat_log: RichTextLabel = %ChatLog
+@onready var typing_indicator: TypingIndicator = %TypingIndicator
+@onready var chat_input_line: LineEdit = %InputLine
+@onready var send_chat_button: Button = %SendButton
+
 # Toolbar buttons
 @onready var new_button: Button = %NewButton
 @onready var open_button: Button = %OpenButton
@@ -112,6 +118,7 @@ var portrait_file_dialog: FileDialog
 @onready var save_button: Button = %SaveButton
 @onready var export_button: Button = %ExportButton
 @onready var close_button: Button = %CloseButton
+@onready var start_chat_button: Button = %StartChatButton
 
 var editor_cards: Array[Dictionary] = [] # Array of {path: String, profile: CharacterProfile}
 
@@ -133,6 +140,7 @@ func _ready():
 	advanced_button.pressed.connect(_on_advanced_toggle_pressed)
 	advanced_toggle_button.pressed.connect(_on_advanced_toggle_pressed)
 	_set_advanced_visible(advanced_sections.visible)
+	start_chat_button.pressed.connect(_on_start_chat_pressed)
 	
 	# Connect card list
 	card_list.item_selected.connect(_on_card_list_item_selected)
@@ -554,6 +562,17 @@ func _set_advanced_visible(show_advanced: bool) -> void:
 
 func _on_advanced_toggle_pressed():
 	_set_advanced_visible(not advanced_visible)
+
+func _on_start_chat_pressed():
+	chat_log.clear()
+	typing_indicator.start("npc", current_profile.name)
+	# 1. display first message in chat log
+	# Note: according to SillyTavern and spec v2 documentation, the user should be allowed
+	#   to ask for a different first greeting if available:
+	#   "Click the '> Swipe' button on the message to generate a different response."
+	chat_log.append_text(current_profile.first_mes)
+	# 2. stop typing indicator
+	typing_indicator.stop()
 
 # Metadata handlers
 func _on_add_greeting_pressed():

@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://o7xiakcfdh8l"]
+[gd_scene load_steps=3 format=3 uid="uid://o7xiakcfdh8l"]
 
 [ext_resource type="Script" uid="uid://dhwy8pryppl27" path="res://ui/CardEditor.gd" id="1_1"]
+[ext_resource type="PackedScene" uid="uid://baypuv2nilt2g" path="res://ui/TypingIndicator.tscn" id="2_ag3ur"]
 
 [node name="CardEditor" type="Control"]
 layout_mode = 3
@@ -20,7 +21,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.15, 0.15, 0.15, 1)
 
-[node name="HSplitContainer" type="HSplitContainer" parent="."]
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -32,321 +33,325 @@ offset_bottom = -8.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="LeftPanel" type="VBoxContainer" parent="HSplitContainer"]
+[node name="LeftPanel" type="VBoxContainer" parent="HBoxContainer"]
 custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
-size_flags_horizontal = 3
 
-[node name="LeftToolbar" type="HBoxContainer" parent="HSplitContainer/LeftPanel"]
+[node name="LeftToolbar" type="HBoxContainer" parent="HBoxContainer/LeftPanel"]
 layout_mode = 2
 
-[node name="NewButton" type="Button" parent="HSplitContainer/LeftPanel/LeftToolbar"]
+[node name="NewButton" type="Button" parent="HBoxContainer/LeftPanel/LeftToolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "New"
 
-[node name="ImportButton" type="Button" parent="HSplitContainer/LeftPanel/LeftToolbar"]
+[node name="ImportButton" type="Button" parent="HBoxContainer/LeftPanel/LeftToolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Import"
 
-[node name="CloseButton" type="Button" parent="HSplitContainer/LeftPanel/LeftToolbar"]
+[node name="CloseButton" type="Button" parent="HBoxContainer/LeftPanel/LeftToolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 10
 text = "Close"
 
-[node name="CardList" type="ItemList" parent="HSplitContainer/LeftPanel"]
+[node name="CardList" type="ItemList" parent="HBoxContainer/LeftPanel"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ListToolbar" type="HBoxContainer" parent="HSplitContainer/LeftPanel"]
+[node name="ListToolbar" type="HBoxContainer" parent="HBoxContainer/LeftPanel"]
 layout_mode = 2
 
-[node name="DeleteButton" type="Button" parent="HSplitContainer/LeftPanel/ListToolbar"]
+[node name="DeleteButton" type="Button" parent="HBoxContainer/LeftPanel/ListToolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Delete"
 
-[node name="MainPanel" type="VBoxContainer" parent="HSplitContainer"]
+[node name="HSplitContainer" type="HSplitContainer" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+split_offset = -300
+
+[node name="MainPanel" type="VBoxContainer" parent="HBoxContainer/HSplitContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
 
-[node name="Toolbar" type="HBoxContainer" parent="HSplitContainer/MainPanel"]
+[node name="Toolbar" type="HBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel"]
 layout_mode = 2
 
-[node name="OpenButton" type="Button" parent="HSplitContainer/MainPanel/Toolbar"]
+[node name="OpenButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/Toolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Open"
 
-[node name="SaveButton" type="Button" parent="HSplitContainer/MainPanel/Toolbar"]
+[node name="SaveButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/Toolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Save"
 
-[node name="ExportButton" type="Button" parent="HSplitContainer/MainPanel/Toolbar"]
+[node name="ExportButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/Toolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Export"
 
-[node name="AdvancedButton" type="Button" parent="HSplitContainer/MainPanel/Toolbar"]
+[node name="AdvancedButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/Toolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Advanced"
 
-[node name="ScrollContainer" type="ScrollContainer" parent="HSplitContainer/MainPanel"]
+[node name="ScrollContainer" type="ScrollContainer" parent="HBoxContainer/HSplitContainer/MainPanel"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="ContentVBox" type="VBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer"]
+[node name="ContentVBox" type="VBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 16
 
-[node name="CorePanel" type="PanelContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox"]
+[node name="CorePanel" type="PanelContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="CoreVBox" type="VBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel"]
+[node name="CoreVBox" type="VBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="CoreLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
+[node name="CoreLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Core Fields"
 
-[node name="NameLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
+[node name="NameLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
 layout_mode = 2
 text = "Name"
 
-[node name="NameEdit" type="LineEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
+[node name="NameEdit" type="LineEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 placeholder_text = "Character Name"
 
-[node name="DescriptionLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
+[node name="DescriptionLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
 layout_mode = 2
 text = "Description"
 
-[node name="DescriptionEdit" type="TextEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
+[node name="DescriptionEdit" type="TextEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
 placeholder_text = "Description"
 
-[node name="PersonalityLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
+[node name="PersonalityLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
 layout_mode = 2
 text = "Personality"
 
-[node name="PersonalityEdit" type="TextEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
+[node name="PersonalityEdit" type="TextEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 placeholder_text = "Personality"
 
-[node name="FirstMesLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
+[node name="FirstMesLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
 layout_mode = 2
 text = "First Message"
 
-[node name="FirstMesEdit" type="TextEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
+[node name="FirstMesEdit" type="TextEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 placeholder_text = "First Message"
 
-[node name="MesExampleLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
+[node name="MesExampleLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
 layout_mode = 2
 text = "Message Example"
 
-[node name="MesExampleEdit" type="TextEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
+[node name="MesExampleEdit" type="TextEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 placeholder_text = "Message Example"
 
-[node name="IdentityPanel" type="PanelContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox"]
+[node name="IdentityPanel" type="PanelContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="IdentityVBox" type="VBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel"]
+[node name="IdentityVBox" type="VBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="IdentityLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox"]
+[node name="IdentityLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Identity & Portrait"
 
-[node name="IdentityHBox" type="HBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox"]
+[node name="IdentityHBox" type="HBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="PortraitPreview" type="TextureRect" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityHBox"]
+[node name="PortraitPreview" type="TextureRect" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityHBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(128, 128)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="PortraitButtons" type="VBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityHBox"]
+[node name="PortraitButtons" type="VBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityHBox"]
 layout_mode = 2
 
-[node name="SetPortraitButton" type="Button" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityHBox/PortraitButtons"]
+[node name="SetPortraitButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityHBox/PortraitButtons"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Set/Change Portrait"
 
-[node name="ClearPortraitButton" type="Button" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityHBox/PortraitButtons"]
+[node name="ClearPortraitButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityHBox/PortraitButtons"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Clear Portrait"
 
-[node name="IdentityForm" type="GridContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox"]
+[node name="IdentityForm" type="GridContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox"]
 layout_mode = 2
 theme_override_constants/h_separation = 16
 theme_override_constants/v_separation = 8
 columns = 2
 
-[node name="CreatorLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityForm"]
+[node name="CreatorLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityForm"]
 layout_mode = 2
 text = "Creator"
 
-[node name="CreatorEdit" type="LineEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityForm"]
+[node name="CreatorEdit" type="LineEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityForm"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(400, 0)
 layout_mode = 2
 placeholder_text = "Creator"
 
-[node name="VersionLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityForm"]
+[node name="VersionLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityForm"]
 layout_mode = 2
 text = "Card Version"
 
-[node name="CharacterVersionEdit" type="LineEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityForm"]
+[node name="CharacterVersionEdit" type="LineEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityForm"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(400, 0)
 layout_mode = 2
 placeholder_text = "Character Version"
 
-[node name="TagsLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityForm"]
+[node name="TagsLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityForm"]
 layout_mode = 2
 text = "Tags"
 
-[node name="TagsEdit" type="LineEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityForm"]
+[node name="TagsEdit" type="LineEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityForm"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(400, 0)
 layout_mode = 2
 placeholder_text = "Tags (comma-separated)"
 
-[node name="AdvancedToggleBar" type="HBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox"]
+[node name="AdvancedToggleBar" type="HBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="AdvancedLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedToggleBar"]
+[node name="AdvancedLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedToggleBar"]
 layout_mode = 2
 text = "Advanced Sections"
 
-[node name="AdvancedToggleButton" type="Button" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedToggleBar"]
+[node name="AdvancedToggleButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedToggleBar"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 10
 text = "Show Advanced"
 
-[node name="AdvancedSections" type="VBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox"]
+[node name="AdvancedSections" type="VBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="NarrativePanel" type="PanelContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections"]
+[node name="NarrativePanel" type="PanelContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections"]
 layout_mode = 2
 
-[node name="NarrativeVBox" type="VBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel"]
+[node name="NarrativeVBox" type="VBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="NarrativeLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox"]
+[node name="NarrativeLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Narrative & Prompt"
 
-[node name="CreatorNoteLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox"]
+[node name="CreatorNoteLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox"]
 layout_mode = 2
 text = "Creator Notes"
 
-[node name="CreatorNotesEdit" type="TextEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox"]
+[node name="CreatorNotesEdit" type="TextEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 placeholder_text = "Creator Notes"
 
-[node name="SystemPromptLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox"]
+[node name="SystemPromptLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox"]
 layout_mode = 2
 text = "System Prompt"
 
-[node name="SystemPromptEdit" type="TextEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox"]
+[node name="SystemPromptEdit" type="TextEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 placeholder_text = "System Prompt"
 
-[node name="AlternateGreetingsBox" type="VBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox"]
+[node name="AlternateGreetingsBox" type="VBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="GreetingsLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox/AlternateGreetingsBox"]
+[node name="GreetingsLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox/AlternateGreetingsBox"]
 layout_mode = 2
 text = "Alternate Greetings"
 
-[node name="GreetingsList" type="ItemList" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox/AlternateGreetingsBox"]
+[node name="GreetingsList" type="ItemList" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox/AlternateGreetingsBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 
-[node name="GreetingsToolbar" type="HBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox/AlternateGreetingsBox"]
+[node name="GreetingsToolbar" type="HBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox/AlternateGreetingsBox"]
 layout_mode = 2
 
-[node name="GreetingEdit" type="LineEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox/AlternateGreetingsBox/GreetingsToolbar"]
+[node name="GreetingEdit" type="LineEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox/AlternateGreetingsBox/GreetingsToolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Greeting text"
 
-[node name="AddGreetingButton" type="Button" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox/AlternateGreetingsBox/GreetingsToolbar"]
+[node name="AddGreetingButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox/AlternateGreetingsBox/GreetingsToolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Add"
 
-[node name="RemoveGreetingButton" type="Button" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox/AlternateGreetingsBox/GreetingsToolbar"]
+[node name="RemoveGreetingButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox/AlternateGreetingsBox/GreetingsToolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Remove"
 
-[node name="CharacterBookSection" type="VBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections"]
+[node name="CharacterBookSection" type="VBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections"]
 layout_mode = 2
 
-[node name="CharacterBookLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection"]
+[node name="CharacterBookLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Character Book"
 
-[node name="CreateBookButton" type="Button" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection"]
+[node name="CreateBookButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Create Character Book"
 
-[node name="BookPanel" type="Panel" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection"]
+[node name="BookPanel" type="Panel" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 
-[node name="BookPanelVBox" type="VBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel"]
+[node name="BookPanelVBox" type="VBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -359,53 +364,53 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 8
 
-[node name="BookNameEdit" type="LineEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox"]
+[node name="BookNameEdit" type="LineEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 placeholder_text = "Book Name"
 
-[node name="BookDescriptionEdit" type="TextEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox"]
+[node name="BookDescriptionEdit" type="TextEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 placeholder_text = "Book Description"
 
-[node name="ScanDepthSpin" type="SpinBox" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox"]
+[node name="ScanDepthSpin" type="SpinBox" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 max_value = 1000.0
 value = 32.0
 
-[node name="ScanDepthLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox"]
+[node name="ScanDepthLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox"]
 layout_mode = 2
 text = "Scan Depth"
 
-[node name="TokenBudgetSpin" type="SpinBox" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox"]
+[node name="TokenBudgetSpin" type="SpinBox" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 max_value = 100000.0
 value = 1024.0
 
-[node name="TokenBudgetLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox"]
+[node name="TokenBudgetLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox"]
 layout_mode = 2
 text = "Token Budget"
 
-[node name="RecursiveScanningCheck" type="CheckBox" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox"]
+[node name="RecursiveScanningCheck" type="CheckBox" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Recursive Scanning"
 
-[node name="EntriesList" type="ItemList" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox"]
+[node name="EntriesList" type="ItemList" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 
-[node name="EntryEditPanel" type="Panel" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox"]
+[node name="EntryEditPanel" type="Panel" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 
-[node name="EntryPanelVBox" type="VBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/EntryEditPanel"]
+[node name="EntryPanelVBox" type="VBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/EntryEditPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -418,192 +423,192 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 8
 
-[node name="EntryKeysEdit" type="LineEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/EntryEditPanel/EntryPanelVBox"]
+[node name="EntryKeysEdit" type="LineEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/EntryEditPanel/EntryPanelVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 placeholder_text = "Keys (comma-separated)"
 
-[node name="EntryContentEdit" type="TextEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/EntryEditPanel/EntryPanelVBox"]
+[node name="EntryContentEdit" type="TextEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/EntryEditPanel/EntryPanelVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
 placeholder_text = "Entry Content"
 
-[node name="EntryEnabledCheck" type="CheckBox" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/EntryEditPanel/EntryPanelVBox"]
+[node name="EntryEnabledCheck" type="CheckBox" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/EntryEditPanel/EntryPanelVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 button_pressed = true
 text = "Enabled"
 
-[node name="EntryInsertionOrderSpin" type="SpinBox" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/EntryEditPanel/EntryPanelVBox"]
+[node name="EntryInsertionOrderSpin" type="SpinBox" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/EntryEditPanel/EntryPanelVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 max_value = 10000.0
 
-[node name="EntryInsertionOrderLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/EntryEditPanel/EntryPanelVBox"]
+[node name="EntryInsertionOrderLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/EntryEditPanel/EntryPanelVBox"]
 layout_mode = 2
 text = "Insertion Order"
 
-[node name="BookButtons" type="HBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox"]
+[node name="BookButtons" type="HBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox"]
 layout_mode = 2
 
-[node name="AddEntryButton" type="Button" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/BookButtons"]
+[node name="AddEntryButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/BookButtons"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Add Entry"
 
-[node name="RemoveEntryButton" type="Button" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/BookButtons"]
+[node name="RemoveEntryButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/BookButtons"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Remove Entry"
 
-[node name="StatsPanel" type="PanelContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections"]
+[node name="StatsPanel" type="PanelContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections"]
 layout_mode = 2
 
-[node name="StatsVBox" type="VBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StatsPanel"]
+[node name="StatsVBox" type="VBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StatsPanel"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="StatsLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StatsPanel/StatsVBox"]
+[node name="StatsLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StatsPanel/StatsVBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Stats"
 
-[node name="StatsTree" type="Tree" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StatsPanel/StatsVBox"]
+[node name="StatsTree" type="Tree" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StatsPanel/StatsVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 columns = 2
 column_titles_visible = true
 
-[node name="StatsToolbar" type="HBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StatsPanel/StatsVBox"]
+[node name="StatsToolbar" type="HBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StatsPanel/StatsVBox"]
 layout_mode = 2
 
-[node name="StatKeyEdit" type="LineEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StatsPanel/StatsVBox/StatsToolbar"]
+[node name="StatKeyEdit" type="LineEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StatsPanel/StatsVBox/StatsToolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Key"
 
-[node name="StatValueEdit" type="LineEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StatsPanel/StatsVBox/StatsToolbar"]
+[node name="StatValueEdit" type="LineEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StatsPanel/StatsVBox/StatsToolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Value"
 
-[node name="AddStatButton" type="Button" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StatsPanel/StatsVBox/StatsToolbar"]
+[node name="AddStatButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StatsPanel/StatsVBox/StatsToolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Add"
 
-[node name="RemoveStatButton" type="Button" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StatsPanel/StatsVBox/StatsToolbar"]
+[node name="RemoveStatButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StatsPanel/StatsVBox/StatsToolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Remove"
 
-[node name="TraitsPanel" type="PanelContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections"]
+[node name="TraitsPanel" type="PanelContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections"]
 layout_mode = 2
 
-[node name="TraitsVBox" type="VBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TraitsPanel"]
+[node name="TraitsVBox" type="VBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TraitsPanel"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="TraitsLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TraitsPanel/TraitsVBox"]
+[node name="TraitsLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TraitsPanel/TraitsVBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Traits"
 
-[node name="TraitsList" type="ItemList" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TraitsPanel/TraitsVBox"]
+[node name="TraitsList" type="ItemList" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TraitsPanel/TraitsVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 
-[node name="TraitsToolbar" type="HBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TraitsPanel/TraitsVBox"]
+[node name="TraitsToolbar" type="HBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TraitsPanel/TraitsVBox"]
 layout_mode = 2
 
-[node name="TraitEdit" type="LineEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TraitsPanel/TraitsVBox/TraitsToolbar"]
+[node name="TraitEdit" type="LineEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TraitsPanel/TraitsVBox/TraitsToolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Trait name"
 
-[node name="AddTraitButton" type="Button" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TraitsPanel/TraitsVBox/TraitsToolbar"]
+[node name="AddTraitButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TraitsPanel/TraitsVBox/TraitsToolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Add"
 
-[node name="RemoveTraitButton" type="Button" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TraitsPanel/TraitsVBox/TraitsToolbar"]
+[node name="RemoveTraitButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TraitsPanel/TraitsVBox/TraitsToolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Remove"
 
-[node name="StylePanel" type="PanelContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections"]
+[node name="StylePanel" type="PanelContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections"]
 layout_mode = 2
 
-[node name="StyleVBox" type="VBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StylePanel"]
+[node name="StyleVBox" type="VBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StylePanel"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="StyleLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StylePanel/StyleVBox"]
+[node name="StyleLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StylePanel/StyleVBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Style"
 
-[node name="StyleTree" type="Tree" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StylePanel/StyleVBox"]
+[node name="StyleTree" type="Tree" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StylePanel/StyleVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 columns = 2
 column_titles_visible = true
 
-[node name="StyleToolbar" type="HBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StylePanel/StyleVBox"]
+[node name="StyleToolbar" type="HBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StylePanel/StyleVBox"]
 layout_mode = 2
 
-[node name="StyleKeyEdit" type="LineEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StylePanel/StyleVBox/StyleToolbar"]
+[node name="StyleKeyEdit" type="LineEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StylePanel/StyleVBox/StyleToolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Key"
 
-[node name="StyleValueEdit" type="LineEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StylePanel/StyleVBox/StyleToolbar"]
+[node name="StyleValueEdit" type="LineEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StylePanel/StyleVBox/StyleToolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Value"
 
-[node name="AddStyleButton" type="Button" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StylePanel/StyleVBox/StyleToolbar"]
+[node name="AddStyleButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StylePanel/StyleVBox/StyleToolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Add"
 
-[node name="RemoveStyleButton" type="Button" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StylePanel/StyleVBox/StyleToolbar"]
+[node name="RemoveStyleButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StylePanel/StyleVBox/StyleToolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Remove"
 
-[node name="TriggersPanel" type="PanelContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections"]
+[node name="TriggersPanel" type="PanelContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections"]
 layout_mode = 2
 
-[node name="TriggersVBox" type="VBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel"]
+[node name="TriggersVBox" type="VBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="TriggersLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox"]
+[node name="TriggersLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Triggers"
 
-[node name="TriggersList" type="ItemList" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox"]
+[node name="TriggersList" type="ItemList" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 
-[node name="TriggerEditPanel" type="Panel" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox"]
+[node name="TriggerEditPanel" type="Panel" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 
-[node name="TriggerPanelVBox" type="VBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel"]
+[node name="TriggerPanelVBox" type="VBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -616,117 +621,153 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 8
 
-[node name="TriggerIdEdit" type="LineEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox"]
+[node name="TriggerIdEdit" type="LineEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 placeholder_text = "Trigger ID"
 
-[node name="TriggerNsEdit" type="LineEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox"]
+[node name="TriggerNsEdit" type="LineEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 placeholder_text = "Namespace"
 
-[node name="TriggerWhenEdit" type="LineEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox"]
+[node name="TriggerWhenEdit" type="LineEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 placeholder_text = "When (event)"
 
-[node name="TriggerNarrationEdit" type="TextEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox"]
+[node name="TriggerNarrationEdit" type="TextEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 placeholder_text = "Narration"
 
-[node name="TriggerPrioritySpin" type="SpinBox" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox"]
+[node name="TriggerPrioritySpin" type="SpinBox" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 max_value = 1000.0
 
-[node name="TriggerPriorityLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox"]
+[node name="TriggerPriorityLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox"]
 layout_mode = 2
 text = "Priority"
 
-[node name="TriggerCooldownSpin" type="SpinBox" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox"]
+[node name="TriggerCooldownSpin" type="SpinBox" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 max_value = 1000.0
 step = 0.1
 
-[node name="TriggerCooldownLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox"]
+[node name="TriggerCooldownLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox"]
 layout_mode = 2
 text = "Cooldown"
 
-[node name="ActionBox" type="VBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox"]
+[node name="ActionBox" type="VBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="ActionLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox/ActionBox"]
+[node name="ActionLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox/ActionBox"]
 layout_mode = 2
 text = "Action"
 
-[node name="VerbEdit" type="LineEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox/ActionBox"]
+[node name="VerbEdit" type="LineEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox/ActionBox"]
 unique_name_in_owner = true
 layout_mode = 2
 placeholder_text = "Verb"
 
-[node name="TargetEdit" type="LineEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox/ActionBox"]
+[node name="TargetEdit" type="LineEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox/ActionBox"]
 unique_name_in_owner = true
 layout_mode = 2
 placeholder_text = "Target"
 
-[node name="TriggerButtons" type="HBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox"]
+[node name="TriggerButtons" type="HBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox"]
 layout_mode = 2
 
-[node name="AddTriggerButton" type="Button" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerButtons"]
+[node name="AddTriggerButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerButtons"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Add Trigger"
 
-[node name="RemoveTriggerButton" type="Button" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerButtons"]
+[node name="RemoveTriggerButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerButtons"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Remove Trigger"
 
-[node name="ExtensionsPanel" type="PanelContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections"]
+[node name="ExtensionsPanel" type="PanelContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections"]
 layout_mode = 2
 
-[node name="ExtensionsVBox" type="VBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/ExtensionsPanel"]
+[node name="ExtensionsVBox" type="VBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/ExtensionsPanel"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="ExtensionsLabel" type="Label" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/ExtensionsPanel/ExtensionsVBox"]
+[node name="ExtensionsLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/ExtensionsPanel/ExtensionsVBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Extensions"
 
-[node name="ExtensionsTree" type="Tree" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/ExtensionsPanel/ExtensionsVBox"]
+[node name="ExtensionsTree" type="Tree" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/ExtensionsPanel/ExtensionsVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 columns = 2
 column_titles_visible = true
 
-[node name="ExtensionsToolbar" type="HBoxContainer" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/ExtensionsPanel/ExtensionsVBox"]
+[node name="ExtensionsToolbar" type="HBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/ExtensionsPanel/ExtensionsVBox"]
 layout_mode = 2
 
-[node name="ExtensionKeyEdit" type="LineEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/ExtensionsPanel/ExtensionsVBox/ExtensionsToolbar"]
+[node name="ExtensionKeyEdit" type="LineEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/ExtensionsPanel/ExtensionsVBox/ExtensionsToolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Key"
 
-[node name="ExtensionValueEdit" type="LineEdit" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/ExtensionsPanel/ExtensionsVBox/ExtensionsToolbar"]
+[node name="ExtensionValueEdit" type="LineEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/ExtensionsPanel/ExtensionsVBox/ExtensionsToolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Value"
 
-[node name="AddExtensionButton" type="Button" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/ExtensionsPanel/ExtensionsVBox/ExtensionsToolbar"]
+[node name="AddExtensionButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/ExtensionsPanel/ExtensionsVBox/ExtensionsToolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Add"
 
-[node name="RemoveExtensionButton" type="Button" parent="HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/ExtensionsPanel/ExtensionsVBox/ExtensionsToolbar"]
+[node name="RemoveExtensionButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/ExtensionsPanel/ExtensionsVBox/ExtensionsToolbar"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Remove"
+
+[node name="ChatPanel" type="VBoxContainer" parent="HBoxContainer/HSplitContainer"]
+layout_mode = 2
+
+[node name="Toolbar" type="HBoxContainer" parent="HBoxContainer/HSplitContainer/ChatPanel"]
+layout_mode = 2
+
+[node name="StartChatButton" type="Button" parent="HBoxContainer/HSplitContainer/ChatPanel/Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Start"
+
+[node name="ChatLog" type="RichTextLabel" parent="HBoxContainer/HSplitContainer/ChatPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+scroll_following = true
+
+[node name="TypingIndicator" parent="HBoxContainer/HSplitContainer/ChatPanel" instance=ExtResource("2_ag3ur")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="InputBox" type="HBoxContainer" parent="HBoxContainer/HSplitContainer/ChatPanel"]
+layout_mode = 2
+
+[node name="InputLine" type="LineEdit" parent="HBoxContainer/HSplitContainer/ChatPanel/InputBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Type a message..."
+
+[node name="SendButton" type="Button" parent="HBoxContainer/HSplitContainer/ChatPanel/InputBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Send"
