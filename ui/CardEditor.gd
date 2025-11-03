@@ -21,97 +21,97 @@ var portrait_file_dialog: FileDialog
 @onready var delete_button: Button = %DeleteButton
 
 # Core fields
-@onready var name_edit: LineEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox/NameEdit
-@onready var description_edit: TextEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox/DescriptionEdit
-@onready var personality_edit: TextEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox/PersonalityEdit
-@onready var first_mes_edit: TextEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox/FirstMesEdit
-@onready var mes_example_edit: TextEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox/MesExampleEdit
+@onready var name_edit: LineEdit = %NameEdit
+@onready var description_edit: TextEdit = %DescriptionEdit
+@onready var personality_edit: TextEdit = %PersonalityEdit
+@onready var first_mes_edit: TextEdit = %FirstMesEdit
+@onready var mes_example_edit: TextEdit = %MesExampleEdit
 
 # Metadata fields
-@onready var creator_edit: LineEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityForm/CreatorEdit
-@onready var character_version_edit: LineEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityForm/CharacterVersionEdit
-@onready var portrait_preview: TextureRect = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityHBox/PortraitPreview
-@onready var set_portrait_button: Button = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityHBox/PortraitButtons/SetPortraitButton
-@onready var clear_portrait_button: Button = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityHBox/PortraitButtons/ClearPortraitButton
-@onready var creator_notes_edit: TextEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox/CreatorNotesEdit
-@onready var system_prompt_edit: TextEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox/SystemPromptEdit
-@onready var tags_edit: LineEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/IdentityPanel/IdentityVBox/IdentityForm/TagsEdit
-@onready var alternate_greetings_list: ItemList = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox/AlternateGreetingsBox/GreetingsList
-@onready var alternate_greeting_edit: LineEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox/AlternateGreetingsBox/GreetingsToolbar/GreetingEdit
-@onready var add_greeting_button: Button = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox/AlternateGreetingsBox/GreetingsToolbar/AddGreetingButton
-@onready var remove_greeting_button: Button = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox/AlternateGreetingsBox/GreetingsToolbar/RemoveGreetingButton
+@onready var creator_edit: LineEdit = %CreatorEdit
+@onready var character_version_edit: LineEdit = %CharacterVersionEdit
+@onready var portrait_preview: TextureRect = %PortraitPreview
+@onready var set_portrait_button: Button = %SetPortraitButton
+@onready var clear_portrait_button: Button = %ClearPortraitButton
+@onready var creator_notes_edit: TextEdit = %CreatorNotesEdit
+@onready var system_prompt_edit: TextEdit = %SystemPromptEdit
+@onready var tags_edit: LineEdit = %TagsEdit
+@onready var alternate_greetings_list: ItemList = %GreetingsList
+@onready var alternate_greeting_edit: LineEdit = %GreetingEdit
+@onready var add_greeting_button: Button = %AddGreetingButton
+@onready var remove_greeting_button: Button = %RemoveGreetingButton
 
 # Character Book section
-@onready var character_book_panel: Panel = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel
-@onready var book_name_edit: LineEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/BookNameEdit
-@onready var book_description_edit: TextEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/BookDescriptionEdit
-@onready var scan_depth_spin: SpinBox = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/ScanDepthSpin
-@onready var token_budget_spin: SpinBox = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/TokenBudgetSpin
-@onready var recursive_scanning_check: CheckBox = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/RecursiveScanningCheck
-@onready var book_entries_list: ItemList = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/EntriesList
-@onready var book_entry_panel: Panel = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/EntryEditPanel
-@onready var entry_keys_edit: LineEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/EntryEditPanel/EntryPanelVBox/EntryKeysEdit
-@onready var entry_content_edit: TextEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/EntryEditPanel/EntryPanelVBox/EntryContentEdit
-@onready var entry_enabled_check: CheckBox = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/EntryEditPanel/EntryPanelVBox/EntryEnabledCheck
-@onready var entry_insertion_order_spin: SpinBox = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/EntryEditPanel/EntryPanelVBox/EntryInsertionOrderSpin
-@onready var add_entry_button: Button = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/BookButtons/AddEntryButton
-@onready var remove_entry_button: Button = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/BookButtons/RemoveEntryButton
-@onready var create_book_button: Button = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/CreateBookButton
+@onready var character_book_panel: Panel = %BookPanel
+@onready var book_name_edit: LineEdit = %BookNameEdit
+@onready var book_description_edit: TextEdit = %BookDescriptionEdit
+@onready var scan_depth_spin: SpinBox = %ScanDepthSpin
+@onready var token_budget_spin: SpinBox = %TokenBudgetSpin
+@onready var recursive_scanning_check: CheckBox = %RecursiveScanningCheck
+@onready var book_entries_list: ItemList = %EntriesList
+@onready var book_entry_panel: Panel = %EntryEditPanel
+@onready var entry_keys_edit: LineEdit = %EntryKeysEdit
+@onready var entry_content_edit: TextEdit = %EntryContentEdit
+@onready var entry_enabled_check: CheckBox = %EntryEnabledCheck
+@onready var entry_insertion_order_spin: SpinBox = %EntryInsertionOrderSpin
+@onready var add_entry_button: Button = %AddEntryButton
+@onready var remove_entry_button: Button = %RemoveEntryButton
+@onready var create_book_button: Button = %CreateBookButton
 
 # Stats section
-@onready var stats_tree: Tree = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StatsPanel/StatsVBox/StatsTree
-@onready var stat_key_edit: LineEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StatsPanel/StatsVBox/StatsToolbar/StatKeyEdit
-@onready var stat_value_edit: LineEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StatsPanel/StatsVBox/StatsToolbar/StatValueEdit
-@onready var add_stat_button: Button = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StatsPanel/StatsVBox/StatsToolbar/AddStatButton
-@onready var remove_stat_button: Button = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StatsPanel/StatsVBox/StatsToolbar/RemoveStatButton
+@onready var stats_tree: Tree = %StatsTree
+@onready var stat_key_edit: LineEdit = %StatKeyEdit
+@onready var stat_value_edit: LineEdit = %StatValueEdit
+@onready var add_stat_button: Button = %AddStatButton
+@onready var remove_stat_button: Button = %RemoveStatButton
 
 # Traits section
-@onready var traits_list: ItemList = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TraitsPanel/TraitsVBox/TraitsList
-@onready var trait_edit: LineEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TraitsPanel/TraitsVBox/TraitsToolbar/TraitEdit
-@onready var add_trait_button: Button = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TraitsPanel/TraitsVBox/TraitsToolbar/AddTraitButton
-@onready var remove_trait_button: Button = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TraitsPanel/TraitsVBox/TraitsToolbar/RemoveTraitButton
+@onready var traits_list: ItemList = %TraitsList
+@onready var trait_edit: LineEdit = %TraitEdit
+@onready var add_trait_button: Button = %AddTraitButton
+@onready var remove_trait_button: Button = %RemoveTraitButton
 
 # Style section
-@onready var style_tree: Tree = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StylePanel/StyleVBox/StyleTree
-@onready var style_key_edit: LineEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StylePanel/StyleVBox/StyleToolbar/StyleKeyEdit
-@onready var style_value_edit: LineEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StylePanel/StyleVBox/StyleToolbar/StyleValueEdit
-@onready var add_style_button: Button = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StylePanel/StyleVBox/StyleToolbar/AddStyleButton
-@onready var remove_style_button: Button = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/StylePanel/StyleVBox/StyleToolbar/RemoveStyleButton
+@onready var style_tree: Tree = %StyleTree
+@onready var style_key_edit: LineEdit = %StyleKeyEdit
+@onready var style_value_edit: LineEdit = %StyleValueEdit
+@onready var add_style_button: Button = %AddStyleButton
+@onready var remove_style_button: Button = %RemoveStyleButton
 
 # Triggers section
-@onready var triggers_list: ItemList = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggersList
-@onready var trigger_panel: Panel = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel
-@onready var trigger_id_edit: LineEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox/TriggerIdEdit
-@onready var trigger_ns_edit: LineEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox/TriggerNsEdit
-@onready var trigger_when_edit: LineEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox/TriggerWhenEdit
-@onready var trigger_narration_edit: TextEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox/TriggerNarrationEdit
-@onready var trigger_priority_spin: SpinBox = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox/TriggerPrioritySpin
-@onready var trigger_cooldown_spin: SpinBox = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox/TriggerCooldownSpin
-@onready var trigger_action_verb_edit: LineEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox/ActionBox/VerbEdit
-@onready var trigger_action_target_edit: LineEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox/ActionBox/TargetEdit
-@onready var add_trigger_button: Button = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerButtons/AddTriggerButton
-@onready var remove_trigger_button: Button = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerButtons/RemoveTriggerButton
+@onready var triggers_list: ItemList = %TriggersList
+@onready var trigger_panel: Panel = %TriggerEditPanel
+@onready var trigger_id_edit: LineEdit = %TriggerIdEdit
+@onready var trigger_ns_edit: LineEdit = %TriggerNsEdit
+@onready var trigger_when_edit: LineEdit = %TriggerWhenEdit
+@onready var trigger_narration_edit: TextEdit = %TriggerNarrationEdit
+@onready var trigger_priority_spin: SpinBox = %TriggerPrioritySpin
+@onready var trigger_cooldown_spin: SpinBox = %TriggerCooldownSpin
+@onready var trigger_action_verb_edit: LineEdit = %VerbEdit
+@onready var trigger_action_target_edit: LineEdit = %TargetEdit
+@onready var add_trigger_button: Button = %AddTriggerButton
+@onready var remove_trigger_button: Button = %RemoveTriggerButton
 
 # Extensions section
-@onready var extensions_tree: Tree = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/ExtensionsPanel/ExtensionsVBox/ExtensionsTree
-@onready var extension_key_edit: LineEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/ExtensionsPanel/ExtensionsVBox/ExtensionsToolbar/ExtensionKeyEdit
-@onready var extension_value_edit: LineEdit = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/ExtensionsPanel/ExtensionsVBox/ExtensionsToolbar/ExtensionValueEdit
-@onready var add_extension_button: Button = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/ExtensionsPanel/ExtensionsVBox/ExtensionsToolbar/AddExtensionButton
-@onready var remove_extension_button: Button = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/ExtensionsPanel/ExtensionsVBox/ExtensionsToolbar/RemoveExtensionButton
+@onready var extensions_tree: Tree = %ExtensionsTree
+@onready var extension_key_edit: LineEdit = %ExtensionKeyEdit
+@onready var extension_value_edit: LineEdit = %ExtensionValueEdit
+@onready var add_extension_button: Button = %AddExtensionButton
+@onready var remove_extension_button: Button = %RemoveExtensionButton
 
 # Advanced visibility controls
-@onready var advanced_sections: VBoxContainer = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections
-@onready var advanced_toggle_button: Button = $HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedToggleBar/AdvancedToggleButton
-@onready var advanced_button: Button = $HSplitContainer/MainPanel/Toolbar/AdvancedButton
-@onready var scroll_container: ScrollContainer = $HSplitContainer/MainPanel/ScrollContainer
+@onready var advanced_sections: VBoxContainer = %AdvancedSections
+@onready var advanced_toggle_button: Button = %AdvancedToggleButton
+@onready var advanced_button: Button = %AdvancedButton
+@onready var scroll_container: ScrollContainer = %ScrollContainer
 
 # Toolbar buttons
-@onready var new_button: Button = $HSplitContainer/LeftPanel/LeftToolbar/NewButton
-@onready var open_button: Button = $HSplitContainer/MainPanel/Toolbar/OpenButton
-@onready var import_button: Button = $HSplitContainer/LeftPanel/LeftToolbar/ImportButton
-@onready var save_button: Button = $HSplitContainer/MainPanel/Toolbar/SaveButton
-@onready var export_button: Button = $HSplitContainer/MainPanel/Toolbar/ExportButton
-@onready var close_button: Button = $HSplitContainer/LeftPanel/LeftToolbar/CloseButton
+@onready var new_button: Button = %NewButton
+@onready var open_button: Button = %OpenButton
+@onready var import_button: Button = %ImportButton
+@onready var save_button: Button = %SaveButton
+@onready var export_button: Button = %ExportButton
+@onready var close_button: Button = %CloseButton
 
 var editor_cards: Array[Dictionary] = [] # Array of {path: String, profile: CharacterProfile}
 
