@@ -115,26 +115,27 @@ func build_director_prompt(action: ActionRequest, scene: SceneGraph, character_c
 		"context": action.context
 	}
 	
-	var prompt = DIRECTOR_SYSTEM_PROMPT + "\n\n"
-	prompt += "Current Scene:\n" + JSON.stringify(scene_info, "\t") + "\n\n"
-	prompt += "Action Request:\n" + JSON.stringify(action_info, "\t") + "\n\n"
+	var user_sections: Array[String] = []
+	user_sections.append("Current Scene:\n" + JSON.stringify(scene_info, "\t"))
+	user_sections.append("Action Request:\n" + JSON.stringify(action_info, "\t"))
 	
 	# Add character context if actor is an NPC
 	if character_context.size() > 0:
-		prompt += "Actor Character Context:\n"
+		var context_lines: Array[String] = []
+		context_lines.append("Actor Character Context:")
 		
 		# Character core
 		if character_context.has("name"):
-			prompt += "- Name: " + str(character_context.name) + "\n"
+			context_lines.append("- Name: " + str(character_context.name))
 		if character_context.has("description"):
-			prompt += "- Description: " + str(character_context.description) + "\n"
+			context_lines.append("- Description: " + str(character_context.description))
 		if character_context.has("personality"):
-			prompt += "- Personality: " + str(character_context.personality) + "\n"
+			context_lines.append("- Personality: " + str(character_context.personality))
 		
 		# Traits
 		if character_context.has("traits") and character_context.traits is Array:
 			if character_context.traits.size() > 0:
-				prompt += "- Traits: " + ", ".join(character_context.traits) + "\n"
+				context_lines.append("- Traits: " + ", ".join(character_context.traits))
 		
 		# Style
 		if character_context.has("style") and character_context.style is Dictionary:
@@ -142,7 +143,7 @@ func build_director_prompt(action: ActionRequest, scene: SceneGraph, character_c
 			for key in character_context.style:
 				style_parts.append(key + ": " + str(character_context.style[key]))
 			if style_parts.size() > 0:
-				prompt += "- Style: " + ", ".join(style_parts) + "\n"
+				context_lines.append("- Style: " + ", ".join(style_parts))
 		
 		# Stats
 		if character_context.has("stats") and character_context.stats is Dictionary:
@@ -150,18 +151,21 @@ func build_director_prompt(action: ActionRequest, scene: SceneGraph, character_c
 			for key in character_context.stats:
 				stats_parts.append(key + ": " + str(character_context.stats[key]))
 			if stats_parts.size() > 0:
-				prompt += "- Current Stats: " + ", ".join(stats_parts) + "\n"
+				context_lines.append("- Current Stats: " + ", ".join(stats_parts))
 		
 		# Character book entries (simplified - just mention if present)
 		if character_context.has("has_book") and character_context.has_book:
-			prompt += "- Character has knowledge lorebook available\n"
+			context_lines.append("- Character has knowledge lorebook available")
 		
-		prompt += "\nNarration should reflect this character's personality, traits, style, and current emotional state.\n\n"
+		context_lines.append("")
+		context_lines.append("Narration should reflect this character's personality, traits, style, and current emotional state.")
+		user_sections.append("\n".join(context_lines))
 	
-	prompt += "Respond with a valid JSON object matching the ResolutionEnvelope format."
+	user_sections.append("Respond with a valid JSON object matching the ResolutionEnvelope format.")
 	
 	return [
-		{"role": "system", "content": prompt}
+		{"role": "system", "content": DIRECTOR_SYSTEM_PROMPT},
+		{"role": "user", "content": "\n\n".join(user_sections)}
 	]
 
 # Build NPC dialog prompt when player talks to an NPC
@@ -519,7 +523,12 @@ func _resolution_envelope_schema() -> Dictionary:
 					"properties": {
 						"style": {"type": "string", "enum": ["world", "npc"]},
 						"text": {"type": "string"},
-						"speaker": {"type": ["string", "null"]}
+						"speaker": {
+							"anyOf": [
+								{"type": "string"},
+								{"type": "null"}
+							]
+						}
 					},
 					"required": ["style", "text", "speaker"],
 					"additionalProperties": false
