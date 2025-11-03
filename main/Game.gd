@@ -187,15 +187,6 @@ func _display_envelope(envelope: ResolutionEnvelope):
 	
 	# Update choice panel
 	choice_panel.set_choices(envelope.ui_choices)
-	# Update Travel dropdown with exits present in scene
-	var exits: Array[Dictionary] = []
-	var current_scene := world_db.get_scene(world_db.flags.get("current_scene", ""))
-	if current_scene:
-		for e in current_scene.entities:
-			if e.type_name == "exit" and not e.state.get("taken", false):
-				var label := str(e.props.get("label", e.props.get("leads", e.id)))
-				exits.append({"label": label, "target": e.id})
-	choice_panel.set_travel_options(exits)
 	# Update chat address options with entities that support the talk verb
 	_update_chat_address_options()
 	# Refresh inventory panel to reflect any item transfers
