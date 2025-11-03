@@ -163,7 +163,24 @@ func _on_request_completed(result: int, response_code: int, _headers: PackedStri
 			request_error.emit(error_msg)
 		return
 	
-	var content = response.choices[0].message.content
+	var choice_msg = response.choices[0].message
+	var content := ""
+	
+	if choice_msg.has("content") and typeof(choice_msg.content) == TYPE_STRING and choice_msg.content != "":
+		content = choice_msg.content
+	elif choice_msg.has("reasoning") and typeof(choice_msg.reasoning) == TYPE_STRING and choice_msg.reasoning != "":
+		content = choice_msg.reasoning
+	else:
+		var error_msg = "No content in response"
+		if callback:
+			callback.received = true
+			callback.error = error_msg
+			if callback.has("meta"):
+				request_finished.emit(callback.meta)
+		else:
+			request_error.emit(error_msg)
+		return
+	
 	if callback:
 		callback.received = true
 		callback.text = content
