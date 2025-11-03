@@ -5,7 +5,7 @@ class_name ChoicePanel
 
 signal action_selected(verb: String, target: String)
 
-@onready var choice_container: GridContainer = $VBox/ScrollContainer/ChoiceContainer
+@onready var choice_container: HFlowContainer = $VBox/ScrollContainer/ChoiceContainer
 @onready var travel_dropdown: OptionButton = $VBox/TravelRow/TravelDropdown
 
 func clear_choices():

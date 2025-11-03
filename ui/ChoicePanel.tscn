@@ -34,15 +34,13 @@ layout_mode = 2
 text = "Travel:"
 
 [node name="TravelDropdown" type="OptionButton" parent="VBox/TravelRow"]
-layout_mode = 2
-text = ""
 visible = false
+layout_mode = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="VBox"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ChoiceContainer" type="GridContainer" parent="VBox/ScrollContainer"]
+[node name="ChoiceContainer" type="HFlowContainer" parent="VBox/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-columns = 4
