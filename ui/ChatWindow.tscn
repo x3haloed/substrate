@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://b8vwcq7x3kp4f"]
 
 [ext_resource type="Script" uid="uid://b5uylvjoic30s" path="res://ui/ChatWindow.gd" id="1_1"]
-[ext_resource type="PackedScene" path="res://ui/TypingIndicator.tscn" id="2_1"]
+[ext_resource type="PackedScene" uid="uid://baypuv2nilt2g" path="res://ui/TypingIndicator.tscn" id="2_1"]
 
 [node name="ChatWindow" type="Control"]
 layout_mode = 3
@@ -31,6 +31,7 @@ bbcode_enabled = true
 scroll_following = true
 
 [node name="TypingIndicator" parent="VBox" instance=ExtResource("2_1")]
+layout_mode = 2
 
 [node name="InputBox" type="HBoxContainer" parent="VBox"]
 layout_mode = 2
