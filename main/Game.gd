@@ -107,6 +107,9 @@ func _ready():
 		clipboard_button.visible = true
 		clipboard_button.pressed.connect(_on_clipboard_button_pressed)
 	
+	# set up card editor
+	card_editor.llm_client = llm_client
+
 	# Start the game
 	_start_game()
 

@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://o7xiakcfdh8l"]
 
 [ext_resource type="Script" uid="uid://dhwy8pryppl27" path="res://ui/CardEditor.gd" id="1_1"]
-[ext_resource type="PackedScene" uid="uid://baypuv2nilt2g" path="res://ui/TypingIndicator.tscn" id="2_ag3ur"]
+[ext_resource type="PackedScene" uid="uid://b8vwcq7x3kp4f" path="res://ui/ChatWindow.tscn" id="2_ag3ur"]
 
 [node name="CardEditor" type="Control"]
 layout_mode = 3
@@ -747,27 +747,10 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Start"
 
-[node name="ChatLog" type="RichTextLabel" parent="HBoxContainer/HSplitContainer/ChatPanel"]
+[node name="ChatWindow" parent="HBoxContainer/HSplitContainer/ChatPanel" instance=ExtResource("2_ag3ur")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-bbcode_enabled = true
-scroll_following = true
+show_address_option = false
 
-[node name="TypingIndicator" parent="HBoxContainer/HSplitContainer/ChatPanel" instance=ExtResource("2_ag3ur")]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="InputBox" type="HBoxContainer" parent="HBoxContainer/HSplitContainer/ChatPanel"]
-layout_mode = 2
-
-[node name="InputLine" type="LineEdit" parent="HBoxContainer/HSplitContainer/ChatPanel/InputBox"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-placeholder_text = "Type a message..."
-
-[node name="SendButton" type="Button" parent="HBoxContainer/HSplitContainer/ChatPanel/InputBox"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Send"
+[connection signal="message_sent" from="HBoxContainer/HSplitContainer/ChatPanel/ChatWindow" to="." method="_on_chat_message_sent"]

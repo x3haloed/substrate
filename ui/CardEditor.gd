@@ -7,6 +7,8 @@ class_name CardEditor
 signal closed()
 signal profile_saved(path: String)
 
+var llm_client: LLMClient
+
 var current_profile: CharacterProfile = null
 var current_path: String = ""  # Path for save (without .scrd extension)
 
@@ -106,10 +108,7 @@ var portrait_file_dialog: FileDialog
 @onready var scroll_container: ScrollContainer = %ScrollContainer
 
 # Chat test controls
-@onready var chat_log: RichTextLabel = %ChatLog
-@onready var typing_indicator: TypingIndicator = %TypingIndicator
-@onready var chat_input_line: LineEdit = %InputLine
-@onready var send_chat_button: Button = %SendButton
+@onready var chat_window: ChatWindow = %ChatWindow
 
 # Toolbar buttons
 @onready var new_button: Button = %NewButton
@@ -126,6 +125,12 @@ var selected_entry_index: int = -1
 var selected_trigger_index: int = -1
 var advanced_visible: bool = false
 var _greeting_index: int = 0
+
+# Lightweight LLM chat sandbox state for the editor's ChatWindow
+var _prompt_engine: PromptEngine
+var _sandbox_world: WorldDB
+var _sandbox_scene: SceneGraph
+var _sandbox_npc_id: String = ""
 
 func _ready():
 	# Sync builtin cards to editor storage
@@ -565,13 +570,84 @@ func _on_advanced_toggle_pressed():
 	_set_advanced_visible(not advanced_visible)
 
 func _on_start_chat_pressed():
-	chat_log.clear()
-	typing_indicator.start("npc", current_profile.name)
-	# 1. display greeting (first_mes or rotate through alternate greetings)
+	chat_window.clear_chat()
+	chat_window.show_typing("npc", current_profile.name)
 	var greet := _select_greeting()
-	chat_log.append_text(greet)
-	# 2. stop typing indicator
-	typing_indicator.stop()
+	chat_window.add_message(greet, "npc", current_profile.name)
+	chat_window.hide_typing()
+	# Prepare/refresh minimal sandbox context and seed history with greeting
+	_ensure_chat_sandbox()
+	if _sandbox_world:
+		_sandbox_world.history.clear()
+		if greet != "":
+			_sandbox_world.add_history_entry({
+				"event": "narration",
+				"style": "npc",
+				"speaker": _sandbox_npc_id,
+				"text": greet
+			})
+			_sandbox_world.flags["last_npc_speaker"] = _sandbox_npc_id
+			_sandbox_world.flags["last_npc_line"] = greet
+
+func _on_chat_message_sent(chat_text: String):
+	chat_window.show_typing("npc", current_profile.name)
+	_ensure_chat_sandbox()
+	# Record player's line into sandbox history for prompt context
+	if _sandbox_world:
+		_sandbox_world.add_history_entry({
+			"event": "player_text",
+			"style": "player",
+			"speaker": "player",
+			"text": chat_text
+		})
+		_sandbox_world.flags["last_player_line"] = chat_text
+
+	# Build an NPC prompt from the current card, chat history, and a minimal scene
+	var action := ActionRequest.new()
+	action.actor = "player"
+	action.verb = "talk"
+	action.target = _sandbox_npc_id
+	action.scene = _sandbox_scene.scene_id if _sandbox_scene else "sandbox"
+	action.context = {"utterance": chat_text}
+
+	var messages: Array[Dictionary] = _prompt_engine.build_npc_prompt(action, _sandbox_scene, current_profile)
+	var response_text: String = await _prompt_engine._make_llm_request(messages, _prompt_engine._resolution_envelope_schema(), {"source": "npc", "npc_id": action.target})
+	if response_text != "":
+		var envelope: ResolutionEnvelope = _prompt_engine._parse_response(response_text)
+		if envelope.narration.size() > 0:
+			# Ensure style/speaker for display and history
+			envelope.narration[0].style = "npc"
+			envelope.narration[0].speaker = action.target
+			chat_window.add_message(envelope.narration[0].text, "npc", current_profile.name)
+			# Record NPC line into sandbox history
+			if _sandbox_world:
+				_sandbox_world.add_history_entry({
+					"event": "narration",
+					"style": "npc",
+					"speaker": action.target,
+					"text": envelope.narration[0].text
+				})
+				_sandbox_world.flags["last_npc_speaker"] = action.target
+				_sandbox_world.flags["last_npc_line"] = envelope.narration[0].text
+	chat_window.hide_typing()
+
+func _ensure_chat_sandbox() -> void:
+	if _prompt_engine != null and _sandbox_scene != null and _sandbox_world != null and llm_client != null:
+		return
+	# Create a tiny world DB for chat snapshotting
+	_sandbox_world = WorldDB.new()
+	_sandbox_world.flags["current_scene"] = "card_editor_sandbox"
+	var PromptEngineScript = load("res://llm/PromptEngine.gd")
+	_prompt_engine = PromptEngineScript.new(llm_client, _sandbox_world)
+	# Build a minimal scene with a single NPC entity derived from the card name
+	_sandbox_scene = SceneGraph.new()
+	_sandbox_scene.scene_id = "card_editor_sandbox"
+	_sandbox_scene.description = "Ad-hoc chat sandbox"
+	var npc := Entity.new()
+	_sandbox_npc_id = (current_profile.name.to_lower().replace(" ", "_") if current_profile and current_profile.name != "" else "npc")
+	npc.id = _sandbox_npc_id
+	npc.type_name = "npc"
+	_sandbox_scene.entities = [npc]
 
 func _select_greeting() -> String:
 	if current_profile == null:

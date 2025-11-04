@@ -62,4 +62,3 @@ static func auto_tag_entities(text: String, entity_ids: Array[String]) -> String
 			result = result.substr(0, start_i) + "[" + word + "]" + result.substr(end_i)
 
 	return result
-

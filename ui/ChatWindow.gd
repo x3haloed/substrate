@@ -6,6 +6,8 @@ class_name ChatWindow
 signal entity_clicked(entity_id: String)
 signal message_sent(text: String)
 
+@export var show_address_option: bool = true
+
 @onready var chat_log: RichTextLabel = $VBox/ChatLog
 @onready var typing_indicator: TypingIndicator = $VBox/TypingIndicator
 @onready var address_option: OptionButton = $VBox/InputBox/AddressOption
@@ -18,9 +20,10 @@ func _ready():
 	send_button.pressed.connect(_on_send_pressed)
 	input_line.text_submitted.connect(_on_input_submitted)
 	chat_log.meta_clicked.connect(_on_meta_clicked)
+	address_option.visible = show_address_option
+
 func set_world_db(db: WorldDB) -> void:
 	world_db = db
-
 
 func add_message(text: String, style: String = "world", speaker: String = ""):
 	var formatted = Narrator.format_narration(text, style)
