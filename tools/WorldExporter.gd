@@ -110,7 +110,8 @@ func export_world(world: WorldDB, export_path: String, meta: Dictionary = {}, op
 		var w := {
 			"flags": world.flags,
 			"relationships": world.relationships,
-			"characters_state": world.characters_state
+			"characters_state": world.characters_state,
+			"party": world.party
 		}
 		_write_text_file(stage_dir + "/world.json", JSON.stringify(w, "  "))
 

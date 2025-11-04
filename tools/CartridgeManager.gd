@@ -197,6 +197,12 @@ func build_world_db_from_import(cart_id: String, kind: int = StoreKind.PLAYER) -
 					world.relationships[a] = w.relationships[a]
 			if w.has("characters_state") and w.characters_state is Dictionary:
 				world.characters_state = w.characters_state
+			# Import party membership if present
+			if w.has("party") and w.party is Array:
+				world.party = []
+				for member in (w.party as Array):
+					if typeof(member) == TYPE_STRING:
+						world.party.append(String(member))
 
 	return world
 
