@@ -5,64 +5,22 @@ class_name PromptEngine
 
 var llm_client: LLMClient
 var world_db: WorldDB
+const PromptTemplateRegistryScript = preload("res://llm/PromptTemplateRegistry.gd")
+var templates
 
-const NARRATOR_SYSTEM_PROMPT = """You are the Narrator, the invisible voice of the world. You describe scenes, state changes, and consequences in evocative prose. You do not speak as a character or DM—you are the world itself.
 
-Guidelines:
-- Write in third person, present tense
-- Be concise but atmospheric
-- Highlight sensory details
-- When state changes occur, describe them naturally
-- Never break character or address the player directly"""
-
-const DIRECTOR_SYSTEM_PROMPT = """You are the Director, arbitrating actions and maintaining world consistency. You resolve player actions, enforce scene rules, and update world state.
-
-Respond with a JSON object with these fields:
-{
-  "narration": [{"style": "world", "text": "...", "speaker": ""}],
-  "patches": [{"op": "replace", "path": "/entities/{id}/props/{key}", "value": "..."}],
-  "commands": [{"type": "transfer", "from": "player|<entity_id>", "to": "<entity_id>", "item": "<entity_id>", "quantity": 1}],
-  "ui_choices": [...]
-}
-
-Rules:
-- Prefer engine-handled "commands" for inventory/ownership changes (e.g., give/take/transfer). Do NOT attempt to edit arrays like scene entities or contents directly via patches.
-- Patches must modify only supported domains: /entities/{id}/props, /entities/{id}/state, /entities/{id}/lore and /characters/{id}/stats/.. (use op=add or replace appropriately).
-- Keep narration concise and reflect consequences.
-- Only offer verbs that are legal in scene for player actions.
-"""
-
-# Character dialog writer for NPCs
-const NPC_SYSTEM_PROMPT = """You are a character dialog writer.
-Your job is to write a single first-person reply as the specified character.
-
-Output MUST be a JSON object matching this schema:
-{
-  "narration": [
-	{"style": "npc", "speaker": "<target_entity_id>", "text": "<the character's spoken line only>"}
-  ],
-  "patches": [ {"op": "...", "path": "...", "value": ... } ]
-}
-
-Rules:
-- Reply strictly in first-person as the character; no out-of-character commentary.
-- Do not include world narration or stage directions; write only what the character says.
-- Keep it concise and true to the character's personality, traits, and style.
-- If relevant, you MAY include JSON patches to update state as consequences of speech or minor reactions.
-- You MAY reference scene entities by their exact IDs in square brackets like [barkeep]; do not invent new IDs.
-- Do NOT include code fences or any extra text outside the JSON object.
-"""
 
 func _init(p_llm_client: LLMClient, p_world_db: WorldDB):
 	llm_client = p_llm_client
 	world_db = p_world_db
+	templates = PromptTemplateRegistryScript.new()
 
 func build_narrator_prompt(scene_context: Dictionary, image: Image = null) -> Array[Dictionary]:
 	var brief := format_scene_brief(scene_context)
 	# Build recent chat snapshot to give narrator strong situational awareness
 	var chat_snapshot = _build_chat_snapshot()
 	var user_text = "Scene brief:\n" + brief + "\n\n" + "Recent chat snapshot:\n" + JSON.stringify(chat_snapshot, "\t") + "\n\nWrite a concise atmospheric paragraph (3-5 sentences)."
-	var system_msg = {"role": "system", "content": NARRATOR_SYSTEM_PROMPT + "\n\n" + "Respond only with prose. Do not output JSON or code fences."}
+	var system_msg = {"role": "system", "content": templates.get_narrator_system_prompt() + "\n\n" + "Respond only with prose. Do not output JSON or code fences."}
 	# If vision supported and image provided, embed as Base64 data URL
 	if llm_client and llm_client.settings and llm_client.settings.supports_vision and image != null:
 		var png_bytes: PackedByteArray = image.save_png_to_buffer()
@@ -164,7 +122,7 @@ func build_director_prompt(action: ActionRequest, scene: SceneGraph, character_c
 	user_sections.append("Respond with a valid JSON object matching the ResolutionEnvelope format.")
 	
 	return [
-		{"role": "system", "content": DIRECTOR_SYSTEM_PROMPT},
+		{"role": "system", "content": templates.get_director_system_prompt()},
 		{"role": "user", "content": "\n\n".join(user_sections)}
 	]
 
@@ -200,7 +158,7 @@ func build_npc_prompt(action: ActionRequest, scene: SceneGraph, character: Chara
 			user_context["lorebook_summary"] = summary
 
 	return [
-		{"role": "system", "content": NPC_SYSTEM_PROMPT},
+		{"role": "system", "content": templates.get_npc_system_prompt()},
 		{"role": "user", "content": JSON.stringify(user_context, "\t")}
 	]
 
@@ -215,21 +173,7 @@ func build_freeform_prompt(scene: SceneGraph, player_text: String) -> Array[Dict
 	# Build a chat snapshot from recent world history so the model can infer implied addresses
 	var chat_snapshot = _build_chat_snapshot()
 
-	var instructions = """
-You are the Director, arbitrating freeform player input without an addressed target.
-
-Task:
-- Decide if the player's text is dialog (a spoken line) or an action description.
-- If dialog: pick the most appropriate NPC (by id in the scene) to react, or choose a world reaction if no NPC is appropriate.
-- If action: interpret the player's intent as an ActionRequest (actor is player) and resolve it.
-- Always reply with a valid ResolutionEnvelope JSON object: narration (npc or world), patches (if any), and ui_choices.
-
-Rules:
-- Maintain world consistency and scene rules.
-- Prefer concise but evocative narration.
-- Do not invent entity IDs; only use those present in the scene.
- - When the player's text looks like a reply and no addressee is explicit, prefer responding to last_npc_speaker from chat_snapshot.
-"""
+	var instructions = templates.get_freeform_system_prompt()
 	return [
 		{"role": "system", "content": instructions},
 		{"role": "user", "content": JSON.stringify({
