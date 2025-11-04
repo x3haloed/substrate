@@ -19,6 +19,7 @@ class_name CharacterProfile
 # Optional metadata
 @export var creator_notes: String = ""
 @export var system_prompt: String = "{{original}}"
+@export var post_history_instructions: String = ""
 @export var alternate_greetings: Array[String] = []
 @export var tags: Array[String] = []
 @export var creator: String = ""

@@ -72,6 +72,7 @@ first_mes = "I’ll take the flank. Keep your head down."
 mes_example = "Threat ahead. I’ll cover."
 creator_notes = "Protective companion archetype."
 system_prompt = "{{original}}"
+post_history_instructions = ""
 alternate_greetings = []
 tags = ["companion", "ranger"]
 creator = "Substrate"
@@ -93,7 +94,8 @@ All fields below are on the `CharacterProfile` resource unless specified.
 - first_mes: String (required)
 - mes_example: String (required)
 - creator_notes: String (optional; MUST NOT be used in prompts directly)
-- system_prompt: String (optional; supports `{{original}}` placeholder)
+- system_prompt: String (optional; supports `{{original}}` placeholder). Default behavior (ST-aligned): if non-empty, this replaces the system message used for NPC prompts; if it contains `{{original}}`, that token is replaced with the default NPC role template; if empty, the role template is used as-is.
+- post_history_instructions: String (optional)
 - alternate_greetings: Array[String] (optional)
 - tags: Array[String] (optional)
 - creator: String (optional)
@@ -113,7 +115,7 @@ All fields below are on the `CharacterProfile` resource unless specified.
 - spec_version: String (required) — must equal `1.0`
 
 Notes:
-- Excluded from this spec: `scenario` and `post_history_instructions` from CC_v2. Scenario context is provided by the game world, and we do not use jailbreak fields.
+- Excluded from this spec: `scenario` from CC_v2. Scenario context is provided by the game world.
 
 ## CharacterBook resource
 A character-specific lorebook that stacks above the world book.
@@ -161,13 +163,13 @@ Condition triplets use:
 - Engines evaluate triggers by priority, then by recency/cooldown, then by tie-break rules.
 
 ## Prompting integration (informative)
-The direction/prompting stack composes:
-1. World system prompt → Character `system_prompt` (with `{{original}}` merge)
-2. Active scene summary (entities, verbs, constraints)
-3. Character core: `description`, `personality`, `traits`, `style`
-4. Character/world books (within `token_budget`)
-5. Recent dialogue/history
-6. Current `stats` snapshot and matched triggers (as rationale)
+NPC chat prompt assembly in Substrate:
+1. System message: use the character's `system_prompt` if non-empty; otherwise use the NPC role template from `PromptTemplateRegistry`. When `system_prompt` contains `{{original}}`, replace it with the role template string that would have been used.
+2. Active scene snapshot (scene id, description, entities, rules).
+3. Character core: `id`, `name`, `description`, `personality`, `traits`, `style`.
+4. Recent dialogue/history snapshot.
+5. CharacterBook summary (if present and enabled).
+6. Optional `post_history_instructions`: injected after history as a low-priority system message.
 
 ## Import compatibility
 Substrate supports importing Tavern-style CC V1 and CC V2 cards, converting to `.tres`.
@@ -181,10 +183,10 @@ Mapping (V1):
 Mapping (V2):
 - `spec/spec_version` are recognized but replaced with Substrate `spec/spec_version`
 - `data.name`, `description`, `personality`, `first_mes`, `mes_example` → direct
-- `data.creator_notes`, `system_prompt`, `alternate_greetings`, `tags`, `creator`, `character_version` → direct
+- `data.creator_notes`, `system_prompt`, `post_history_instructions`, `alternate_greetings`, `tags`, `creator`, `character_version` → direct
 - `data.character_book` → `CharacterBook` + `CharacterBookEntry` resources
 - `data.extensions` → copied into `extensions`
-- Exclude `scenario` and `post_history_instructions`
+- Exclude `scenario`
 
 V2 in PNG (embedded via "Chara"):
 - Substrate recognizes CC v2 cards embedded in PNG/APNG: a base64‑encoded JSON string under the `Chara` text metadata key.

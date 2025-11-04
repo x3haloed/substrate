@@ -7,6 +7,26 @@ var llm_client: LLMClient
 var world_db: WorldDB
 const PromptTemplateRegistryScript = preload("res://llm/PromptTemplateRegistry.gd")
 var templates
+const PromptInjectionManagerScript = preload("res://llm/PromptInjectionManager.gd")
+var injection_manager
+var injection_layers: Array = []
+
+## Public helpers to manage injection layers at runtime
+func register_injection_layer(layer):
+	if layer == null:
+		return
+	injection_layers.append(layer)
+
+func clear_injection_layers(scope: String = ""):
+	if scope == "":
+		injection_layers.clear()
+		return
+	var filtered: Array = []
+	for l in injection_layers:
+		if l and l.has("scope") and l.scope == scope:
+			continue
+		filtered.append(l)
+	injection_layers = filtered
 
 
 
@@ -14,19 +34,70 @@ func _init(p_llm_client: LLMClient, p_world_db: WorldDB):
 	llm_client = p_llm_client
 	world_db = p_world_db
 	templates = PromptTemplateRegistryScript.new()
+	injection_manager = PromptInjectionManagerScript.new()
+
+	# Default prompt injection layers (enabled). These reinforce output formats and
+	# placement priorities across scopes, similar to ST's Prompt Manager behavior.
+	var L = PromptInjectionManagerScript.LayerDef
+	var P = PromptInjectionManagerScript.Position
+
+	# Director: enforce strict JSON when schema is provided; avoid code fences/text.
+	var dir_before := L.new()
+	dir_before.id = "director.strict_json"
+	dir_before.scope = "director"
+	dir_before.position = P.BEFORE_SYSTEM
+	dir_before.role = "system"
+	dir_before.priority = 0
+	dir_before.enabled = true
+	dir_before.content = "When a JSON schema is provided, respond only with a single JSON object that strictly matches it. Do not include code fences or any extra commentary."
+	injection_layers.append(dir_before)
+
+	# NPC: reinforce single-object JSON and no extra commentary.
+	var npc_before := L.new()
+	npc_before.id = "npc.strict_json"
+	npc_before.scope = "npc"
+	npc_before.position = P.BEFORE_SYSTEM
+	npc_before.role = "system"
+	npc_before.priority = 0
+	npc_before.enabled = true
+	npc_before.content = "Output must be one JSON object only. No code fences, no explanations."
+	injection_layers.append(npc_before)
+
+	# Freeform: enforce strict JSON output as ResolutionEnvelope.
+	var ff_before := L.new()
+	ff_before.id = "freeform.strict_json"
+	ff_before.scope = "freeform"
+	ff_before.position = P.BEFORE_SYSTEM
+	ff_before.role = "system"
+	ff_before.priority = 0
+	ff_before.enabled = true
+	ff_before.content = "Respond only with a single JSON object conforming to the requested ResolutionEnvelope. No code fences or extra text."
+	injection_layers.append(ff_before)
+
+	# Narrator: gentle reminder to avoid structured outputs.
+	var nar_after := L.new()
+	nar_after.id = "narrator.prose_only"
+	nar_after.scope = "narrator"
+	nar_after.position = P.AFTER_SYSTEM
+	nar_after.role = "system"
+	nar_after.priority = 10
+	nar_after.enabled = true
+	nar_after.content = "Respond with plain prose only; do not output JSON or code fences."
+	injection_layers.append(nar_after)
 
 func build_narrator_prompt(scene_context: Dictionary, image: Image = null) -> Array[Dictionary]:
 	var brief := format_scene_brief(scene_context)
 	# Build recent chat snapshot to give narrator strong situational awareness
 	var chat_snapshot = _build_chat_snapshot()
 	var user_text = "Scene brief:\n" + brief + "\n\n" + "Recent chat snapshot:\n" + JSON.stringify(chat_snapshot, "\t") + "\n\nWrite a concise atmospheric paragraph (3-5 sentences)."
-	var system_msg = {"role": "system", "content": templates.get_narrator_system_prompt() + "\n\n" + "Respond only with prose. Do not output JSON or code fences."}
+	var system_msg = {"role": "system", "content": templates.get_narrator_system_prompt()}
+	var messages: Array[Dictionary] = []
 	# If vision supported and image provided, embed as Base64 data URL
 	if llm_client and llm_client.settings and llm_client.settings.supports_vision and image != null:
 		var png_bytes: PackedByteArray = image.save_png_to_buffer()
 		var base64_image := Marshalls.raw_to_base64(png_bytes)
 		var data_url := "data:image/png;base64," + base64_image
-		return [
+		messages = [
 			system_msg,
 			{"role": "user", "content": [
 				{"type": "text", "text": user_text},
@@ -34,10 +105,12 @@ func build_narrator_prompt(scene_context: Dictionary, image: Image = null) -> Ar
 			]}
 		]
 	# Fallback: text-only
-	return [
-		system_msg,
-		{"role": "user", "content": user_text}
-	]
+	else:
+		messages = [
+			system_msg,
+			{"role": "user", "content": user_text}
+		]
+	return injection_manager.apply_layers("narrator", messages, {"scene_context": scene_context}, injection_layers)
 
 ## Convert scene context JSON into a human-friendly brief to nudge prose outputs
 static func format_scene_brief(scene_context: Dictionary) -> String:
@@ -121,10 +194,11 @@ func build_director_prompt(action: ActionRequest, scene: SceneGraph, character_c
 	
 	user_sections.append("Respond with a valid JSON object matching the ResolutionEnvelope format.")
 	
-	return [
+	var messages_d: Array[Dictionary] = [
 		{"role": "system", "content": templates.get_director_system_prompt()},
 		{"role": "user", "content": "\n\n".join(user_sections)}
 	]
+	return injection_manager.apply_layers("director", messages_d, {"action": action, "scene": scene, "character_context": character_context}, injection_layers)
 
 # Build NPC dialog prompt when player talks to an NPC
 func build_npc_prompt(action: ActionRequest, scene: SceneGraph, character: CharacterProfile) -> Array[Dictionary]:
@@ -157,10 +231,25 @@ func build_npc_prompt(action: ActionRequest, scene: SceneGraph, character: Chara
 		if summary != "":
 			user_context["lorebook_summary"] = summary
 
-	return [
-		{"role": "system", "content": templates.get_npc_system_prompt()},
+	var messages_npc: Array[Dictionary] = [
+		{"role": "system", "content": _apply_character_system_prompt(character, templates.get_npc_system_prompt())},
 		{"role": "user", "content": JSON.stringify(user_context, "\t")}
 	]
+	# Apply character-specific post-history instructions, if present, as a per-call IN_CHAT layer
+	var layers := injection_layers.duplicate()
+	if typeof(character.post_history_instructions) == TYPE_STRING and character.post_history_instructions.strip_edges() != "":
+		var L = PromptInjectionManagerScript.LayerDef
+		var P = PromptInjectionManagerScript.Position
+		var ph := L.new()
+		ph.id = "card.post_history_instructions:" + character.name
+		ph.scope = "npc"
+		ph.position = P.IN_CHAT   # ensures it comes after the user/history payload
+		ph.role = "system"
+		ph.priority = 50
+		ph.enabled = true
+		ph.content = character.post_history_instructions
+		layers.append(ph)
+	return injection_manager.apply_layers("npc", messages_npc, {"action": action, "scene": scene, "character": character}, layers)
 
 # Build a prompt to interpret freeform player input and resolve it
 func build_freeform_prompt(scene: SceneGraph, player_text: String) -> Array[Dictionary]:
@@ -174,7 +263,7 @@ func build_freeform_prompt(scene: SceneGraph, player_text: String) -> Array[Dict
 	var chat_snapshot = _build_chat_snapshot()
 
 	var instructions = templates.get_freeform_system_prompt()
-	return [
+	var messages_ff: Array[Dictionary] = [
 		{"role": "system", "content": instructions},
 		{"role": "user", "content": JSON.stringify({
 			"scene": scene_info,
@@ -182,6 +271,7 @@ func build_freeform_prompt(scene: SceneGraph, player_text: String) -> Array[Dict
 			"player_text": player_text
 		}, "\t")}
 	]
+	return injection_manager.apply_layers("freeform", messages_ff, {"scene": scene, "player_text": player_text}, injection_layers)
 
 ## Build a compact snapshot of recent dialog/narration for context-aware prompts
 func _build_chat_snapshot() -> Dictionary:
@@ -295,6 +385,15 @@ func process_narrator_request(context: Dictionary, image: Image = null) -> Strin
 	var messages = build_narrator_prompt(context, image)
 	var response_text = await _make_llm_request(messages, {}, {"source": "narrator"})
 	return response_text
+
+static func _apply_character_system_prompt(character: CharacterProfile, original_template: String) -> String:
+	var card_prompt := ""
+	if character and typeof(character.system_prompt) == TYPE_STRING:
+		card_prompt = character.system_prompt
+	if card_prompt.strip_edges() == "":
+		return original_template
+	# Support placeholder merge
+	return card_prompt.replace("{{original}}", original_template)
 
 func _make_llm_request(messages: Array[Dictionary], json_schema: Dictionary = {}, meta: Dictionary = {}) -> String:
 	return await llm_client.make_request(messages, "", json_schema, meta)

@@ -53,7 +53,6 @@ Rules:
 - Keep it concise and true to the character's personality, traits, and style.
 - If relevant, you MAY include JSON patches to update state as consequences of speech or minor reactions.
 - You MAY reference scene entities by their exact IDs in square brackets like [barkeep]; do not invent new IDs.
-- Do NOT include code fences or any extra text outside the JSON object.
 """
 
 
