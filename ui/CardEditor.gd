@@ -111,6 +111,23 @@ var portrait_file_dialog: FileDialog
 # Chat test controls
 @onready var chat_window: ChatWindow = %ChatWindow
 
+# Big text modal editor
+@onready var big_text_dialog: AcceptDialog = %BigTextDialog
+@onready var big_text_edit: TextEdit = %BigTextEdit
+var _big_text_target: TextEdit = null
+
+# Expand buttons
+@onready var description_expand_button: Button = %DescriptionExpandButton
+@onready var personality_expand_button: Button = %PersonalityExpandButton
+@onready var first_mes_expand_button: Button = %FirstMesExpandButton
+@onready var mes_example_expand_button: Button = %MesExampleExpandButton
+@onready var creator_notes_expand_button: Button = %CreatorNotesExpandButton
+@onready var system_prompt_expand_button: Button = %SystemPromptExpandButton
+@onready var post_history_instructions_expand_button: Button = %PostHistoryInstructionsExpandButton
+@onready var book_description_expand_button: Button = %BookDescriptionExpandButton
+@onready var entry_content_expand_button: Button = %EntryContentExpandButton
+@onready var trigger_narration_expand_button: Button = %TriggerNarrationExpandButton
+
 # Toolbar buttons
 @onready var new_button: Button = %NewButton
 @onready var open_button: Button = %OpenButton
@@ -148,6 +165,29 @@ func _ready():
 	advanced_toggle_button.pressed.connect(_on_advanced_toggle_pressed)
 	_set_advanced_visible(advanced_sections.visible)
 	start_chat_button.pressed.connect(_on_start_chat_pressed)
+
+	# Big text editor
+	big_text_dialog.confirmed.connect(_on_big_text_confirmed)
+	# Wire expand buttons to open modal with appropriate targets
+	description_expand_button.pressed.connect(func(): _open_big_text(description_edit, "Description"))
+	personality_expand_button.pressed.connect(func(): _open_big_text(personality_edit, "Personality"))
+	first_mes_expand_button.pressed.connect(func(): _open_big_text(first_mes_edit, "First Message"))
+	mes_example_expand_button.pressed.connect(func(): _open_big_text(mes_example_edit, "Message Example"))
+	creator_notes_expand_button.pressed.connect(func(): _open_big_text(creator_notes_edit, "Creator Notes"))
+	system_prompt_expand_button.pressed.connect(func(): _open_big_text(system_prompt_edit, "System Prompt"))
+	post_history_instructions_expand_button.pressed.connect(func(): _open_big_text(post_history_instructions_edit, "Post-History Instructions"))
+	book_description_expand_button.pressed.connect(func():
+		if current_profile and current_profile.character_book:
+			_open_big_text(book_description_edit, "Character Book Description")
+	)
+	entry_content_expand_button.pressed.connect(func():
+		if selected_entry_index >= 0:
+			_open_big_text(entry_content_edit, "Entry Content")
+	)
+	trigger_narration_expand_button.pressed.connect(func():
+		if selected_trigger_index >= 0:
+			_open_big_text(trigger_narration_edit, "Trigger Narration")
+	)
 	
 	# Connect card list
 	card_list.item_selected.connect(_on_card_list_item_selected)
@@ -358,6 +398,18 @@ func _load_profile_to_ui():
 		# Try to warm cache and set texture
 		current_profile.warm_portrait_cache()
 		portrait_preview.texture = current_profile.get_portrait_texture()
+
+func _open_big_text(target: TextEdit, title: String) -> void:
+	_big_text_target = target
+	big_text_dialog.title = title
+	big_text_edit.text = target.text
+	big_text_dialog.popup_centered_ratio(0.85)
+
+func _on_big_text_confirmed() -> void:
+	if _big_text_target != null:
+		_big_text_target.text = big_text_edit.text
+		_big_text_target = null
+	big_text_dialog.hide()
 
 func _update_character_book_ui():
 	if current_profile.character_book:

@@ -146,6 +146,11 @@ custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
 placeholder_text = "Description"
 
+[node name="DescriptionExpandButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Expand"
+
 [node name="PersonalityLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
 layout_mode = 2
 text = "Personality"
@@ -155,6 +160,11 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 placeholder_text = "Personality"
+
+[node name="PersonalityExpandButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Expand"
 
 [node name="FirstMesLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
 layout_mode = 2
@@ -166,6 +176,11 @@ custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 placeholder_text = "First Message"
 
+[node name="FirstMesExpandButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Expand"
+
 [node name="MesExampleLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
 layout_mode = 2
 text = "Message Example"
@@ -175,6 +190,11 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 placeholder_text = "Message Example"
+
+[node name="MesExampleExpandButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/CorePanel/CoreVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Expand"
 
 [node name="IdentityPanel" type="PanelContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox"]
 layout_mode = 2
@@ -291,6 +311,11 @@ custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 placeholder_text = "Creator Notes"
 
+[node name="CreatorNotesExpandButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Expand"
+
 [node name="SystemPromptLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox"]
 layout_mode = 2
 text = "System Prompt"
@@ -301,6 +326,11 @@ custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 placeholder_text = "System Prompt"
 
+[node name="SystemPromptExpandButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Expand"
+
 [node name="PostHistoryInstructionsLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox"]
 layout_mode = 2
 text = "Post-History Instructions"
@@ -310,6 +340,11 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 placeholder_text = "Instructions appended after history in prompts"
+
+[node name="PostHistoryInstructionsExpandButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Expand"
 
 [node name="AlternateGreetingsBox" type="VBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox"]
 layout_mode = 2
@@ -385,6 +420,11 @@ custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 placeholder_text = "Book Description"
 
+[node name="BookDescriptionExpandButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Expand"
+
 [node name="ScanDepthSpin" type="SpinBox" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -443,6 +483,11 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
 placeholder_text = "Entry Content"
+
+[node name="EntryContentExpandButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/EntryEditPanel/EntryPanelVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Expand"
 
 [node name="EntryEnabledCheck" type="CheckBox" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/CharacterBookSection/BookPanel/BookPanelVBox/EntryEditPanel/EntryPanelVBox"]
 unique_name_in_owner = true
@@ -652,6 +697,11 @@ custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 placeholder_text = "Narration"
 
+[node name="TriggerNarrationExpandButton" type="Button" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Expand"
+
 [node name="TriggerPrioritySpin" type="SpinBox" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/TriggersPanel/TriggersVBox/TriggerEditPanel/TriggerPanelVBox"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -762,5 +812,15 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 show_address_option = false
+
+[node name="BigTextDialog" type="AcceptDialog" parent="."]
+unique_name_in_owner = true
+title = "Edit Text"
+dialog_hide_on_ok = false
+
+[node name="BigTextEdit" type="TextEdit" parent="BigTextDialog"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(800, 500)
+wrap_mode = 1
 
 [connection signal="message_sent" from="HBoxContainer/HSplitContainer/ChatPanel/ChatWindow" to="." method="_on_chat_message_sent"]
