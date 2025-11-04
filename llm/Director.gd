@@ -194,16 +194,7 @@ func process_freeform_player_input(text: String) -> ResolutionEnvelope:
 	_apply_patches(envelope.patches)
 	# Process engine commands from freeform
 	_process_commands(envelope.commands)
-	# Minimal heuristic: parse 'give <item> to <target>' if no commands returned
-	if (envelope.commands == null or envelope.commands.is_empty()):
-		var lower = text.strip_edges().to_lower()
-		if lower.begins_with("give ") and " to " in lower:
-			var parts = lower.substr(5).split(" to ")
-			if parts.size() == 2:
-				var item_id = parts[0].strip_edges().replace("[", "").replace("]", "")
-				var target_id = parts[1].strip_edges().replace("[", "").replace("]", "")
-				var cmd = {"type": "transfer", "from": "player", "to": target_id, "item": item_id, "quantity": 1}
-				_process_commands([cmd])
+	
 	world_db.add_history_entry({
 		"event": "freeform_input",
 		"text": text
