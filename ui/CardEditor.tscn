@@ -301,6 +301,16 @@ custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 placeholder_text = "System Prompt"
 
+[node name="PostHistoryInstructionsLabel" type="Label" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox"]
+layout_mode = 2
+text = "Post-History Instructions"
+
+[node name="PostHistoryInstructionsEdit" type="TextEdit" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+placeholder_text = "Instructions appended after history in prompts"
+
 [node name="AlternateGreetingsBox" type="VBoxContainer" parent="HBoxContainer/HSplitContainer/MainPanel/ScrollContainer/ContentVBox/AdvancedSections/NarrativePanel/NarrativeVBox"]
 layout_mode = 2
 theme_override_constants/separation = 8

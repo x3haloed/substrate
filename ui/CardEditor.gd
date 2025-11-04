@@ -37,6 +37,7 @@ var portrait_file_dialog: FileDialog
 @onready var clear_portrait_button: Button = %ClearPortraitButton
 @onready var creator_notes_edit: TextEdit = %CreatorNotesEdit
 @onready var system_prompt_edit: TextEdit = %SystemPromptEdit
+@onready var post_history_instructions_edit: TextEdit = %PostHistoryInstructionsEdit
 @onready var tags_edit: LineEdit = %TagsEdit
 @onready var alternate_greetings_list: ItemList = %GreetingsList
 @onready var alternate_greeting_edit: LineEdit = %GreetingEdit
@@ -322,6 +323,7 @@ func _load_profile_to_ui():
 	character_version_edit.text = current_profile.character_version
 	creator_notes_edit.text = current_profile.creator_notes
 	system_prompt_edit.text = current_profile.system_prompt
+	post_history_instructions_edit.text = current_profile.post_history_instructions
 	
 	# Tags
 	tags_edit.text = ", ".join(current_profile.tags)
@@ -435,6 +437,7 @@ func _save_profile_from_ui():
 	current_profile.character_version = character_version_edit.text
 	current_profile.creator_notes = creator_notes_edit.text
 	current_profile.system_prompt = system_prompt_edit.text
+	current_profile.post_history_instructions = post_history_instructions_edit.text
 	
 	# Tags (convert PackedStringArray -> Array[String])
 	var tags_text = tags_edit.text.strip_edges()
