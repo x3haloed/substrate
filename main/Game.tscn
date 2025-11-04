@@ -87,10 +87,12 @@ text = "Campaign Studio"
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="player_label" type="Label" parent="GameUI/game_container/header/HBoxContainer"]
+[node name="clipboard_button" type="Button" parent="GameUI/game_container/header/HBoxContainer"]
+unique_name_in_owner = true
+visible = false
 layout_mode = 2
-text = "Player: Commander_Alpha"
-vertical_alignment = 1
+size_flags_vertical = 4
+text = "Clipboard"
 
 [node name="main_game" type="HBoxContainer" parent="GameUI/game_container"]
 layout_mode = 2

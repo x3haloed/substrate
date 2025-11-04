@@ -194,4 +194,3 @@ func _load_and_emit(index: int):
 func _on_cancel_pressed():
 	cancelled.emit()
 	hide()
-

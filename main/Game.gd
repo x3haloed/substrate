@@ -23,6 +23,7 @@ class_name Game
 @onready var studio_button: Button = $GameUI/game_container/header/HBoxContainer/button_group/studio_button
 @onready var campaign_studio: Control = $GameUI/CampaignStudio
 @onready var campaign_picker: Window = $GameUI/CampaignPicker
+@onready var clipboard_button: Button = %clipboard_button
 
 var llm_settings: LLMSettings
 var llm_client: LLMClient
@@ -31,6 +32,7 @@ var world_db: WorldDB
 var director: Node
 var autosave_timer: Timer
 var autosave_interval: float = 300.0  # 5 minutes
+var clipboard_manager: ClipboardManager
 
 func _enter_tree():
 	# Ensure the user's card repository is initialized with builtin cards
@@ -100,8 +102,10 @@ func _ready():
 	
 	# Install browser clipboard bridge for Web builds
 	if OS.has_feature("web"):
-		var clipboard_bridge := preload("res://tools/ClipboardBridge.gd").new()
-		add_child(clipboard_bridge)
+		clipboard_manager = load("res://ui/ClipboardManager.tscn").instantiate()
+		add_child(clipboard_manager)
+		clipboard_button.visible = true
+		clipboard_button.pressed.connect(_on_clipboard_button_pressed)
 	
 	# Start the game
 	_start_game()
@@ -554,6 +558,11 @@ func _on_campaign_picker_selected(cart_path: String, loaded_world: WorldDB):
 func _on_campaign_picker_cancelled():
 	# User cancelled the picker, do nothing
 	pass
+
+func _on_clipboard_button_pressed():
+	# Show clipboard manager
+	if clipboard_manager:
+		clipboard_manager.visible = true
 
 func _notification(what):
 	# Save on exit
