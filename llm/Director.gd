@@ -30,6 +30,9 @@ func enter_scene(scene_id: String) -> ResolutionEnvelope:
 	var scene = world_db.get_scene(scene_id)
 	if not scene:
 		return _create_error_envelope("Scene not found: " + scene_id)
+    
+	# Ensure party members are present as NPC entities in the scene at runtime
+	_inject_party_into_scene(scene)
 	
 	# Initialize action queue for this scene
 	_initialize_action_queue(scene)
@@ -76,6 +79,36 @@ func enter_scene(scene_id: String) -> ResolutionEnvelope:
 	# Notify listeners so UI can update
 	action_resolved.emit(envelope)
 	return envelope
+
+## Ensure all party members exist as NPC entities in the current scene (runtime only)
+func _inject_party_into_scene(scene: SceneGraph) -> void:
+	if world_db == null or scene == null:
+		return
+	var party_ids: Array[String] = world_db.party if world_db.party is Array else []
+	if party_ids.is_empty():
+		return
+	# Build fast lookup of existing entity IDs
+	var existing: Dictionary = {}
+	for e in scene.entities:
+		if e is Entity:
+			existing[e.id] = true
+	# Add missing party members as basic NPC entities
+	for pid in party_ids:
+		if typeof(pid) != TYPE_STRING:
+			continue
+		var cid: String = String(pid)
+		if existing.has(cid):
+			continue
+		var new_npc := Entity.new()
+		new_npc.id = cid
+		new_npc.type_name = "npc"
+		new_npc.verbs = ["talk"]
+		new_npc.tags = ["companion"]
+		# Optional: carry a short description from character profile if available
+		var profile := world_db.get_character(cid)
+		if profile != null and profile.description != "":
+			new_npc.props = {"description": profile.description}
+		scene.entities.append(new_npc)
 
 func process_player_action(action: ActionRequest) -> ResolutionEnvelope:
 	if action.scene != current_scene_id:
