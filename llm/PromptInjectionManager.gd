@@ -48,7 +48,7 @@ func apply_layers(scope: String, base_messages: Array[Dictionary], context: Dict
 
 	# inject after: immediately after the first system (or at the start if none)
 	if after.size() > 0:
-		var inserted := []
+		var inserted: Array[Dictionary] = []
 		for l in after:
 			inserted.append(_to_msg(l.role, l.content, context))
 		var first_system_idx := -1
@@ -58,9 +58,16 @@ func apply_layers(scope: String, base_messages: Array[Dictionary], context: Dict
 				break
 		if first_system_idx == -1:
 			# no system in base; treat as head insertion after pre-injected
-			result = inserted + result
+			var new_result: Array[Dictionary] = []
+			new_result.append_array(inserted)
+			new_result.append_array(result)
+			result = new_result
 		else:
-			result = result.slice(0, first_system_idx + 1) + inserted + result.slice(first_system_idx + 1)
+			var new_result2: Array[Dictionary] = []
+			new_result2.append_array(result.slice(0, first_system_idx + 1))
+			new_result2.append_array(inserted)
+			new_result2.append_array(result.slice(first_system_idx + 1))
+			result = new_result2
 
 	# inject in-chat: relative to non-system turns
 	if in_chat.size() > 0:
@@ -72,8 +79,10 @@ func apply_layers(scope: String, base_messages: Array[Dictionary], context: Dict
 			if str(result[i].get("role", "")) != "system":
 				split_idx = i
 				break
-		head = result.slice(0, split_idx)
-		tail = result.slice(split_idx, result.size())
+		head.clear()
+		head.append_array(result.slice(0, split_idx))
+		tail.clear()
+		tail.append_array(result.slice(split_idx, result.size()))
 
 		var inserted_turns: Array[Dictionary] = []
 		for l in in_chat:
@@ -81,10 +90,20 @@ func apply_layers(scope: String, base_messages: Array[Dictionary], context: Dict
 			inserted_turns.append(m)
 		if inserted_turns.size() > 0:
 			if in_chat[0].anchor_index <= 0:
-				tail = inserted_turns + tail
+				var new_tail: Array[Dictionary] = []
+				new_tail.append_array(inserted_turns)
+				new_tail.append_array(tail)
+				tail = new_tail
 			else:
 				var idx = min(in_chat[0].anchor_index, tail.size())
-				tail = tail.slice(0, idx) + inserted_turns + tail.slice(idx, tail.size())
-		result = head + tail
+				var new_tail2: Array[Dictionary] = []
+				new_tail2.append_array(tail.slice(0, idx))
+				new_tail2.append_array(inserted_turns)
+				new_tail2.append_array(tail.slice(idx, tail.size()))
+				tail = new_tail2
+		var combined: Array[Dictionary] = []
+		combined.append_array(head)
+		combined.append_array(tail)
+		result = combined
 
 	return result

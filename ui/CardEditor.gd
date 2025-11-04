@@ -125,6 +125,7 @@ var editor_cards: Array[Dictionary] = [] # Array of {path: String, profile: Char
 var selected_entry_index: int = -1
 var selected_trigger_index: int = -1
 var advanced_visible: bool = false
+var _greeting_index: int = 0
 
 func _ready():
 	# Sync builtin cards to editor storage
@@ -566,13 +567,30 @@ func _on_advanced_toggle_pressed():
 func _on_start_chat_pressed():
 	chat_log.clear()
 	typing_indicator.start("npc", current_profile.name)
-	# 1. display first message in chat log
-	# Note: according to SillyTavern and spec v2 documentation, the user should be allowed
-	#   to ask for a different first greeting if available:
-	#   "Click the '> Swipe' button on the message to generate a different response."
-	chat_log.append_text(current_profile.first_mes)
+	# 1. display greeting (first_mes or rotate through alternate greetings)
+	var greet := _select_greeting()
+	chat_log.append_text(greet)
 	# 2. stop typing indicator
 	typing_indicator.stop()
+
+func _select_greeting() -> String:
+	if current_profile == null:
+		return ""
+	var all_greetings: Array[String] = []
+	if typeof(current_profile.first_mes) == TYPE_STRING and current_profile.first_mes.strip_edges() != "":
+		all_greetings.append(current_profile.first_mes)
+	for g in current_profile.alternate_greetings:
+		var gg := str(g)
+		if gg.strip_edges() != "":
+			all_greetings.append(gg)
+	if all_greetings.is_empty():
+		return ""
+	# Cycle selection across starts to emulate ST swipe behavior
+	if _greeting_index >= all_greetings.size():
+		_greeting_index = 0
+	var picked := all_greetings[_greeting_index]
+	_greeting_index = (_greeting_index + 1) % all_greetings.size()
+	return picked
 
 # Metadata handlers
 func _on_add_greeting_pressed():

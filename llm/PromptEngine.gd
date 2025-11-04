@@ -10,23 +10,7 @@ var templates
 const PromptInjectionManagerScript = preload("res://llm/PromptInjectionManager.gd")
 var injection_manager
 var injection_layers: Array = []
-
-## Public helpers to manage injection layers at runtime
-func register_injection_layer(layer):
-	if layer == null:
-		return
-	injection_layers.append(layer)
-
-func clear_injection_layers(scope: String = ""):
-	if scope == "":
-		injection_layers.clear()
-		return
-	var filtered: Array = []
-	for l in injection_layers:
-		if l and l.has("scope") and l.scope == scope:
-			continue
-		filtered.append(l)
-	injection_layers = filtered
+const PromptAssemblerScript = preload("res://llm/PromptAssembler.gd")
 
 
 
@@ -209,32 +193,16 @@ func build_npc_prompt(action: ActionRequest, scene: SceneGraph, character: Chara
 		"rules": scene.rules
 	}
 
-	var character_info = {
-		"id": action.target,
-		"name": character.name,
-		"description": character.description,
-		"personality": character.personality,
-		"traits": character.traits,
-		"style": character.style
-	}
-
-	var user_context: Dictionary = {
-		"player_message": str(action.context.get("utterance", "")),
-		"character": character_info,
-		"scene": scene_info,
-		"chat_snapshot": _build_chat_snapshot()
-	}
-
-	# Include brief character book if present
-	if character.character_book:
-		var summary = _summarize_character_book(character.character_book)
-		if summary != "":
-			user_context["lorebook_summary"] = summary
-
-	var messages_npc: Array[Dictionary] = [
-		{"role": "system", "content": _apply_character_system_prompt(character, templates.get_npc_system_prompt())},
-		{"role": "user", "content": JSON.stringify(user_context, "\t")}
-	]
+	var player_text := str(action.context.get("utterance", ""))
+	var chat_snapshot := _build_chat_snapshot()
+	# Build messages via shared PromptAssembler (ST card support)
+	var messages_npc: Array[Dictionary] = PromptAssemblerScript.build_npc_messages(
+		character,
+		player_text,
+		scene_info,
+		chat_snapshot,
+		templates.get_npc_system_prompt()
+	)
 	# Apply character-specific post-history instructions, if present, as a per-call IN_CHAT layer
 	var layers := injection_layers.duplicate()
 	if typeof(character.post_history_instructions) == TYPE_STRING and character.post_history_instructions.strip_edges() != "":
@@ -513,7 +481,7 @@ func _parse_response(json_text: String) -> ResolutionEnvelope:
 		for patch in data.patches:
 			if patch is Dictionary:
 				patch_list.append(patch)
-		envelope.patches = patch_list
+			envelope.patches = patch_list
 	
 	# Parse UI choices
 	if data.has("ui_choices") and data.ui_choices is Array:
@@ -530,7 +498,7 @@ func _parse_response(json_text: String) -> ResolutionEnvelope:
 		for cmd in data.commands:
 			if cmd is Dictionary:
 				out_cmds.append(cmd)
-		envelope.commands = out_cmds
+			envelope.commands = out_cmds
 	
 	return envelope
 
