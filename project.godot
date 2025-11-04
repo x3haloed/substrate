@@ -13,6 +13,7 @@ config_version=5
 config/name="Substrate"
 run/main_scene="res://main/Game.tscn"
 config/features=PackedStringArray("4.5", "GL Compatibility")
+run/low_processor_mode=true
 config/icon="res://icon.svg"
 
 [autoload]
