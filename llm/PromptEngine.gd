@@ -195,13 +195,44 @@ func build_npc_prompt(action: ActionRequest, scene: SceneGraph, character: Chara
 
 	var player_text := str(action.context.get("utterance", ""))
 	var chat_snapshot := _build_chat_snapshot()
+
+	# Build macro context for safe expansion
+	var macro_ctx: Dictionary = {}
+	macro_ctx["user_name"] = str(world_db.flags.get("player_name", "You"))
+	macro_ctx["character_name"] = character.name
+	macro_ctx["char_name"] = character.name
+	macro_ctx["char_description"] = character.description
+	macro_ctx["char_personality"] = character.personality
+	macro_ctx["mes_examples"] = character.mes_example
+	macro_ctx["char_version"] = character.character_version
+	macro_ctx["scene_description"] = str(scene_info.get("description", ""))
+	macro_ctx["vars_local"] = world_db.flags.get("vars_local", {})
+	macro_ctx["vars_global"] = world_db.flags.get("vars_global", {})
+	# Recent chat-derived values
+	var last_msg := ""
+	if chat_snapshot.has("recent_messages") and chat_snapshot.recent_messages is Array and chat_snapshot.recent_messages.size() > 0:
+		last_msg = str(chat_snapshot.recent_messages[chat_snapshot.recent_messages.size() - 1].get("text", ""))
+	macro_ctx["last_message"] = last_msg
+	# Last user message
+	var last_user := ""
+	if chat_snapshot.has("recent_messages") and chat_snapshot.recent_messages is Array:
+		for i in range(chat_snapshot.recent_messages.size() - 1, -1, -1):
+			var m = chat_snapshot.recent_messages[i]
+			if m.get("event", "") == "player_text":
+				last_user = str(m.get("text", ""))
+				break
+	macro_ctx["last_user_message"] = last_user
+	# Last char message (fallback to stored flag)
+	macro_ctx["last_char_message"] = str(world_db.flags.get("last_npc_line", ""))
+
 	# Build messages via shared PromptAssembler (ST card support)
 	var messages_npc: Array[Dictionary] = PromptAssemblerScript.build_npc_messages(
 		character,
 		player_text,
 		scene_info,
 		chat_snapshot,
-		templates.get_npc_system_prompt()
+		templates.get_npc_system_prompt(),
+		macro_ctx
 	)
 	# Apply character-specific post-history instructions, if present, as a per-call IN_CHAT layer
 	var layers := injection_layers.duplicate()
@@ -215,7 +246,7 @@ func build_npc_prompt(action: ActionRequest, scene: SceneGraph, character: Chara
 		ph.role = "system"
 		ph.priority = 50
 		ph.enabled = true
-		ph.content = character.post_history_instructions
+		ph.content = MacroExpander.expand(character.post_history_instructions.strip_edges(), macro_ctx)
 		layers.append(ph)
 	return injection_manager.apply_layers("npc", messages_npc, {"action": action, "scene": scene, "character": character}, layers)
 

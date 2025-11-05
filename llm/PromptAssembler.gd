@@ -79,18 +79,20 @@ static func _build_character_context(character: CharacterProfile) -> Dictionary:
     ctx["tags"] = character.tags
     return ctx
 
-static func build_npc_messages(character: CharacterProfile, player_text: String, scene_info: Dictionary, chat_snapshot: Dictionary, base_system_prompt: String) -> Array[Dictionary]:
+static func build_npc_messages(character: CharacterProfile, player_text: String, scene_info: Dictionary, chat_snapshot: Dictionary, base_system_prompt: String, macro_ctx: Dictionary = {}) -> Array[Dictionary]:
     # 1) System prompt (merge card.system_prompt if provided)
     var sys_content := _merge_system_prompt(character.system_prompt, base_system_prompt) if character else base_system_prompt
+    sys_content = MacroExpander.expand(sys_content, macro_ctx)
     var messages: Array[Dictionary] = [
         {"role": "system", "content": sys_content}
     ]
 
     # 2) Inject example dialogues if present (as an additional system hint)
     if character and typeof(character.mes_example) == TYPE_STRING and character.mes_example.strip_edges() != "":
+        var mesx := MacroExpander.expand(character.mes_example.strip_edges(), macro_ctx)
         messages.append({
             "role": "system",
-            "content": "Example dialogues (character and user):\n" + character.mes_example.strip_edges()
+            "content": "Example dialogues (character and user):\n" + mesx
         })
 
     # 3) Build lorebook injections using keys/budget/depth
