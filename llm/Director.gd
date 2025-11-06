@@ -30,9 +30,11 @@ func enter_scene(scene_id: String) -> ResolutionEnvelope:
 	var scene = world_db.get_scene(scene_id)
 	if not scene:
 		return _create_error_envelope("Scene not found: " + scene_id)
-    
+	
 	# Ensure party members are present as NPC entities in the scene at runtime
 	_inject_party_into_scene(scene)
+	# Include world-level entities referenced by ID
+	_inject_world_entities_into_scene(scene)
 	
 	# Initialize action queue for this scene
 	_initialize_action_queue(scene)
@@ -109,6 +111,26 @@ func _inject_party_into_scene(scene: SceneGraph) -> void:
 		if profile != null and profile.description != "":
 			new_npc.props = {"description": profile.description}
 		scene.entities.append(new_npc)
+
+## Inject world-level entities listed on the scene (included by ID). Non-persistent.
+func _inject_world_entities_into_scene(scene: SceneGraph) -> void:
+	if world_db == null or scene == null:
+		return
+	# Normalize and unique check against existing ids
+	var existing: Dictionary = {}
+	for e in scene.entities:
+		if e is Entity:
+			existing[e.id] = true
+	var ids: Array[String] = []
+	if typeof(scene.include_entity_ids) == TYPE_ARRAY:
+		ids = scene.include_entity_ids
+	for raw_id in ids:
+		var inc_id := IdUtil.normalize_id(str(raw_id))
+		if existing.has(inc_id):
+			continue
+		var ent := world_db.materialize_world_entity(inc_id)
+		if ent != null:
+			scene.entities.append(ent)
 
 func process_player_action(action: ActionRequest) -> ResolutionEnvelope:
 	if action.scene != current_scene_id:

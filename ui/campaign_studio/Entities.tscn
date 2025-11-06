@@ -1,0 +1,136 @@
+[gd_scene load_steps=2 format=3 uid="uid://c2hwtnifyegrw"]
+
+[ext_resource type="Script" uid="uid://4n2g4ctggu3k" path="res://ui/campaign_studio/Entities.gd" id="1_entities"]
+
+[node name="Entities" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_entities")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="HBox" type="HBoxContainer" parent="Margin"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="LeftPanel" type="VBoxContainer" parent="Margin/HBox"]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+size_flags_horizontal = 2
+size_flags_vertical = 3
+
+[node name="Header" type="HBoxContainer" parent="Margin/HBox/LeftPanel"]
+layout_mode = 2
+
+[node name="HeaderLabel" type="Label" parent="Margin/HBox/LeftPanel/Header"]
+layout_mode = 2
+text = "World Entities"
+
+[node name="HeaderSpacer" type="Control" parent="Margin/HBox/LeftPanel/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AddButton" type="Button" parent="Margin/HBox/LeftPanel/Header"]
+layout_mode = 2
+text = "Add"
+
+[node name="DeleteButton" type="Button" parent="Margin/HBox/LeftPanel/Header"]
+layout_mode = 2
+disabled = true
+text = "Delete"
+
+[node name="EntityList" type="ItemList" parent="Margin/HBox/LeftPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+select_mode = 1
+
+[node name="RightPanel" type="VBoxContainer" parent="Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="NoSelection" type="Label" parent="Margin/HBox/RightPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Select an entity to edit."
+horizontal_alignment = 1
+
+[node name="Form" type="VBoxContainer" parent="Margin/HBox/RightPanel"]
+visible = false
+layout_mode = 2
+
+[node name="IdRow" type="HBoxContainer" parent="Margin/HBox/RightPanel/Form"]
+layout_mode = 2
+
+[node name="IdLabel" type="Label" parent="Margin/HBox/RightPanel/Form/IdRow"]
+layout_mode = 2
+text = "ID"
+
+[node name="IdEdit" type="LineEdit" parent="Margin/HBox/RightPanel/Form/IdRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "unique_id"
+
+[node name="TypeRow" type="HBoxContainer" parent="Margin/HBox/RightPanel/Form"]
+layout_mode = 2
+
+[node name="TypeLabel" type="Label" parent="Margin/HBox/RightPanel/Form/TypeRow"]
+layout_mode = 2
+text = "Type"
+
+[node name="TypeEdit" type="LineEdit" parent="Margin/HBox/RightPanel/Form/TypeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "npc, item, exit, ..."
+
+[node name="VerbsRow" type="HBoxContainer" parent="Margin/HBox/RightPanel/Form"]
+layout_mode = 2
+
+[node name="VerbsLabel" type="Label" parent="Margin/HBox/RightPanel/Form/VerbsRow"]
+layout_mode = 2
+text = "Verbs"
+
+[node name="VerbsEdit" type="LineEdit" parent="Margin/HBox/RightPanel/Form/VerbsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "comma,separated,verbs"
+
+[node name="TagsRow" type="HBoxContainer" parent="Margin/HBox/RightPanel/Form"]
+layout_mode = 2
+
+[node name="TagsLabel" type="Label" parent="Margin/HBox/RightPanel/Form/TagsRow"]
+layout_mode = 2
+text = "Tags"
+
+[node name="TagsEdit" type="LineEdit" parent="Margin/HBox/RightPanel/Form/TagsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "comma,separated,tags"
+
+[node name="PropsEdit" type="TextEdit" parent="Margin/HBox/RightPanel/Form"]
+custom_minimum_size = Vector2(0, 160)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+placeholder_text = "{\"description\": \"Short blurb...\"}"
+
+[node name="SaveButton" type="Button" parent="Margin/HBox/RightPanel/Form"]
+layout_mode = 2
+text = "Save Changes"

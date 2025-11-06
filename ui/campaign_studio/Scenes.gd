@@ -14,6 +14,10 @@ extends HSplitContainer
 @onready var scene_image_dialog: FileDialog = $"SceneImageFileDialog"
 @onready var entities_list: VBoxContainer = $"SceneEditor/EditorContent/EditorPanel/EntitiesSection/EntitiesList"
 @onready var status_label: Label = $"SceneEditor/EditorContent/EditorPanel/SaveSection/StatusLabel"
+@onready var available_entities_list: ItemList = $"SceneEditor/EditorContent/EditorPanel/IncludedWorldEntities/TransferPanel/AvailablePanel/AvailableList"
+@onready var included_entities_list: ItemList = $"SceneEditor/EditorContent/EditorPanel/IncludedWorldEntities/TransferPanel/IncludedPanel/IncludedList"
+@onready var add_include_btn: Button = $"SceneEditor/EditorContent/EditorPanel/IncludedWorldEntities/TransferPanel/ButtonPanel/AddBtn"
+@onready var remove_include_btn: Button = $"SceneEditor/EditorContent/EditorPanel/IncludedWorldEntities/TransferPanel/ButtonPanel/RemoveBtn"
 
 # Entity editor dialog references
 @onready var entity_editor_dialog: Window = $"EntityEditorDialog"
@@ -194,7 +198,8 @@ func _load_scene_into_editor(scene_id: String) -> void:
 	
 	# Populate entities list
 	_refresh_entities_list()
-	
+	# Populate included world entities UI
+	_populate_included_controls()
 	# Clear status
 	status_label.text = ""
 
@@ -544,3 +549,72 @@ func _parse_comma_list(text: String) -> Array[String]:
 		if not trimmed.is_empty():
 			result.append(trimmed)
 	return result
+
+func _populate_included_controls() -> void:
+	if current_world_db == null or current_scene == null:
+		return
+	
+	# Get list of all world entities
+	var all_world_entities: Array[String] = []
+	for id in current_world_db.entities.keys():
+		all_world_entities.append(str(id))
+	all_world_entities.sort()
+	
+	# Get list of included entities for this scene
+	var included_ids: Array[String] = []
+	if typeof(current_scene.include_entity_ids) == TYPE_ARRAY:
+		for eid in current_scene.include_entity_ids:
+			included_ids.append(str(eid))
+	
+	# Populate available list (world entities NOT included in scene)
+	available_entities_list.clear()
+	for eid in all_world_entities:
+		if not (eid in included_ids):
+			available_entities_list.add_item(eid)
+	
+	# Populate included list
+	included_entities_list.clear()
+	for eid in included_ids:
+		included_entities_list.add_item(eid)
+
+func _on_add_include_pressed() -> void:
+	if current_world_db == null or current_scene == null:
+		return
+	
+	var selected := available_entities_list.get_selected_items()
+	if selected.is_empty():
+		return
+	
+	var idx := selected[0]
+	if idx < 0 or idx >= available_entities_list.item_count:
+		return
+	
+	var eid := available_entities_list.get_item_text(idx)
+	var normalized := IdUtil.normalize_id(eid)
+	
+	if current_scene.include_entity_ids == null:
+		current_scene.include_entity_ids = []
+	
+	if not (normalized in current_scene.include_entity_ids):
+		current_scene.include_entity_ids.append(normalized)
+	
+	_populate_included_controls()
+	_mark_scene_dirty()
+
+func _on_remove_include_pressed() -> void:
+	if current_scene == null:
+		return
+	
+	var selected := included_entities_list.get_selected_items()
+	if selected.is_empty():
+		return
+	
+	var idx := selected[0]
+	if idx < 0 or idx >= included_entities_list.item_count:
+		return
+	
+	var eid := included_entities_list.get_item_text(idx)
+	current_scene.include_entity_ids.erase(eid)
+	
+	_populate_included_controls()
+	_mark_scene_dirty()

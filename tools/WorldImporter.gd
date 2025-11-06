@@ -93,6 +93,10 @@ func import_cartridge(scrt_path: String) -> WorldDB:
                     world.relationships[a] = w.relationships[a]
             if w.has("characters_state") and w.characters_state is Dictionary:
                 world.characters_state = w.characters_state
+            # Import centralized world entities if present
+            if w.has("entities") and w.entities is Dictionary:
+                for eid in w.entities.keys():
+                    world.entities[eid] = w.entities[eid]
 
     world.flags["initial_scene_id"] = cart.initial_scene_id
     world.flags["cartridge_id"] = cart_id

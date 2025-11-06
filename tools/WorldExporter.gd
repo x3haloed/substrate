@@ -113,6 +113,9 @@ func export_world(world: WorldDB, export_path: String, meta: Dictionary = {}, op
 			"characters_state": world.characters_state,
 			"party": world.party
 		}
+		# Include centralized world entities (dictionary form only)
+		if world.entities is Dictionary:
+			w["entities"] = world.entities
 		_write_text_file(stage_dir + "/world.json", JSON.stringify(w, "  "))
 
 	# 4) thumbnails (optional)

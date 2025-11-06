@@ -6,6 +6,7 @@ extends Control
 @onready var graph: Node = $Margin/VBox/Tabs/Graph
 @onready var lore: Node = $Margin/VBox/Tabs/Lore
 @onready var characters: Node = $Margin/VBox/Tabs/Characters
+@onready var entities_tab: Node = $Margin/VBox/Tabs/Entities
 @onready var save_btn: Button = $Margin/VBox/Header/SaveBtn
 @onready var export_btn: Button = $Margin/VBox/Header/ExportBtn
 
@@ -68,6 +69,8 @@ func open_with_world(world_db: WorldDB, cart_path: String = "") -> void:
 		lore.set_world_db(world_db)
 	if characters:
 		characters.current_world_db = world_db
+	if entities_tab and entities_tab.has_method("set_world_db"):
+		entities_tab.set_world_db(world_db)
 
 	# Share exporter with dashboard for packaging actions
 	if dashboard:
@@ -86,6 +89,8 @@ func open_with_world(world_db: WorldDB, cart_path: String = "") -> void:
 		lore._refresh_entries_list()
 	if characters and characters.has_method("refresh_characters_list"):
 		characters.refresh_characters_list()
+	if entities_tab and entities_tab.has_method("_refresh_list"):
+		entities_tab._refresh_list()
 	show_studio()
 
 ## ========================================

@@ -20,6 +20,7 @@ signal lore_entry_unlocked(entry_id: String)
 
 var _loaded_scenes: Dictionary = {}
 var _loaded_characters: Dictionary = {}
+var _world_entity_cache: Dictionary = {}  # entity_id -> Entity (materialized from world.entities)
 
 func get_scene(scene_id: String) -> SceneGraph:
 	if _loaded_scenes.has(scene_id):
@@ -33,6 +34,63 @@ func get_scene(scene_id: String) -> SceneGraph:
 				_loaded_scenes[scene_id] = scene
 				return scene
 	return null
+func get_world_entity_def(entity_id: String) -> Entity:
+	if entity_id == "":
+		return null
+	if _world_entity_cache.has(entity_id):
+		return _world_entity_cache[entity_id]
+	if not entities.has(entity_id):
+		return null
+	var src = entities[entity_id]
+	var ent: Entity = null
+	match typeof(src):
+		TYPE_STRING:
+			var path := String(src)
+			var loaded := load(path)
+			if loaded is Entity:
+				ent = loaded
+		TYPE_DICTIONARY:
+			var d: Dictionary = src
+			ent = Entity.new()
+			ent.id = String(d.get("id", entity_id))
+			ent.type_name = String(d.get("type_name", d.get("type", "")))
+			# Coerce arrays to typed Array[String]
+			var verbs_typed: Array[String] = []
+			var verbs_raw = d.get("verbs", [])
+			if verbs_raw is Array:
+				for v in verbs_raw:
+					verbs_typed.append(String(v))
+			ent.verbs = verbs_typed
+			var tags_typed: Array[String] = []
+			var tags_raw = d.get("tags", [])
+			if tags_raw is Array:
+				for t in tags_raw:
+					tags_typed.append(String(t))
+			ent.tags = tags_typed
+			ent.props = d.get("props", {})
+			ent.state = d.get("state", {})
+			var contents_typed: Array[String] = []
+			var contents_raw = d.get("contents", [])
+			if contents_raw is Array:
+				for c in contents_raw:
+					contents_typed.append(String(c))
+			ent.contents = contents_typed
+			ent.lore = d.get("lore", {"discovered_by": [], "notes": []})
+		TYPE_OBJECT:
+			if src is Entity:
+				ent = src
+	if ent != null:
+		_world_entity_cache[entity_id] = ent
+	return ent
+
+func materialize_world_entity(entity_id: String) -> Entity:
+	var def := get_world_entity_def(entity_id)
+	if def == null:
+		return null
+	return def.duplicate(true)
+
+func clear_entity_cache() -> void:
+	_world_entity_cache.clear()
 
 
 ## Register a generated scene and persist mapping
