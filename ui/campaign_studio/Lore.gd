@@ -53,6 +53,8 @@ func _ready() -> void:
 	assign_global_button.pressed.connect(_on_assign_global_pressed)
 	save_button.pressed.connect(_on_save_pressed)
 	sections_list.item_selected.connect(_on_section_selected)
+	if sections_list.has_signal("item_clicked"):
+		sections_list.item_clicked.connect(_on_section_clicked)
 	add_section_button.pressed.connect(_on_add_section_pressed)
 	remove_section_button.pressed.connect(_on_remove_section_pressed)
 	visibility_option.clear()
@@ -374,6 +376,9 @@ func _populate_sections(entry: LoreEntry) -> void:
 		var label := s.title if s.title != "" else (s.section_id if s.section_id != "" else "(untitled)")
 		sections_list.add_item(label)
 		sections_list.set_item_metadata(sections_list.item_count - 1, s)
+	if sections_list.item_count > 0:
+		sections_list.select(0)
+		_on_section_selected(0)
 
 func _on_add_section_pressed() -> void:
 	var s := LoreSection.new()
@@ -400,6 +405,11 @@ func _on_section_selected(index: int) -> void:
 	var s: Variant = sections_list.get_item_metadata(index)
 	if s is LoreSection:
 		_load_section_into_editor(s)
+
+func _on_section_clicked(index: int, _at_position: Vector2, button: int) -> void:
+	if button == MOUSE_BUTTON_LEFT:
+		sections_list.select(index)
+		_on_section_selected(index)
 
 func _load_section_into_editor(s: LoreSection) -> void:
 	section_id_edit.text = s.section_id
