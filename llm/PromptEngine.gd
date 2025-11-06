@@ -236,6 +236,20 @@ func build_npc_prompt(action: ActionRequest, scene: SceneGraph, character: Chara
 	)
 	# Apply character-specific post-history instructions, if present, as a per-call IN_CHAT layer
 	var layers := injection_layers.duplicate()
+	# Inject unlocked lore sections for the speaking NPC so the model respects progressive reveal
+	var lore_injection := _build_lore_injection_for_actor(str(action.actor))
+	if lore_injection != "":
+		var L = PromptInjectionManagerScript.LayerDef
+		var P = PromptInjectionManagerScript.Position
+		var lb := L.new()
+		lb.id = "npc.lorebook:" + str(action.actor)
+		lb.scope = "npc"
+		lb.position = P.IN_CHAT
+		lb.role = "system"
+		lb.priority = 40
+		lb.enabled = true
+		lb.content = "Lorebook context (unlocked only):\n" + lore_injection
+		layers.append(lb)
 	if typeof(character.post_history_instructions) == TYPE_STRING and character.post_history_instructions.strip_edges() != "":
 		var L = PromptInjectionManagerScript.LayerDef
 		var P = PromptInjectionManagerScript.Position
@@ -297,6 +311,19 @@ func _build_chat_snapshot() -> Dictionary:
 		"last_npc_line": world_db.flags.get("last_npc_line", ""),
 		"last_player_line": world_db.flags.get("last_player_line", "")
 	}
+
+## Build a JSON string containing unlocked lore sections for the given actor entity id.
+func _build_lore_injection_for_actor(actor_id: String) -> String:
+	if world_db == null or actor_id == "":
+		return ""
+	var entry := world_db.get_lore_entry_for_entity(actor_id)
+	if entry == null:
+		return ""
+	if not entry.is_unlocked(world_db, actor_id):
+		return ""
+	var payload := entry.to_prompt_block_filtered(world_db, actor_id)
+	var text := JSON.stringify({"lorebook": [payload]}, "\t")
+	return text if typeof(text) == TYPE_STRING else ""
 
 func process_action(action: ActionRequest, character_context: Dictionary = {}) -> ResolutionEnvelope:
 	var scene = world_db.get_scene(action.scene)

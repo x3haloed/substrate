@@ -213,7 +213,13 @@ func _show_lore_entry(entry: LoreEntry):
 		var content := ""
 		if entry.summary != "":
 			content += entry.summary.strip_edges() + "\n\n"
-		if entry.article != "":
+		var visible_sections := entry.get_unlocked_sections(world_db)
+		if visible_sections.size() > 0:
+			for s in visible_sections:
+				content += "[b]" + str(s.title) + "[/b]\n"
+				if str(s.body) != "":
+					content += str(s.body).strip_edges() + "\n\n"
+		elif entry.article != "":
 			content += entry.article.strip_edges()
 		_update_lore_tab_from_text(content if content != "" else "No lore details available.")
 	else:

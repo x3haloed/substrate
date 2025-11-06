@@ -17,6 +17,7 @@ const VISIBILITY_HIDDEN := "hidden"
 @export var unlock_conditions: Array[String] = []  # e.g. ["discover:barkeep", "flag:quest.intro_complete"]
 @export var tags: Array[String] = []
 @export var notes: Array[String] = []  # Author-facing notes/change log
+@export var sections: Array[LoreSection] = []  # Progressive reveal subsections
 
 ## Determine whether this lore entry should be visible to the player.
 ## Accepts optional actor context for future per-party gating.
@@ -56,6 +57,36 @@ func to_prompt_block() -> Dictionary:
 		"article": article,
 		"tags": tags.duplicate()
 	}
+
+## Build a prompt block that includes only unlocked sections for the current world state.
+func to_prompt_block_filtered(world_db: WorldDB, actor_id: String = "player") -> Dictionary:
+	var block := {
+		"id": entry_id,
+		"title": title,
+		"category": category,
+		"summary": summary,
+		"tags": tags.duplicate()
+	}
+	var visible_sections: Array = []
+	for s in sections:
+		if s is LoreSection and s.is_unlocked(world_db, actor_id):
+			visible_sections.append({
+				"id": s.section_id,
+				"title": s.title,
+				"body": s.body
+			})
+	if visible_sections.size() > 0:
+		block["sections"] = visible_sections
+	elif article.strip_edges() != "":
+		block["article"] = article
+	return block
+
+func get_unlocked_sections(world_db: WorldDB, actor_id: String = "player") -> Array[LoreSection]:
+	var result: Array[LoreSection] = []
+	for s in sections:
+		if s is LoreSection and s.is_unlocked(world_db, actor_id):
+			result.append(s)
+	return result
 
 func _evaluate_condition(raw_condition: String, world_db: WorldDB, actor_id: String) -> bool:
 	var condition := raw_condition.strip_edges()

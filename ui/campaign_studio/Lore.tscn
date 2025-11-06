@@ -229,6 +229,87 @@ size_flags_horizontal = 3
 size_flags_vertical = 2
 placeholder_text = "Internal notes or change log."
 
+[node name="SectionsLabel" type="Label" parent="Margin/HBox/RightPanel/Scroll/Form"]
+layout_mode = 2
+text = "Sections (progressive reveal)"
+
+[node name="SectionsRow" type="HBoxContainer" parent="Margin/HBox/RightPanel/Scroll/Form"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="SectionsListPanel" type="VBoxContainer" parent="Margin/HBox/RightPanel/Scroll/Form/SectionsRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(240, 0)
+
+[node name="SectionsList" type="ItemList" parent="Margin/HBox/RightPanel/Scroll/Form/SectionsRow/SectionsListPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+select_mode = 1
+
+[node name="SectionsButtons" type="HBoxContainer" parent="Margin/HBox/RightPanel/Scroll/Form/SectionsRow/SectionsListPanel"]
+layout_mode = 2
+
+[node name="AddSectionButton" type="Button" parent="Margin/HBox/RightPanel/Scroll/Form/SectionsRow/SectionsListPanel/SectionsButtons"]
+layout_mode = 2
+text = "Add"
+
+[node name="RemoveSectionButton" type="Button" parent="Margin/HBox/RightPanel/Scroll/Form/SectionsRow/SectionsListPanel/SectionsButtons"]
+layout_mode = 2
+text = "Remove"
+
+[node name="SectionEditor" type="VBoxContainer" parent="Margin/HBox/RightPanel/Scroll/Form/SectionsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="SectionIdRow" type="HBoxContainer" parent="Margin/HBox/RightPanel/Scroll/Form/SectionsRow/SectionEditor"]
+layout_mode = 2
+
+[node name="SectionIdLabel" type="Label" parent="Margin/HBox/RightPanel/Scroll/Form/SectionsRow/SectionEditor/SectionIdRow"]
+layout_mode = 2
+text = "Section ID"
+
+[node name="SectionIdEdit" type="LineEdit" parent="Margin/HBox/RightPanel/Scroll/Form/SectionsRow/SectionEditor/SectionIdRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "unique_section_id"
+
+[node name="SectionTitleRow" type="HBoxContainer" parent="Margin/HBox/RightPanel/Scroll/Form/SectionsRow/SectionEditor"]
+layout_mode = 2
+
+[node name="SectionTitleLabel" type="Label" parent="Margin/HBox/RightPanel/Scroll/Form/SectionsRow/SectionEditor/SectionTitleRow"]
+layout_mode = 2
+text = "Title"
+
+[node name="SectionTitleEdit" type="LineEdit" parent="Margin/HBox/RightPanel/Scroll/Form/SectionsRow/SectionEditor/SectionTitleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Section title"
+
+[node name="SectionUnlockLabel" type="Label" parent="Margin/HBox/RightPanel/Scroll/Form/SectionsRow/SectionEditor"]
+layout_mode = 2
+text = "Unlock Conditions"
+
+[node name="SectionUnlockEdit" type="TextEdit" parent="Margin/HBox/RightPanel/Scroll/Form/SectionsRow/SectionEditor"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 2
+placeholder_text = "One condition per line (e.g. discover:entity_id)"
+
+[node name="SectionBodyLabel" type="Label" parent="Margin/HBox/RightPanel/Scroll/Form/SectionsRow/SectionEditor"]
+layout_mode = 2
+text = "Body"
+
+[node name="SectionBodyEdit" type="TextEdit" parent="Margin/HBox/RightPanel/Scroll/Form/SectionsRow/SectionEditor"]
+custom_minimum_size = Vector2(0, 160)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+placeholder_text = "Section text (BBCode supported)."
+
 [node name="SaveButton" type="Button" parent="Margin/HBox/RightPanel/Scroll/Form"]
 layout_mode = 2
 text = "Save Changes"

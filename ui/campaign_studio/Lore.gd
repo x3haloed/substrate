@@ -28,6 +28,14 @@ var selected_entry_id: String = ""
 @onready var notes_edit: TextEdit = $Margin/HBox/RightPanel/Scroll/Form/NotesEdit
 @onready var save_button: Button = $Margin/HBox/RightPanel/Scroll/Form/SaveButton
 
+@onready var sections_list: ItemList = $Margin/HBox/RightPanel/Scroll/Form/SectionsRow/SectionsListPanel/SectionsList
+@onready var add_section_button: Button = $Margin/HBox/RightPanel/Scroll/Form/SectionsRow/SectionsListPanel/SectionsButtons/AddSectionButton
+@onready var remove_section_button: Button = $Margin/HBox/RightPanel/Scroll/Form/SectionsRow/SectionsListPanel/SectionsButtons/RemoveSectionButton
+@onready var section_id_edit: LineEdit = $Margin/HBox/RightPanel/Scroll/Form/SectionsRow/SectionEditor/SectionIdRow/SectionIdEdit
+@onready var section_title_edit: LineEdit = $Margin/HBox/RightPanel/Scroll/Form/SectionsRow/SectionEditor/SectionTitleRow/SectionTitleEdit
+@onready var section_unlock_edit: TextEdit = $Margin/HBox/RightPanel/Scroll/Form/SectionsRow/SectionEditor/SectionUnlockEdit
+@onready var section_body_edit: TextEdit = $Margin/HBox/RightPanel/Scroll/Form/SectionsRow/SectionEditor/SectionBodyEdit
+
 var _visibility_map := {
 	LoreEntry.VISIBILITY_ALWAYS: "Always Visible",
 	LoreEntry.VISIBILITY_DISCOVERED: "Unlock on Discovery",
@@ -44,6 +52,9 @@ func _ready() -> void:
 	remove_related_button.pressed.connect(_on_remove_related_pressed)
 	assign_global_button.pressed.connect(_on_assign_global_pressed)
 	save_button.pressed.connect(_on_save_pressed)
+	sections_list.item_selected.connect(_on_section_selected)
+	add_section_button.pressed.connect(_on_add_section_pressed)
+	remove_section_button.pressed.connect(_on_remove_section_pressed)
 	visibility_option.clear()
 	for key in _visibility_map.keys():
 		visibility_option.add_item(_visibility_map[key])
@@ -144,6 +155,7 @@ func _show_entry(entry_id: String) -> void:
 	unlock_edit.text = "\n".join(entry.unlock_conditions)
 	tags_edit.text = ", ".join(entry.tags)
 	notes_edit.text = "\n".join(entry.notes)
+	_populate_sections(entry)
 
 func _set_visibility(value: String) -> void:
 	var normalized := value if value != "" else LoreEntry.VISIBILITY_DISCOVERED
@@ -265,6 +277,14 @@ func _on_save_pressed() -> void:
 	entry.unlock_conditions = new_unlock
 	entry.tags = new_tags
 	entry.notes = new_notes
+	# Save sections (apply editor changes to selected first)
+	_apply_section_editor_to_metadata()
+	var new_sections: Array[LoreSection] = []
+	for i in range(sections_list.item_count):
+		var meta: Variant = sections_list.get_item_metadata(i)
+		if meta is LoreSection:
+			new_sections.append(meta)
+	entry.sections = new_sections
 
 	# Re-register to ensure cache updates and id mapping stored
 	current_world_db.lore_db.register_entry(entry)
@@ -342,3 +362,98 @@ func _clear_form() -> void:
 	unlock_edit.text = ""
 	tags_edit.text = ""
 	notes_edit.text = ""
+	sections_list.clear()
+	_section_clear_editor()
+
+func _populate_sections(entry: LoreEntry) -> void:
+	sections_list.clear()
+	_section_clear_editor()
+	if entry == null:
+		return
+	for s in entry.sections:
+		var label := s.title if s.title != "" else (s.section_id if s.section_id != "" else "(untitled)")
+		sections_list.add_item(label)
+		sections_list.set_item_metadata(sections_list.item_count - 1, s)
+
+func _on_add_section_pressed() -> void:
+	var s := LoreSection.new()
+	s.section_id = _generate_section_id()
+	s.title = "New Section"
+	s.body = ""
+	sections_list.add_item(s.title)
+	sections_list.set_item_metadata(sections_list.item_count - 1, s)
+	sections_list.select(sections_list.item_count - 1)
+	_load_section_into_editor(s)
+
+func _on_remove_section_pressed() -> void:
+	var selected := sections_list.get_selected_items()
+	if selected.is_empty():
+		return
+	for idx in selected:
+		if idx >= 0 and idx < sections_list.item_count:
+			sections_list.remove_item(idx)
+	_section_clear_editor()
+
+func _on_section_selected(index: int) -> void:
+	if index < 0 or index >= sections_list.item_count:
+		return
+	var s: Variant = sections_list.get_item_metadata(index)
+	if s is LoreSection:
+		_load_section_into_editor(s)
+
+func _load_section_into_editor(s: LoreSection) -> void:
+	section_id_edit.text = s.section_id
+	section_title_edit.text = s.title
+	section_unlock_edit.text = "\n".join(s.unlock_conditions)
+	section_body_edit.text = s.body
+
+func _apply_section_editor_to_metadata() -> void:
+	var selected := sections_list.get_selected_items()
+	if selected.is_empty():
+		return
+	var idx: int = selected[0]
+	if idx < 0 or idx >= sections_list.item_count:
+		return
+	var s: Variant = sections_list.get_item_metadata(idx)
+	if not (s is LoreSection):
+		return
+	var new_id := section_id_edit.text.strip_edges()
+	var new_title := section_title_edit.text.strip_edges()
+	var new_unlock := _collect_lines(section_unlock_edit.text)
+	var new_body := section_body_edit.text.strip_edges()
+	s.section_id = new_id if new_id != "" else s.section_id
+	s.title = new_title
+	s.unlock_conditions = new_unlock
+	s.body = new_body
+	# Update list item label
+	var label: String = ""
+	if s.title != "":
+		label = s.title
+	elif s.section_id != "":
+		label = s.section_id
+	else:
+		label = "(untitled)"
+	sections_list.set_item_text(idx, label)
+
+func _section_clear_editor() -> void:
+	section_id_edit.text = ""
+	section_title_edit.text = ""
+	section_unlock_edit.text = ""
+	section_body_edit.text = ""
+
+func _generate_section_id() -> String:
+	var base := "section_%02d"
+	var i := sections_list.item_count + 1
+	while true:
+		var candidate := base % i
+		var exists := false
+		for idx in range(sections_list.item_count):
+			var s: Variant = sections_list.get_item_metadata(idx)
+			if s is LoreSection and s.section_id == candidate:
+				exists = true
+				break
+		if not exists:
+			return candidate
+		i += 1
+	# Fallback to satisfy static analysis; loop should always return above
+	return base % i
