@@ -15,7 +15,7 @@ Macros can be used in character description, author's notes, world info and many
 | `{{charPrompt}}` | Character's Main Prompt override. | ❌ |
 | `{{charJailbreak}}` | Character's Post-History Instructions Prompt override. (NOTE: Substrate does not support 'jailbreaking'!) | ❌ |
 | `{{group}}` or `{{charIfNotGroup}}` | Comma-separated list of group member names or character name in solo chats. | ❌ |
-| `{{groupNotMuted}}` | Same as `{{group}}` but excludes muted members. | ❌ |
+| `{{groupNotMuted}}` | Same as `{{group}}` in Substrate implementation | ❌ |
 | `{{notChar}}` | Comma-separated list of all chat participants except the current speaker (`{{char}}`). In group chats this still includes muted characters, and when no message is being generated it lists every character in the roster. | ❌ |
 | `{{char}}` or `<BOT>` | Character's name. | ✅ |
 | `{{description}}` | Character's description. | ✅ |
@@ -52,9 +52,7 @@ Macros can be used in character description, author's notes, world info and many
 | `{{roll:(formula)}}` | Generates a random value using D&D dice syntax: XdY+Z (e.g. `{{roll:d6}}` generates a value 1-6). | ❌ |
 | `{{bias "text here"}}` | Sets a behavioral bias for the AI until the next user input. Quotes around text are required. | ❌ |
 | `{{// (note)}}` | Allows leaving a note that will be replaced with blank content. Not visible for the AI. | ❌ |
-| `{{banned "text here"}}` | Dynamically adds quoted text to banned word sequences for Text Generation WebUI backend. Does nothing for other backends. Quotes required. | ❌ |
 | `{{reverse:(content)}}` | Reverses the content of the macro. | ❌ |
-| `{{outlet::(name)}}` | Replaced with the content of the named [World Info outlet](/Usage/worldinfo.md#outlet-name), will contain activated entries separated by newlines. | ❌ |
 
 ## Instruct Mode and Context Template Macros
 
@@ -73,9 +71,3 @@ Macros can be used in character description, author's notes, world info and many
 | `{{incvar::name}}` | Replaced with the result of incrementing the value of variable "name" by 1. | ❌ |
 | `{{decvar::name}}` | Replaced with the result of decrementing the value of variable "name" by 1. | ❌ |
 | `{{getglobalvar::name}}` | Replaced with the value of the global variable "name". | ✅ |
-| `{{setglobalvar::name::value}}` | Replaced with empty string, sets the global variable "name" to "value". Allows empty values. | ❌ |
-| `{{addglobalvar::name::value}}` | Replaced with empty string, adds a numeric value of "increment" to the global variable "name". | ❌ |
-| `{{incglobalvar::name}}` | Replaced with the result of incrementing the value of global variable "name" by 1. | ❌ |
-| `{{decglobalvar::name}}` | Replaced with the result of decrementing the value of global variable "name" by 1. | ❌ |
-| `{{var::name}}` | Replaced with the value of the scoped variable "name" (STscript only). | ❌ |
-| `{{var::name::index}}` | Replaced with the value at index of the scoped variable "name" (for arrays/objects in STscript). | ❌ |
