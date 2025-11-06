@@ -288,6 +288,9 @@ func _on_entity_clicked(entity_id: String):
 	if entity_id.begins_with("lore:"):
 		# Lore link without backing entry; bail quietly.
 		return
+	# Clicking an entity link counts as discovery
+	if world_db:
+		world_db.record_entity_discovery(target_id, "player", world_db.flags.get("current_scene", ""))
 	lore_panel.show_entity(target_id)
 
 func _on_action_resolved(envelope: ResolutionEnvelope):
