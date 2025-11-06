@@ -354,7 +354,44 @@ func _set_rich_text(label: RichTextLabel, text: String):
 	label.clear()
 	if text == "":
 		return
-	label.append_text(text)
+	var processed := _convert_wikilinks_to_urls(text)
+	label.append_text(processed)
+
+func _convert_wikilinks_to_urls(text: String) -> String:
+	"""Convert [[id]] or [[id|Label]] into [url=...]Label[/url].
+	- Prefer lore entry links when an entry with that id exists.
+	- Otherwise, treat as an entity id.
+	"""
+	var result := text
+	var re := RegEx.new()
+	var err := re.compile("\\[\\[([^\\]|]+)(?:\\|([^\\]]+))?\\]\\]")
+	if err != OK:
+		return result
+	var matches := re.search_all(result)
+	if matches.is_empty():
+		return result
+	# Replace from end to start to keep indices stable
+	for i in range(matches.size() - 1, -1, -1):
+		var m: RegExMatch = matches[i]
+		var start_i: int = m.get_start()
+		var end_i: int = m.get_end()
+		var raw_id := str(m.get_string(1)).strip_edges()
+		var raw_label := str(m.get_string(2)) if m.get_group_count() >= 2 else ""
+		if raw_id == "":
+			continue
+		var id_norm := raw_id.to_lower()
+		var display := raw_label if raw_label != "" else raw_id
+		var target := id_norm
+		if world_db and world_db.lore_db:
+			var entry := world_db.lore_db.get_entry(id_norm)
+			if entry:
+				target = "lore:" + id_norm
+				if raw_label == "" and entry.title != "":
+					display = entry.title
+		# Construct BBCode url
+		var replacement := "[url=" + target + "]" + display + "[/url]"
+		result = result.substr(0, start_i) + replacement + result.substr(end_i)
+	return result
 
 func _on_close_pressed():
 	visible = false
