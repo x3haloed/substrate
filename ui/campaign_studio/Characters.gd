@@ -16,6 +16,7 @@ var current_world_db: WorldDB = null
 @onready var character_name_label: Label = $HBox/DetailPanel/CharacterInfo/NameLabel
 @onready var character_desc_label: Label = $HBox/DetailPanel/CharacterInfo/DescLabel
 @onready var character_version_label: Label = $HBox/DetailPanel/CharacterInfo/VersionLabel
+@onready var character_id_label: Label = $HBox/DetailPanel/CharacterInfo/IdRow/IdValue
 @onready var add_character_btn: Button = $HBox/DetailPanel/CharacterInfo/ButtonSection/AddToPartyBtn
 @onready var remove_character_btn: Button = $HBox/DetailPanel/CharacterInfo/ButtonSection/RemoveFromCampaignBtn
 
@@ -86,6 +87,7 @@ func _display_character_info(character_id: String) -> void:
 	character_name_label.text = character.name
 	character_desc_label.text = _truncate_text(character.description, 600)
 	character_version_label.text = "Version: " + character.character_version
+	character_id_label.text = character_id
 	
 	# Set portrait
 	character.warm_portrait_cache()
@@ -214,18 +216,8 @@ func _on_remove_from_campaign_pressed() -> void:
 	refresh_characters_list()
 
 func _generate_character_id(card: CharacterProfile) -> String:
-	# Generate a character_id from the card name
-	var base_id := card.name.to_lower().replace(" ", "_")
-	
-	# Remove special characters
-	var regex := RegEx.new()
-	regex.compile("[^a-z0-9_]")
-	base_id = regex.sub(base_id, "", true)
-	
-	if base_id.is_empty():
-		base_id = "character"
-	
-	return base_id
+	# Generate a character_id from the card name using shared normalizer
+	return IdUtil.normalize_id(card.name)
 
 func _truncate_text(text: String, max_chars: int) -> String:
 	if text.is_empty():

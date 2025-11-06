@@ -250,13 +250,21 @@ func _on_save_pressed() -> void:
 		push_warning("Entry ID cannot be empty.")
 		entry_id_edit.grab_focus()
 		return
+	# Normalize entry id for consistency
+	new_id = IdUtil.normalize_id(new_id)
 	var new_title := title_edit.text.strip_edges()
 	var new_category := category_edit.text.strip_edges()
 	var new_visibility := _get_selected_visibility()
 	var new_related := _collect_related_entities()
+	# Normalize related entity ids
+	for i in range(new_related.size()):
+		new_related[i] = IdUtil.normalize_id(str(new_related[i]))
 	var new_summary := summary_edit.text.strip_edges()
 	var new_article := article_edit.text.strip_edges()
 	var new_unlock := _collect_lines(unlock_edit.text)
+	# Normalize reference tokens (discover:, lore:, or bare ids)
+	for i in range(new_unlock.size()):
+		new_unlock[i] = IdUtil.normalize_ref_token(str(new_unlock[i]))
 	var new_tags := _parse_csv(tags_edit.text)
 	var new_notes := _collect_lines(notes_edit.text)
 

@@ -63,6 +63,19 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Character Name"
 
+[node name="IdRow" type="HBoxContainer" parent="HBox/DetailPanel/CharacterInfo"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="IdLabel" type="Label" parent="HBox/DetailPanel/CharacterInfo/IdRow"]
+layout_mode = 2
+text = "ID (normalized):"
+
+[node name="IdValue" type="Label" parent="HBox/DetailPanel/CharacterInfo/IdRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+text = "—"
+
 [node name="VersionLabel" type="Label" parent="HBox/DetailPanel/CharacterInfo"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)

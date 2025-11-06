@@ -449,11 +449,13 @@ func _on_entity_save_pressed() -> void:
 	if entity_id.is_empty():
 		push_warning("Entity ID cannot be empty")
 		return
+	# Normalize id for consistency across systems
+	var normalized_id := IdUtil.normalize_id(entity_id)
 	
 	# Check for duplicate ID (only if new or changed)
-	if editing_entity_index < 0 or editing_entity.id != entity_id:
+	if editing_entity_index < 0 or editing_entity.id != normalized_id:
 		for i in range(current_scene.entities.size()):
-			if i != editing_entity_index and current_scene.entities[i].id == entity_id:
+			if i != editing_entity_index and current_scene.entities[i].id == normalized_id:
 				push_warning("Entity ID already exists in this scene")
 				return
 	
@@ -465,7 +467,7 @@ func _on_entity_save_pressed() -> void:
 		return
 	
 	# Update entity
-	editing_entity.id = entity_id
+	editing_entity.id = normalized_id
 	editing_entity.type_name = entity_type_field.text.strip_edges()
 	editing_entity.verbs = _parse_comma_list(entity_verbs_field.text)
 	editing_entity.tags = _parse_comma_list(entity_tags_field.text)
