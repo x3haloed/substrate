@@ -21,6 +21,7 @@ class_name Game
 @onready var campaign_detail: Control = $GameUI/CampaignDetail
 @onready var campaigns_button: Button = $GameUI/game_container/header/HBoxContainer/button_group/campaigns_button
 @onready var studio_button: Button = $GameUI/game_container/header/HBoxContainer/button_group/studio_button
+@onready var lore_button: Button = $GameUI/game_container/header/HBoxContainer/button_group/lore_button
 @onready var campaign_studio: Control = $GameUI/CampaignStudio
 @onready var campaign_picker: Window = $GameUI/CampaignPicker
 @onready var clipboard_button: Button = %clipboard_button
@@ -96,6 +97,8 @@ func _ready():
 		campaigns_button.pressed.connect(_on_campaigns_button_pressed)
 	if studio_button:
 		studio_button.pressed.connect(_on_studio_button_pressed)
+	if lore_button:
+		lore_button.pressed.connect(_on_lore_button_pressed)
 	
 	# Setup autosave
 	_setup_autosave()
@@ -566,6 +569,18 @@ func _on_clipboard_button_pressed():
 	# Show clipboard manager
 	if clipboard_manager:
 		clipboard_manager.visible = true
+
+func _on_lore_button_pressed():
+	# Hide other overlays
+	settings_panel.visible = false
+	card_editor.visible = false
+	card_manager.visible = false
+	save_load_panel.visible = false
+	campaign_browser.visible = false
+	campaign_detail.visible = false
+	# Open lore codex
+	if lore_panel:
+		lore_panel.open_codex()
 
 func _notification(what):
 	# Save on exit
