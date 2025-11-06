@@ -199,10 +199,17 @@ func add_history_entry(event: Dictionary):
 ## Record entity discovery - tracks who discovered what and when
 func record_entity_discovery(entity_id: String, actor_id: String, scene_id: String = ""):
 	var scene = get_scene(scene_id if scene_id != "" else flags.get("current_scene", ""))
+	var already_discovered_by_actor := false
 	if scene:
 		var entity = scene.get_entity(entity_id)
 		if entity:
-			entity.record_discovery(actor_id)
+			# Check if this actor has already discovered the entity (avoid duplicate logs)
+			for disc in entity.get_discoveries():
+				if disc.get("actor") == actor_id:
+					already_discovered_by_actor = true
+					break
+			if not already_discovered_by_actor:
+				entity.record_discovery(actor_id)
 	
 	# Also update world DB entities cache
 	if entities.has(entity_id):
@@ -212,16 +219,19 @@ func record_entity_discovery(entity_id: String, actor_id: String, scene_id: Stri
 				entity_data["discovered_by"] = []
 			if not actor_id in entity_data.discovered_by:
 				entity_data.discovered_by.append(actor_id)
+			else:
+				already_discovered_by_actor = true
 	_update_discovery_state(entity_id, actor_id)
 	_unlock_lore_for_discovery(entity_id, actor_id)
 	
 	# Record in global history
-	add_history_entry({
-		"event": "entity_discovery",
-		"entity_id": entity_id,
-		"actor": actor_id,
-		"scene": scene_id if scene_id != "" else flags.get("current_scene", "")
-	})
+	if not already_discovered_by_actor:
+		add_history_entry({
+			"event": "entity_discovery",
+			"entity_id": entity_id,
+			"actor": actor_id,
+			"scene": scene_id if scene_id != "" else flags.get("current_scene", "")
+		})
 
 ## Record entity change - tracks property/state/lore modifications
 func record_entity_change(entity_id: String, change_type: String, path: String, old_value, new_value, actor_id: String = "system"):

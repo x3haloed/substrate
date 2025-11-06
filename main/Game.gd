@@ -280,6 +280,9 @@ func _on_entity_clicked(entity_id: String):
 	var target_id := entity_id
 	if entity_id.begins_with("lore:"):
 		target_id = entity_id.substr(5)
+	# Clicking an entity or lore link should count as discovery before opening
+	if world_db and target_id != "":
+		world_db.record_entity_discovery(target_id, "player", world_db.flags.get("current_scene", ""))
 	if world_db:
 		var lore_entry := world_db.get_lore_entry(target_id)
 		if lore_entry:
@@ -288,9 +291,6 @@ func _on_entity_clicked(entity_id: String):
 	if entity_id.begins_with("lore:"):
 		# Lore link without backing entry; bail quietly.
 		return
-	# Clicking an entity link counts as discovery
-	if world_db:
-		world_db.record_entity_discovery(target_id, "player", world_db.flags.get("current_scene", ""))
 	lore_panel.show_entity(target_id)
 
 func _on_action_resolved(envelope: ResolutionEnvelope):

@@ -237,12 +237,16 @@ func build_npc_prompt(action: ActionRequest, scene: SceneGraph, character: Chara
 	# Apply character-specific post-history instructions, if present, as a per-call IN_CHAT layer
 	var layers := injection_layers.duplicate()
 	# Inject unlocked lore sections for the speaking NPC so the model respects progressive reveal
-	var lore_injection := _build_lore_injection_for_actor(str(action.actor))
+	# If the player is talking, the speaking NPC is the target; otherwise it's the actor
+	var speaking_npc_id := str(action.actor)
+	if action.actor == "player":
+		speaking_npc_id = str(action.target)
+	var lore_injection := _build_lore_injection_for_actor(speaking_npc_id)
 	if lore_injection != "":
 		var L = PromptInjectionManagerScript.LayerDef
 		var P = PromptInjectionManagerScript.Position
 		var lb := L.new()
-		lb.id = "npc.lorebook:" + str(action.actor)
+		lb.id = "npc.lorebook:" + speaking_npc_id
 		lb.scope = "npc"
 		lb.position = P.IN_CHAT
 		lb.role = "system"
