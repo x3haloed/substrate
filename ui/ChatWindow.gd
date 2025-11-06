@@ -122,4 +122,4 @@ func _on_input_submitted(_text: String):
 	_on_send_pressed()
 
 func _on_meta_clicked(meta: Variant):
-	entity_clicked.emit(str(meta))
+	entity_clicked.emit(str(meta).to_lower())
