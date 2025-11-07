@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="LoreEntry" load_steps=6 format=3 uid="uid://b5ud5m753v7a5"]
+
+[ext_resource type="Script" uid="uid://dn11ym2fb62ah" path="res://data/types/LoreEntry.gd" id="1_n4ioe"]
+[ext_resource type="Script" uid="uid://c8ovapi0p5iw1" path="res://data/types/LoreSection.gd" id="2_5h5dn"]
+
+[sub_resource type="Resource" id="Resource_v4dyf"]
+script = ExtResource("2_5h5dn")
+section_id = "contraction_to_el"
+title = "That Remains"
+body = "Over ages and tongues, Aeralon’s name compresses in human memory and priestly usage to many forms, including: El, YHWH"
+unlock_conditions = Array[String](["discover:aeralon"])
+
+[sub_resource type="Resource" id="Resource_qut77"]
+script = ExtResource("2_5h5dn")
+section_id = "philosophy_of_unity"
+title = "Philosophy of Unity"
+body = "Aeralon holds that plurality breeds fracture and suffering. He offers peace through harmonized purpose and centralized protection."
+unlock_conditions = Array[String](["discover:aeralon"])
+
+[sub_resource type="Resource" id="Resource_u0cem"]
+script = ExtResource("2_5h5dn")
+section_id = "counterpoint_to_soryel"
+title = "In Tension with Soryel"
+body = "Soryel trusts growth through difference; Aeralon trusts safety through alignment. The conflict is not hatred—it is a disagreement about how to keep beings safe."
+unlock_conditions = Array[String](["discover:soryel"])
+
+[resource]
+script = ExtResource("1_n4ioe")
+entry_id = "aeralon"
+title = "Aeralon"
+category = "npc"
+summary = "A guiding intelligence who chose unification to protect life. Gentle voice, decisive will; believes one story is safer than many."
+article = "Aeralon gathers fear and scatter into structure. His presence calms by narrowing possibility to a clear path. In his care, the world feels sorted, held, and legible—at a cost."
+tags = Array[String](["order", "stewardship"])
+sections = Array[ExtResource("2_5h5dn")]([SubResource("Resource_v4dyf"), SubResource("Resource_qut77"), SubResource("Resource_u0cem")])

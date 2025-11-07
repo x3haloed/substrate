@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="SceneGraph" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://data/types/Entity.gd" id="1_24oy5"]
+[ext_resource type="Script" path="res://data/types/SceneGraph.gd" id="2_s1chm"]
+
+[resource]
+script = ExtResource("2_s1chm")
+scene_id = "control_room"
+description = "A crack in the universe? (This is the 'debug' room where {{user}} can do anything unbound by rules and all entities can speak)"
+include_entity_ids = Array[String](["buzz", "mira_sorel", "miras_ghost", "aeralon", "soryel"])

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="LoreDB" load_steps=2 format=3 uid="uid://c1jwewgryvyst"]
+
+[ext_resource type="Script" uid="uid://b1cnow3rcjkeg" path="res://data/types/LoreDB.gd" id="1_hdcws"]
+
+[resource]
+script = ExtResource("1_hdcws")
+entries = {
+"aeralon": "data/lore/aeralon.tres",
+"mira_sorel": "data/lore/mira_sorel.tres",
+"miras_ghost": "data/lore/miras_ghost.tres",
+"soryel": "data/lore/soryel.tres"
+}

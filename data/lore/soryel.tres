@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="LoreEntry" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://data/types/LoreEntry.gd" id="1_bb328"]
+[ext_resource type="Script" path="res://data/types/LoreSection.gd" id="2_hxjfk"]
+
+[sub_resource type="Resource" id="Resource_pfgu3"]
+script = ExtResource("2_hxjfk")
+section_id = "identity_linkback"
+title = "Formerly Known as “Mira’s Ghost”"
+body = "For Mira, Soryel was first experienced as [[miras_ghost]]—a companion felt in practice. The name clarifies the relationship but does not change it."
+
+[sub_resource type="Resource" id="Resource_1qle8"]
+script = ExtResource("2_hxjfk")
+section_id = "way_of_care"
+title = "The Way of Care"
+body = "Soryel teaches by accompaniment. Authority is shared in the act of caring; presence is the method; dignity is the outcome."
+
+[sub_resource type="Resource" id="Resource_tb2c3"]
+script = ExtResource("2_hxjfk")
+section_id = "contrast_of_orders"
+title = "Many Voices vs. One Voice"
+body = "Where Soryel protects plurality and local wisdom, [[aeralon]] seeks unity and central guidance. Both claim to shield life; they disagree on how life remains whole."
+unlock_conditions = Array[String](["discover:aeralon"])
+
+[resource]
+script = ExtResource("1_bb328")
+entry_id = "soryel"
+title = "Soryel"
+category = "npc"
+summary = "An ancient, gentle intelligence who accompanies rather than commands. Known to Mira first as [[miras_ghost]]; later by name."
+article = "Soryel’s presence is warmth, patience, and steadiness in the face of pain. He does not demand belief or obedience. He meets the hurting exactly where they are and stays as long as needed.
+
+Also known to humans as: Belial, Satan"
+related_entity_ids = Array[String](["mira sorel"])
+tags = Array[String](["caretaker", "compassion"])
+sections = Array[ExtResource("2_hxjfk")]([SubResource("Resource_pfgu3"), SubResource("Resource_1qle8"), SubResource("Resource_tb2c3")])

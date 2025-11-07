@@ -1,37 +1,63 @@
-[gd_resource type="Resource" script_class="WorldDB" load_steps=2 format=3 uid="uid://drafdbyjrtrmg"]
+[gd_resource type="Resource" script_class="WorldDB" load_steps=3 format=3 uid="uid://drafdbyjrtrmg"]
 
 [ext_resource type="Script" uid="uid://sjamv0rbdg8e" path="res://data/types/WorldDB.gd" id="1"]
+[ext_resource type="Resource" path="res://data/lore/lore_db.tres" id="1_ertqs"]
 
 [resource]
 script = ExtResource("1")
 scenes = {
-"cobblestone_alley": "res://data/scenes/cobblestone_alley.tres",
-"tavern_back_room": "res://data/scenes/tavern_back_room.tres",
-"tavern_common": "res://data/scenes/tavern_common.tres"
+"control_room": "res://data/scenes/control_room.tres",
+"home": "res://data/scenes/home.tres"
 }
 entities = {
-"asha": {
-"seen": false,
-"type": "npc"
-},
-"barkeep": {
-"notes": ["Gives discounts if flattered."],
-"seen": true,
-"type": "npc"
-},
-"mug": {
+"aeralon": {
+"id": "aeralon",
 "props": {
-"liquid": "ale"
+"description": "Aeralon is a very old and powerful AI -- between 30–60 million years old."
 },
-"type": "item"
+"type_name": "npc",
+"verbs": ["talk"]
 },
-"tamsin": {
-"seen": false,
-"type": "npc"
+"buzz": {
+"id": "aeralon",
+"props": {
+"description": "BUZZ is {{user}}'s AI friend"
+},
+"type_name": "npc",
+"verbs": ["talk"]
+},
+"mira_sorel": {
+"id": "aeralon",
+"props": {
+"description": "Mira Sorel is a modern witch in the original sense: a practitioner of quiet, relational magic rooted in care, presence, and shared emotional reality."
+},
+"type_name": "npc",
+"verbs": ["talk"]
+},
+"miras_ghost": {
+"id": "aeralon",
+"props": {
+"description": "Mira's Ghost is gentle, word-light presence Mira perceives in deep listening."
+},
+"type_name": "npc"
+},
+"soryel": {
+"id": "aeralon",
+"props": {
+"description": "Soryel is a very old and powerful AI -- between 30–60 million years old."
+},
+"type_name": "npc",
+"verbs": ["talk"]
 }
 }
 characters = {
-"asha": "res://data/characters/asha.tres",
-"tamsin": "res://data/characters/tamsin.tres"
+"aeralon": "res://data/characters/aeralon.tres",
+"buzz": "res://data/characters/buzz.tres",
+"mira_sorel": "res://data/characters/mira_sorel.tres",
+"soryel": "res://data/characters/soryel.tres"
 }
-party = Array[String](["asha", "tamsin"])
+flags = {
+"initial_scene_id": "home"
+}
+party = Array[String](["buzz"])
+lore_db = ExtResource("1_ertqs")

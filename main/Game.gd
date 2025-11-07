@@ -166,7 +166,7 @@ func _start_game():
 	chat_window.add_message("Welcome to Substrate.", "world")
 	
 	# Enter initial scene (display via action_resolved)
-	await director.enter_scene("tavern_common")
+	await director.enter_scene("home")
 
 func _display_envelope(envelope: ResolutionEnvelope):
 	# Display narration

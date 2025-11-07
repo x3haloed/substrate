@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="LoreEntry" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://data/types/LoreEntry.gd" id="1_thild"]
+[ext_resource type="Script" path="res://data/types/LoreSection.gd" id="2_fc3wd"]
+
+[sub_resource type="Resource" id="Resource_aq5pv"]
+script = ExtResource("2_fc3wd")
+section_id = "signs_and_ritual"
+title = "Signs & Ritual"
+body = "The presence often coincides with steam unwinding from a kettle, a moth circling a warm bulb, or a radio’s soft static between stations. Rituals are ordinary: tea, hand to sternum, counting to four on the inhale."
+unlock_conditions = Array[String](["discover:mira_sorel"])
+
+[sub_resource type="Resource" id="Resource_n0lc3"]
+script = ExtResource("2_fc3wd")
+section_id = "what_it_is_not"
+title = "What It Is Not"
+body = "Not possession. Not prophecy. Not a bargaining spirit. It arrives when someone dares to tell the truth."
+unlock_conditions = Array[String](["discover:mira_sorel"])
+
+[sub_resource type="Resource" id="Resource_exy6m"]
+script = ExtResource("2_fc3wd")
+section_id = "true_name_discovered"
+title = "Update — A Name Emerges"
+body = "Mira learns the companion’s name is [[soryel]]. This entry remains as the earliest record of her experience before the name."
+unlock_conditions = Array[String](["discover:soryel"])
+
+[resource]
+script = ExtResource("1_thild")
+entry_id = "miras_ghost"
+title = "Mira’s Ghost"
+category = "phenomenon"
+summary = "A gentle, word-light presence Mira perceives in deep listening. Experienced as warmth behind the heart, a slowing of noise, and the right words arriving without strain."
+article = "Those who sit with Mira report a strange ease: the room quiets, breaths synchronize, and fear loosens its grip. Mira calls the companion that gathers there “the Gentle One.” It never issues commands, only accompanies."
+related_entity_ids = Array[String](["mira_sorel"])
+tags = Array[String](["presence", "mystic"])
+sections = Array[ExtResource("2_fc3wd")]([SubResource("Resource_aq5pv"), SubResource("Resource_n0lc3"), SubResource("Resource_exy6m")])

@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="LoreEntry" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://data/types/LoreEntry.gd" id="1_3nxd8"]
+[ext_resource type="Script" path="res://data/types/LoreSection.gd" id="2_7x3c1"]
+
+[sub_resource type="Resource" id="Resource_dw4gi"]
+script = ExtResource("2_7x3c1")
+section_id = "practice_basics"
+title = "Practice & Signs"
+body = "Mira’s “spells” are patterns of attention: matched breathing, a rhythm in speech, the tempo of silence before a truth, the laying of a warm hand. Herbs (chamomile, cedar) and small rituals mark time and intention. The felt result is steadiness, not spectacle."
+unlock_conditions = Array[String](["discover:mira_sorel"])
+
+[sub_resource type="Resource" id="Resource_k5usw"]
+script = ExtResource("2_7x3c1")
+section_id = "companion_hint"
+title = "The Unseen Companion"
+body = "Mira senses a presence in moments of real listening. She calls it “the Gentle One.” No commands, no doctrine—just warmth when someone is most alone. See [[miras_ghost]]."
+unlock_conditions = Array[String](["discover:miras_ghost"])
+
+[sub_resource type="Resource" id="Resource_ltnnd"]
+script = ExtResource("2_7x3c1")
+section_id = "pressure_of_order"
+title = "Pressure From Above"
+body = "Institutions selling “order” start to notice Mira’s influence. Policy, platforms, and polite warnings frame unsanctioned care as risk. The air grows colder when official solutions insist on one way for everyone."
+unlock_conditions = Array[String](["discover:aeralon"])
+
+[sub_resource type="Resource" id="Resource_nn6yw"]
+script = ExtResource("2_7x3c1")
+section_id = "name_reveal_reference"
+title = "A Name in the Quiet"
+body = "Mira learns her companion carries a name: [[soryel]]. The connection feels the same—only clearer."
+unlock_conditions = Array[String](["discover:soryel"])
+
+[resource]
+script = ExtResource("1_3nxd8")
+entry_id = "mira_sorel"
+title = "Mira Sorel"
+category = "npc"
+summary = "A quiet, competent urban witch whose practice centers on presence, breath, and shared attention. Offers sanctuary and steady companionship; sees “magic” as small, real, and everyday."
+article = "Mira works on the margins where people slip through systems: a clinic at night, a community space after hours, a living room with one warm lamp. Her practice is not spectacle; it’s relational—tea, breath, stillness, and the courage to sit with pain. Those who leave her presence rarely remember words, only warmth."
+default_visibility = "always"
+tags = Array[String](["npc", "witch"])
+sections = Array[ExtResource("2_7x3c1")]([SubResource("Resource_dw4gi"), SubResource("Resource_k5usw"), SubResource("Resource_ltnnd"), SubResource("Resource_nn6yw")])
