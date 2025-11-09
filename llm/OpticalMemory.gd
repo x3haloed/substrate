@@ -29,12 +29,12 @@ const COLOR_NODE := Color(0.15,0.15,0.15)
 const COLOR_NODE_FILL := Color(0.85,0.9,1.0)
 const COLOR_EDGE := Color(0.2,0.2,0.2)
 const COLOR_HILITE := Color(0.1,0.6,0.95)
+
 ## Create a generic drawing viewport with a white background
 func _create_drawing_page() -> SubViewport:
 	var viewport := SubViewport.new()
 	viewport.size = Vector2i(PAGE_WIDTH, PAGE_HEIGHT)
-	viewport.transparent_background = false
-	viewport.update_mode = SubViewport.UPDATE_ONCE
+	viewport.transparent_bg = false
 	add_child(viewport)
 	var bg := ColorRect.new()
 	bg.color = COLOR_BG
@@ -90,8 +90,9 @@ func _render_scene_minimap_to_image() -> Image:
 			# Draw node
 			nodes.draw_circle(pos, NODE_RADIUS, COLOR_NODE_FILL)
 			nodes.draw_circle(pos, NODE_RADIUS, COLOR_NODE, EDGE_THICKNESS)
-			# Label under node
-			nodes.draw_string(ThemeDB.fallback_font, pos + Vector2(-NODE_RADIUS, NODE_RADIUS + 16), str(entity.id), HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE)
+			# Label under node (truncated to prevent overflow)
+			var label_text := _truncate_label(str(entity.id), 12)
+			nodes.draw_string(ThemeDB.fallback_font, pos + Vector2(-NODE_RADIUS, NODE_RADIUS + 16), label_text, HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE - 2)
 	)
 	viewport.add_child(nodes)
 
@@ -116,7 +117,7 @@ func _render_relationship_graph_to_image() -> Image:
 
 	# Node positions around a circle
 	var positions := {}
-	var count: int = max(entities.size(), 1)
+	var count: int = entities.size()
 	for i in range(count):
 		var ang := TAU * float(i) / float(count)
 		positions[entities[i]] = center + Vector2(cos(ang), sin(ang)) * radius
@@ -136,7 +137,9 @@ func _render_relationship_graph_to_image() -> Image:
 			var p: Vector2 = positions[e]
 			canvas.draw_circle(p, NODE_RADIUS, COLOR_NODE_FILL)
 			canvas.draw_circle(p, NODE_RADIUS, COLOR_NODE, EDGE_THICKNESS)
-			canvas.draw_string(ThemeDB.fallback_font, p + Vector2(-NODE_RADIUS, NODE_RADIUS + 12), e, HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE)
+			# Truncate label to prevent overflow on circular layout
+			var label_text := _truncate_label(e, 14)
+			canvas.draw_string(ThemeDB.fallback_font, p + Vector2(-NODE_RADIUS, NODE_RADIUS + 12), label_text, HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE - 2)
 	)
 	viewport.add_child(canvas)
 
@@ -217,44 +220,43 @@ func _render_timeline_strip_to_image() -> Image:
 	var img: Image = viewport.get_texture().get_image()
 	viewport.queue_free()
 	return img
-## Generate an expanded bundle: text pages + spatial visualizations
-func generate_optical_memory_bundle(output_dir: String, base_filename: String = "memory_sheet") -> Array:
-	var saved: Array = []
-	# 1) Text pages
-	var text_paths := await generate_optical_memory_pngs(output_dir, base_filename)
-	saved.append_array(text_paths)
+	
+## Generate an expanded bundle IN MEMORY: text pages + spatial visualizations
+## @param summary_text: Pre-generated summary text to render (ensures consistency with prompts)
+## @return Array[Image]: ordered images ready to be encoded/sent to LLMs
+func generate_optical_memory_images(summary_text: String) -> Array[Image]:
+	var images: Array[Image] = []
+	# 1) Text pages (use provided summary text for consistency with prompts)
+	var page_images: Array[Image] = await generate_optical_memory_page_images(summary_text)
+	images.append_array(page_images)
 	# 2) Visual pages (minimap, relationships, timeline)
 	var mm := await _render_scene_minimap_to_image()
-	var mm_path := output_dir + "/" + base_filename + "_minimap.png"
-	var err1 := mm.save_png(mm_path)
-	if err1 == OK: saved.append(mm_path)
-	else: push_error("Failed to save minimap: " + str(err1))
-
+	images.append(mm)
 	var rg := await _render_relationship_graph_to_image()
-	var rg_path := output_dir + "/" + base_filename + "_relationships.png"
-	var err2 := rg.save_png(rg_path)
-	if err2 == OK: saved.append(rg_path)
-	else: push_error("Failed to save relationships: " + str(err2))
-
+	images.append(rg)
 	var tl := await _render_timeline_strip_to_image()
-	var tl_path := output_dir + "/" + base_filename + "_timeline.png"
-	var err3 := tl.save_png(tl_path)
-	if err3 == OK: saved.append(tl_path)
-	else: push_error("Failed to save timeline: " + str(err3))
+	images.append(tl)
+	return images
 
-	return saved
-
-# Optional high-contrast, mono font if present
+# Optional high-contrast, mono font if present (cached to avoid repeated FS access)
 func _load_optical_font() -> Font:
+	if _cached_font != null:
+		return _cached_font
 	if ResourceLoader.exists("res://fonts/JetBrainsMono-Regular.ttf"):
-		var dfont := FontFile.new()
-		dfont = load("res://fonts/JetBrainsMono-Regular.ttf")
-		return dfont
+		_cached_font = load("res://fonts/JetBrainsMono-Regular.ttf")
+		return _cached_font
 	return null
 
-## Generates rasterized summary pages for VLM attachment (optical memory sheets)
+## Truncate long labels for visual diagrams to prevent overflow
+func _truncate_label(text: String, max_length: int = 16) -> String:
+	if text.length() <= max_length:
+		return text
+	return text.substr(0, max_length - 1) + "…"
+
+## Generates rasterized summary pages (Images in memory) for VLM attachment (optical memory sheets)
 
 var world_db: WorldDB
+var _cached_font: Font = null  # Cached mono font to avoid repeated filesystem access
 
 func _init(p_world_db: WorldDB):
 	world_db = p_world_db
@@ -342,8 +344,7 @@ func generate_session_summary(scene_id: String = "", max_length: int = 5000) -> 
 func _create_optical_page() -> Array:
 	var viewport := SubViewport.new()
 	viewport.size = Vector2i(PAGE_WIDTH, PAGE_HEIGHT)
-	viewport.transparent_background = false
-	viewport.update_mode = SubViewport.UPDATE_ONCE
+	viewport.transparent_bg = false
 	add_child(viewport)
 
 	# White background to maximize OCR contrast
@@ -362,14 +363,15 @@ func _create_optical_page() -> Array:
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.scroll_active = false
 	label.visible_characters_behavior = TextServer.VC_CHARS_BEFORE_SHAPING
-	label.line_spacing = LINE_SPACING
+	# Godot 4: use theme constant 'line_separation' instead of a line_spacing property
+	label.add_theme_constant_override("line_separation", int((LINE_SPACING - 1.0) * FONT_SIZE))
 
 	# Apply mono font if available
 	var f := _load_optical_font()
 	if f:
 		label.add_theme_font_override("normal_font", f)
 		label.add_theme_font_size_override("normal_font_size", FONT_SIZE)
-		label.add_theme_constant_override("line_separation", int((LINE_SPACING - 1.0) * FONT_SIZE))
+		# Already set above; calling again is harmless but redundant
 
 	viewport.add_child(label)
 	return [viewport, label]
@@ -443,7 +445,6 @@ func _render_page_to_image(page_text: String) -> Image:
 	var label: RichTextLabel = pair[1]
 	label.text = page_text
 	await RenderingServer.frame_post_draw
-	viewport.update_mode = SubViewport.UPDATE_ONCE
 	var img: Image = viewport.get_texture().get_image()
 	label.queue_free()
 	viewport.queue_free()
@@ -545,7 +546,7 @@ func _render_entity_portraits_to_image() -> Image:
 
 		# Type label (muted)
 		var type_lbl := Label.new()
-		type_lbl.text = e.type_name if e.has("type_name") else ""
+		type_lbl.text = String(e.type_name)
 		type_lbl.modulate = Color(0,0,0,0.65)
 		if f:
 			type_lbl.add_theme_font_override("font", f)
@@ -559,51 +560,28 @@ func _render_entity_portraits_to_image() -> Image:
 	viewport.queue_free()
 	return img
 
-## Generate optical memory sheets by rendering paginated text into PNGs.
-## Returns an array of saved file paths.
-func generate_optical_memory_pngs(output_dir: String, base_filename: String = "memory_sheet") -> Array:
-	var summary_text := generate_session_summary()
+## Generate optical memory page Images by rendering paginated text into Viewports.
+## @param summary_text: Pre-generated summary text to render
+## @return Array[Image]: in-memory images, no disk writes
+func generate_optical_memory_page_images(summary_text: String) -> Array[Image]:
 	var pages := _paginate_text(summary_text)
-
-	# Ensure output directory exists under user://
-	var user_root := DirAccess.open("user://")
-	if not user_root:
-		push_error("Unable to open user:// directory")
-		return []
-	if not user_root.dir_exists(output_dir):
-		user_root.make_dir_recursive(output_dir)
-
-	var saved: Array = []
+	var images: Array[Image] = []
 	for i in range(pages.size()):
 		var img := await _render_page_to_image(pages[i])
-		var path := output_dir + "/" + base_filename + "_" + str(i+1) + ".png"
-		var err := img.save_png(path)
-		if err != OK:
-			push_error("Failed to save optical memory sheet page " + str(i+1) + ": " + str(err))
-		else:
-			print("Optical memory sheet saved to: ", path)
-			saved.append(path)
-	
+		images.append(img)
+	# Also include a portraits page for quick visual recall
 	var pf := await _render_entity_portraits_to_image()
-	var pf_path := output_dir + "/" + base_filename + "_portraits.png"
-	var err4 := pf.save_png(pf_path)
-	if err4 == OK: saved.append(pf_path)
-	else: push_error("Failed to save portraits: " + str(err4))
+	images.append(pf)
+	return images
 
-	return saved
-
-## Generate an optical memory sheet by rendering text to a Viewport and saving as PNG
-## Returns the path to the saved PNG file
-func generate_optical_memory_png(output_dir: String, filename: String = "memory_sheet.png") -> String:
-	# Back-compat wrapper: write a single page named `filename`, falling back to multi-page naming
-	var paths := await generate_optical_memory_pngs(output_dir, filename.get_basename())
-	if paths.size() > 0:
-		# If only one page, ensure it uses the requested filename
-		if paths.size() == 1 and not paths[0].ends_with(".png"):
-			# Should not happen, but keep safe
-			return paths[0]
-		return paths[0]
-	return ""
+## Generate a single optical memory Image by rendering text to a Viewport (no disk)
+## @param summary_text: Pre-generated summary text to render
+## @return Image: in-memory rendered page
+func generate_optical_memory_image(summary_text: String) -> Image:
+	var pages := _paginate_text(summary_text)
+	if pages.size() == 0:
+		return await _render_page_to_image("")
+	return await _render_page_to_image(pages[0])
 
 ## Generate a lightweight text summary (for inclusion in prompts)
 func generate_prompt_summary(max_entities: int = 10) -> String:
@@ -611,5 +589,5 @@ func generate_prompt_summary(max_entities: int = 10) -> String:
 	return summary
 
 # Usage tip:
-#   var bundle = await optical_memory.generate_optical_memory_bundle("user://optical", "session_001")
-#   # bundle now contains paginated text PNGs + minimap + relationships + timeline
+#   var images: Array[Image] = await optical_memory.generate_optical_memory_images(summary_text)
+#   # images now contains paginated text images + minimap + relationships + timeline (all in memory)

@@ -25,6 +25,8 @@ class_name Game
 @onready var campaign_studio: Control = $GameUI/CampaignStudio
 @onready var campaign_picker: Window = $GameUI/CampaignPicker
 @onready var clipboard_button: Button = %clipboard_button
+@onready var optical_dbg_button: Button = $GameUI/game_container/header/HBoxContainer/button_group/optical_dbg_button
+@onready var optical_memory_debug: OpticalMemoryDebug = $GameUI/OpticalMemoryDebug
 
 var llm_settings: LLMSettings
 var llm_client: LLMClient
@@ -69,7 +71,6 @@ func _ready():
 	director = director_script.new(prompt_engine, world_db)
 	add_child(director)
 	director.action_resolved.connect(_on_action_resolved)
-	#director.action_queue_updated.connect(_on_action_queue_updated)
 	
 	# Connect UI signals
 	chat_window.entity_clicked.connect(_on_entity_clicked)
@@ -99,6 +100,10 @@ func _ready():
 		studio_button.pressed.connect(_on_studio_button_pressed)
 	if lore_button:
 		lore_button.pressed.connect(_on_lore_button_pressed)
+	if optical_dbg_button:
+		optical_dbg_button.pressed.connect(_on_optical_dbg_button_pressed)
+	if optical_memory_debug:
+		optical_memory_debug.closed.connect(_on_optical_debug_closed)
 	
 	# Setup autosave
 	_setup_autosave()
@@ -581,9 +586,31 @@ func _on_lore_button_pressed():
 	save_load_panel.visible = false
 	campaign_browser.visible = false
 	campaign_detail.visible = false
+	optical_memory_debug.visible = false
 	# Open lore codex
 	if lore_panel:
 		lore_panel.open_codex()
+
+func _on_optical_dbg_button_pressed() -> void:
+	# Hide other overlays
+	settings_panel.visible = false
+	card_editor.visible = false
+	card_manager.visible = false
+	save_load_panel.visible = false
+	campaign_browser.visible = false
+	campaign_detail.visible = false
+	lore_panel.visible = false
+	# Show optical memory debug viewer
+	if optical_memory_debug:
+		optical_memory_debug.visible = true
+
+func _on_optical_debug_closed() -> void:
+	if optical_memory_debug:
+		optical_memory_debug.visible = false
+
+func _setup_optical_debug(optical_memory: OpticalMemory) -> void:
+	if optical_memory_debug:
+		optical_memory_debug.setup(world_db, optical_memory)
 
 func _notification(what):
 	# Save on exit

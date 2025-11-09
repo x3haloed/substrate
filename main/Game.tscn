@@ -14,6 +14,7 @@
 [ext_resource type="PackedScene" path="res://ui/CampaignDetail.tscn" id="12_cdt"]
 [ext_resource type="PackedScene" uid="uid://bfqo6mc1kpx4l" path="res://ui/CampaignStudio.tscn" id="13_g87en"]
 [ext_resource type="PackedScene" path="res://ui/CampaignPicker.tscn" id="14_campick"]
+[ext_resource type="PackedScene" path="res://ui/OpticalMemoryDebug.tscn" id="15_optical_dbg"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2dx66"]
 content_margin_top = 12.0
@@ -86,6 +87,10 @@ text = "Campaign Studio"
 [node name="lore_button" type="Button" parent="GameUI/game_container/header/HBoxContainer/button_group"]
 layout_mode = 2
 text = "Lore"
+
+[node name="optical_dbg_button" type="Button" parent="GameUI/game_container/header/HBoxContainer/button_group"]
+layout_mode = 2
+text = "Optical DBG"
 
 [node name="Spacer" type="Control" parent="GameUI/game_container/header/HBoxContainer"]
 layout_mode = 2
@@ -161,3 +166,7 @@ layout_mode = 1
 layout_mode = 1
 
 [node name="CampaignPicker" parent="GameUI" instance=ExtResource("14_campick")]
+
+[node name="OpticalMemoryDebug" parent="GameUI" instance=ExtResource("15_optical_dbg")]
+visible = false
+layout_mode = 1
