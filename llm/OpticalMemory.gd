@@ -35,6 +35,8 @@ func _create_drawing_page() -> SubViewport:
 	var viewport := SubViewport.new()
 	viewport.size = Vector2i(PAGE_WIDTH, PAGE_HEIGHT)
 	viewport.transparent_bg = false
+	# Ensure at least one render before readback (fixes blank images)
+	viewport.set_update_mode(SubViewport.UPDATE_ONCE)
 	add_child(viewport)
 	var bg := ColorRect.new()
 	bg.color = COLOR_BG
