@@ -30,6 +30,9 @@ const COLOR_NODE_FILL := Color(0.85,0.9,1.0)
 const COLOR_EDGE := Color(0.2,0.2,0.2)
 const COLOR_HILITE := Color(0.1,0.6,0.95)
 
+## Internal page-image cache (PNG bytes), keyed by stable hashes
+var _page_cache: Dictionary = {}
+
 ## Create a generic drawing viewport with a white background
 func _create_drawing_page() -> SubViewport:
 	var viewport := SubViewport.new()
@@ -252,6 +255,151 @@ func generate_optical_memory_images(summary_text: String, visuals: Dictionary = 
 		images.append(pf)
 	return images
 
+## Build a compact chat transcript string from world history without timestamps.
+## Lines:
+## - Player: "You: text"
+## - NPC narration with speaker: "Speaker: text"
+## - World narration: "Narrator: text"
+## - Scene changes as section headers
+func build_chat_transcript_text(history: Array, max_events: int = 1000) -> String:
+	var lines: Array[String] = []
+	if history == null or not (history is Array):
+		return ""
+	var n: int = history.size()
+	var start: int = max(0, n - max_events)
+	for i in range(start, n):
+		var e = history[i]
+		if not (e is Dictionary):
+			continue
+		var kind := str(e.get("event",""))
+		match kind:
+			"scene_enter":
+				var sid := str(e.get("scene",""))
+				if sid != "":
+					lines.append("[b]— Enter scene: %s —[/b]" % sid)
+			"player_text":
+				var pt := str(e.get("text","")).strip_edges()
+				if pt != "":
+					lines.append("You: " + pt)
+			"narration":
+				var speaker := str(e.get("speaker",""))
+				var style := str(e.get("style","world"))
+				var speaker_name := speaker if speaker != "" else ("Narrator" if style == "world" else "NPC")
+				var t := str(e.get("text","")).strip_edges()
+				if t == "":
+					continue
+				lines.append(speaker_name + ": " + t)
+			_:
+				# Skip other events in the chat transcript
+				pass
+	return "\n".join(lines)
+
+## Render arbitrary text into pages with caching and page fiducials.
+## - kind: label for cache key and header, e.g., "ChatTranscript"
+## - max_pages: cap number of rendered pages
+## - cache_store: Dictionary mapping cacheKey -> PackedByteArray (PNG); optional
+## - fiducials: { "scene_id": String }
+func render_text_pages_with_cache(kind: String, text: String, max_pages: int = 2, cache_store: Dictionary = {}, fiducials: Dictionary = {}) -> Array[Image]:
+	var pages: Array = _paginate_text(text)
+	var total: int = pages.size()
+	if max_pages > 0:
+		total = min(total, max_pages)
+	var out: Array[Image] = []
+	var scene_id := str(fiducials.get("scene_id", ""))
+	# Choose a cache store (fallback to internal)
+	var store := cache_store if (cache_store != null and cache_store.size() > 0) else _page_cache
+	for i in range(total):
+		var header := "[[PAGE: %s %d/%d%s]]\n" % [kind, i + 1, pages.size(), (" | Scene=" + scene_id) if scene_id != "" else ""]
+		var page_text: String = header + String(pages[i])
+		# Compute stable key
+		var key := "%s:%d" % [kind, hash(page_text)]
+		var used_cache := false
+		if store != null and store.has(key) and store.get(key) is PackedByteArray:
+			var bytes: PackedByteArray = store.get(key)
+			var img := Image.new()
+			var err := img.load_png_from_buffer(bytes)
+			if err == OK:
+				out.append(img)
+				used_cache = true
+		if not used_cache:
+			var img2 := await _render_page_to_image(page_text)
+			out.append(img2)
+			if store != null:
+				var png_bytes := img2.save_png_to_buffer()
+				store[key] = png_bytes
+	return out
+
+## Compose a mosaic page from multiple full pages, downscaled to a grid.
+func _compose_mosaic_page(tiles: Array[Image], rows: int = 3, cols: int = 2, title: String = "Compressed Transcript") -> Image:
+	var viewport := _create_drawing_page()
+	# Title
+	var title_lbl := Label.new()
+	title_lbl.text = title
+	var f := _load_optical_font()
+	if f:
+		title_lbl.add_theme_font_override("font", f)
+		title_lbl.add_theme_font_size_override("font_size", FONT_SIZE + 2)
+	title_lbl.position = Vector2(PAGE_MARGIN, PAGE_MARGIN/2)
+	viewport.add_child(title_lbl)
+	# Grid geometry
+	var gap := 16
+	var origin := Vector2(PAGE_MARGIN, PAGE_MARGIN + 40)
+	var grid_w := PAGE_WIDTH - PAGE_MARGIN * 2
+	var grid_h := PAGE_HEIGHT - PAGE_MARGIN * 2 - 40
+	var tile_w := int((grid_w - (cols - 1) * gap) / cols)
+	var tile_h := int((grid_h - (rows - 1) * gap) / rows)
+	# Add tiles
+	for i in range(min(tiles.size(), rows * cols)):
+		var r := int(i / cols)
+		var c := int(i % cols)
+		var x := origin.x + c * (tile_w + gap)
+		var y := origin.y + r * (tile_h + gap)
+		var tex := ImageTexture.create_from_image(tiles[i])
+		var rect := TextureRect.new()
+		rect.texture = tex
+		rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		rect.size = Vector2(tile_w, tile_h)
+		rect.position = Vector2(x, y)
+		viewport.add_child(rect)
+	# Flush
+	await RenderingServer.frame_post_draw
+	var img: Image = viewport.get_texture().get_image()
+	viewport.queue_free()
+	return img
+
+## Render chat transcript into images; last page is a compressed mosaic of older pages.
+## Returns at most 2 images by default: 1 full-res + 1 mosaic of older pages (3x2).
+func render_chat_transcript_to_images(history: Array, max_events: int = 1000, full_pages: int = 1, mosaic_rows: int = 3, mosaic_cols: int = 2) -> Array[Image]:
+	var transcript := build_chat_transcript_text(history, max_events)
+	var all_pages: Array = _paginate_text(transcript)
+	if all_pages.is_empty():
+		return [await _render_page_to_image("")]
+	# First: render newest 'full_pages' pages at full resolution
+	var fid := {"scene_id": ""}  # caller can extend later if needed
+	var full_images := await render_text_pages_with_cache("ChatTranscript", transcript, full_pages, {}, fid)
+	# If no more pages, return the full pages only
+	if all_pages.size() <= full_pages:
+		return full_images
+	# Build images for the next chunk to tile
+	var tiles_needed := mosaic_rows * mosaic_cols
+	var tile_pages: Array = []
+	for i in range(full_pages, min(all_pages.size(), full_pages + tiles_needed)):
+		tile_pages.append(all_pages[i])
+	# Render each tile page (with lightweight headers)
+	var tile_images: Array[Image] = []
+	for j in range(tile_pages.size()):
+		var header := "[[PAGE: ChatTranscript %d/%d (tile)]]\n" % [full_pages + j + 1, all_pages.size()]
+		var text := header + String(tile_pages[j])
+		var imgs := await render_text_pages_with_cache("ChatTranscriptTile", text, 1, {}, fid)
+		if imgs.size() > 0:
+			tile_images.append(imgs[0])
+	# Compose mosaic final page
+	var mosaic := await _compose_mosaic_page(tile_images, mosaic_rows, mosaic_cols, "Compressed Transcript")
+	var out: Array[Image] = []
+	out.append_array(full_images)
+	out.append(mosaic)
+	return out
+
 # Optional high-contrast, mono font if present (cached to avoid repeated FS access)
 func _load_optical_font() -> Font:
 	if _cached_font != null:
@@ -296,6 +444,8 @@ func _create_optical_page() -> Array:
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.scroll_active = false
 	label.visible_characters_behavior = TextServer.VC_CHARS_BEFORE_SHAPING
+	# Ensure high-contrast dark text regardless of global theme
+	label.add_theme_color_override("default_color", COLOR_TEXT) # black
 	# Godot 4: use theme constant 'line_separation' instead of a line_spacing property
 	label.add_theme_constant_override("line_separation", int((LINE_SPACING - 1.0) * FONT_SIZE))
 

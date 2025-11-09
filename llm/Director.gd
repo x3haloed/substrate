@@ -14,13 +14,18 @@ var current_scene_id: String = ""
 var action_queue: ActionQueue = ActionQueue.new()
 var open_area_generator: OpenAreaGenerator
 var _active_open_area: Dictionary = {} # { area_id, target_scene_id, condition, generated_scene_id }
+var optical_memory: OpticalMemory
+const OM_BUDGET_NARRATOR: int = 1
+const OM_BUDGET_NPC: int = 2
+const OM_BUDGET_FREEFORM: int = 2
 
-func _init(p_prompt_engine: PromptEngine, p_world_db: WorldDB):
+func _init(p_prompt_engine: PromptEngine, p_world_db: WorldDB, p_optical_memory: OpticalMemory = null):
 	prompt_engine = p_prompt_engine
 	world_db = p_world_db
 	trigger_registry = TriggerRegistry.new()
 	companion_ai = CompanionAI.new(world_db, trigger_registry)
 	open_area_generator = OpenAreaGenerator.new(prompt_engine, world_db)
+	optical_memory = p_optical_memory
 
 func enter_scene(scene_id: String) -> ResolutionEnvelope:
 	current_scene_id = scene_id
@@ -58,7 +63,16 @@ func enter_scene(scene_id: String) -> ResolutionEnvelope:
 				scene_image = img
 			else:
 				push_warning("Failed to load scene image: " + load_path)
-	var narration_text = await prompt_engine.process_narrator_request(context, scene_image)
+	# Build narrator images respecting budget (prefer scene image)
+	var narrator_images: Array[Image] = []
+	if prompt_engine and prompt_engine.llm_client and prompt_engine.llm_client.settings:
+		var stg := prompt_engine.llm_client.settings
+		if stg.supports_vision and scene_image != null:
+			narrator_images.append(scene_image)
+	# Cap to budget
+	if narrator_images.size() > OM_BUDGET_NARRATOR:
+		narrator_images = narrator_images.slice(0, OM_BUDGET_NARRATOR)
+	var narration_text = await prompt_engine.process_narrator_request(context, narrator_images)
 	
 	var envelope = ResolutionEnvelope.new()
 	var narr = NarrationEvent.new()
@@ -188,7 +202,18 @@ func process_player_action(action: ActionRequest) -> ResolutionEnvelope:
 		character_context = companion_ai.get_character_influence(action.actor)
 	
 	# Process through PromptEngine with character context
-	var envelope = await prompt_engine.process_action(action, character_context)
+	# Optional: attach chat transcript images for dialog/freeform (cached). Skip for non-vision or disabled.
+	var images: Array[Image] = []
+	if prompt_engine and prompt_engine.llm_client and prompt_engine.llm_client.settings:
+		var stg := prompt_engine.llm_client.settings
+		if stg.supports_vision and stg.optical_memory and optical_memory:
+			if not (world_db.flags.has("om_cache") and world_db.flags["om_cache"] is Dictionary):
+				world_db.flags["om_cache"] = {}
+			var cache_dict: Dictionary = world_db.flags["om_cache"]
+			var transcript_text := optical_memory.build_chat_transcript_text(world_db.history, 1000)
+			var ctx := {"scene_id": current_scene_id}
+			images = await optical_memory.render_text_pages_with_cache("ChatTranscript", transcript_text, OM_BUDGET_NPC, cache_dict, ctx)
+	var envelope = await prompt_engine.process_action(action, character_context, images)
 
 	# Ensure voice formatting for talk: speaker is target when player talks; otherwise it's the actor
 	if action.verb == "talk":
@@ -244,7 +269,17 @@ func process_freeform_player_input(text: String) -> ResolutionEnvelope:
 	if not scene:
 		return _create_error_envelope("No active scene")
 	# Let PromptEngine interpret and resolve the freeform input
-	var envelope = await prompt_engine.process_freeform_input(scene, text)
+	var images: Array[Image] = []
+	if prompt_engine and prompt_engine.llm_client and prompt_engine.llm_client.settings:
+		var stg := prompt_engine.llm_client.settings
+		if stg.supports_vision and stg.optical_memory and optical_memory:
+			if not (world_db.flags.has("om_cache") and world_db.flags["om_cache"] is Dictionary):
+				world_db.flags["om_cache"] = {}
+			var cache_dict: Dictionary = world_db.flags["om_cache"]
+			var transcript_text := optical_memory.build_chat_transcript_text(world_db.history, 1000)
+			var ctx := {"scene_id": current_scene_id}
+			images = await optical_memory.render_text_pages_with_cache("ChatTranscript", transcript_text, OM_BUDGET_FREEFORM, cache_dict, ctx)
+	var envelope = await prompt_engine.process_freeform_input(scene, text, images)
 	# Apply patches and advance systems like a normal action
 	_apply_patches(envelope.patches)
 	# Process engine commands from freeform

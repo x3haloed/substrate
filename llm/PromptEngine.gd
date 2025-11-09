@@ -69,25 +69,29 @@ func _init(p_llm_client: LLMClient, p_world_db: WorldDB):
 	nar_after.content = "Respond with plain prose only; do not output JSON or code fences."
 	injection_layers.append(nar_after)
 
-func build_narrator_prompt(scene_context: Dictionary, image: Image = null) -> Array[Dictionary]:
+func build_narrator_prompt(scene_context: Dictionary, images: Array[Image] = []) -> Array[Dictionary]:
 	var brief := format_scene_brief(scene_context)
-	# Build recent chat snapshot to give narrator strong situational awareness
-	var chat_snapshot = _build_chat_snapshot()
-	var user_text = "Scene brief:\n" + brief + "\n\n" + "Recent chat snapshot:\n" + JSON.stringify(chat_snapshot, "\t") + "\n\nWrite a concise atmospheric paragraph (3-5 sentences)."
+	# Optionally include chat snapshot unless optical memory is active
+	var use_optical := llm_client and llm_client.settings and llm_client.settings.supports_vision and llm_client.settings.optical_memory
+	var user_text := ""
+	if use_optical:
+		user_text = "Scene brief:\n" + brief + "\n\nWrite a concise atmospheric paragraph (3-5 sentences)."
+	else:
+		# Build recent chat snapshot to give narrator strong situational awareness
+		var chat_snapshot = _build_chat_snapshot()
+		user_text = "Scene brief:\n" + brief + "\n\n" + "Recent chat snapshot:\n" + JSON.stringify(chat_snapshot, "\t") + "\n\nWrite a concise atmospheric paragraph (3-5 sentences)."
 	var system_msg = {"role": "system", "content": templates.get_narrator_system_prompt()}
 	var messages: Array[Dictionary] = []
-	# If vision supported and image provided, embed as Base64 data URL
-	if llm_client and llm_client.settings and llm_client.settings.supports_vision and image != null:
-		var png_bytes: PackedByteArray = image.save_png_to_buffer()
-		var base64_image := Marshalls.raw_to_base64(png_bytes)
-		var data_url := "data:image/png;base64," + base64_image
-		messages = [
-			system_msg,
-			{"role": "user", "content": [
-				{"type": "text", "text": user_text},
-				{"type": "image_url", "image_url": {"url": data_url}}
-			]}
-		]
+	# If vision supported and images provided, embed them
+	if llm_client and llm_client.settings and llm_client.settings.supports_vision and images.size() > 0:
+		var content: Array = [{"type": "text", "text": user_text}]
+		for im in images:
+			if im:
+				var png_bytes: PackedByteArray = im.save_png_to_buffer()
+				var base64_image := Marshalls.raw_to_base64(png_bytes)
+				var data_url := "data:image/png;base64," + base64_image
+				content.append({"type": "image_url", "image_url": {"url": data_url}})
+		messages = [system_msg, {"role": "user", "content": content}]
 	# Fallback: text-only
 	else:
 		messages = [
@@ -115,7 +119,7 @@ static func format_scene_brief(scene_context: Dictionary) -> String:
 	
 	return "\n".join(lines)
 
-func build_director_prompt(action: ActionRequest, scene: SceneGraph, character_context: Dictionary = {}) -> Array[Dictionary]:
+func build_director_prompt(action: ActionRequest, scene: SceneGraph, character_context: Dictionary = {}, images: Array[Image] = []) -> Array[Dictionary]:
 	var scene_info = {
 		"scene_id": scene.scene_id,
 		"description": scene.description,
@@ -178,14 +182,30 @@ func build_director_prompt(action: ActionRequest, scene: SceneGraph, character_c
 	
 	user_sections.append("Respond with a valid JSON object matching the ResolutionEnvelope format.")
 	
-	var messages_d: Array[Dictionary] = [
-		{"role": "system", "content": templates.get_director_system_prompt()},
-		{"role": "user", "content": "\n\n".join(user_sections)}
-	]
+	var user_payload_text := "\n\n".join(user_sections)
+	var messages_d: Array[Dictionary] = []
+	# Attach images if provided and supported
+	if llm_client and llm_client.settings and llm_client.settings.supports_vision and images.size() > 0:
+		var content: Array = [{"type": "text", "text": user_payload_text}]
+		for im in images:
+			if im:
+				var png_bytes: PackedByteArray = im.save_png_to_buffer()
+				var base64_image := Marshalls.raw_to_base64(png_bytes)
+				var data_url := "data:image/png;base64," + base64_image
+				content.append({"type": "image_url", "image_url": {"url": data_url}})
+		messages_d = [
+			{"role": "system", "content": templates.get_director_system_prompt()},
+			{"role": "user", "content": content}
+		]
+	else:
+		messages_d = [
+			{"role": "system", "content": templates.get_director_system_prompt()},
+			{"role": "user", "content": user_payload_text}
+		]
 	return injection_manager.apply_layers("director", messages_d, {"action": action, "scene": scene, "character_context": character_context}, injection_layers)
 
 # Build NPC dialog prompt when player talks to an NPC
-func build_npc_prompt(action: ActionRequest, scene: SceneGraph, character: CharacterProfile) -> Array[Dictionary]:
+func build_npc_prompt(action: ActionRequest, scene: SceneGraph, character: CharacterProfile, images: Array[Image] = []) -> Array[Dictionary]:
 	var scene_info = {
 		"scene_id": scene.scene_id,
 		"description": scene.description,
@@ -194,7 +214,8 @@ func build_npc_prompt(action: ActionRequest, scene: SceneGraph, character: Chara
 	}
 
 	var player_text := str(action.context.get("utterance", ""))
-	var chat_snapshot := _build_chat_snapshot()
+	var use_optical := llm_client and llm_client.settings and llm_client.settings.supports_vision and llm_client.settings.optical_memory
+	var chat_snapshot := {} if use_optical else _build_chat_snapshot()
 
 	# Build macro context for safe expansion
 	var macro_ctx: Dictionary = {}
@@ -234,6 +255,28 @@ func build_npc_prompt(action: ActionRequest, scene: SceneGraph, character: Chara
 		templates.get_npc_system_prompt(),
 		macro_ctx
 	)
+	# If optical memory is active and images were provided, attach them to the last user message
+	if use_optical and llm_client and llm_client.settings.supports_vision and images.size() > 0:
+		# Replace the last message content with multi-part content including images
+		for i in range(messages_npc.size() - 1, -1, -1):
+			var msg = messages_npc[i]
+			if msg.get("role","") == "user":
+				var content: Array = []
+				if typeof(msg.get("content","")) == TYPE_STRING:
+					content.append({"type":"text","text": str(msg.get("content",""))})
+				elif msg.get("content") is Array:
+					# Preserve existing parts
+					for part in msg.get("content"):
+						content.append(part)
+				# Append images
+				for im in images:
+					if im:
+						var png_bytes: PackedByteArray = im.save_png_to_buffer()
+						var base64_image := Marshalls.raw_to_base64(png_bytes)
+						var data_url := "data:image/png;base64," + base64_image
+						content.append({"type":"image_url","image_url":{"url": data_url}})
+				messages_npc[i]["content"] = content
+				break
 	# Apply character-specific post-history instructions, if present, as a per-call IN_CHAT layer
 	var layers := injection_layers.duplicate()
 	# Inject unlocked lore sections for the speaking NPC so the model respects progressive reveal
@@ -269,7 +312,7 @@ func build_npc_prompt(action: ActionRequest, scene: SceneGraph, character: Chara
 	return injection_manager.apply_layers("npc", messages_npc, {"action": action, "scene": scene, "character": character}, layers)
 
 # Build a prompt to interpret freeform player input and resolve it
-func build_freeform_prompt(scene: SceneGraph, player_text: String) -> Array[Dictionary]:
+func build_freeform_prompt(scene: SceneGraph, player_text: String, images: Array[Image] = []) -> Array[Dictionary]:
 	var scene_info = {
 		"scene_id": scene.scene_id,
 		"description": scene.description,
@@ -277,17 +320,33 @@ func build_freeform_prompt(scene: SceneGraph, player_text: String) -> Array[Dict
 		"rules": scene.rules
 	}
 	# Build a chat snapshot from recent world history so the model can infer implied addresses
-	var chat_snapshot = _build_chat_snapshot()
+	var use_optical := llm_client and llm_client.settings and llm_client.settings.supports_vision and llm_client.settings.optical_memory
+	var chat_snapshot = {} if use_optical else _build_chat_snapshot()
 
 	var instructions = templates.get_freeform_system_prompt()
-	var messages_ff: Array[Dictionary] = [
-		{"role": "system", "content": instructions},
-		{"role": "user", "content": JSON.stringify({
-			"scene": scene_info,
-			"chat_snapshot": chat_snapshot,
-			"player_text": player_text
-		}, "\t")}
-	]
+	var user_payload := JSON.stringify({
+		"scene": scene_info,
+		"chat_snapshot": chat_snapshot,
+		"player_text": player_text
+	}, "\t")
+	var messages_ff: Array[Dictionary] = []
+	if use_optical and llm_client and llm_client.settings.supports_vision and images.size() > 0:
+		var content: Array = [{"type":"text","text": user_payload}]
+		for im in images:
+			if im:
+				var png_bytes: PackedByteArray = im.save_png_to_buffer()
+				var base64_image := Marshalls.raw_to_base64(png_bytes)
+				var data_url := "data:image/png;base64," + base64_image
+				content.append({"type":"image_url","image_url":{"url": data_url}})
+		messages_ff = [
+			{"role": "system", "content": instructions},
+			{"role": "user", "content": content}
+		]
+	else:
+		messages_ff = [
+			{"role": "system", "content": instructions},
+			{"role": "user", "content": user_payload}
+		]
 	return injection_manager.apply_layers("freeform", messages_ff, {"scene": scene, "player_text": player_text}, injection_layers)
 
 ## Build a compact snapshot of recent dialog/narration for context-aware prompts
@@ -329,7 +388,7 @@ func _build_lore_injection_for_actor(actor_id: String) -> String:
 	var text := JSON.stringify({"lorebook": [payload]}, "\t")
 	return text if typeof(text) == TYPE_STRING else ""
 
-func process_action(action: ActionRequest, character_context: Dictionary = {}) -> ResolutionEnvelope:
+func process_action(action: ActionRequest, character_context: Dictionary = {}, images: Array[Image] = []) -> ResolutionEnvelope:
 	var scene = world_db.get_scene(action.scene)
 	if not scene:
 		push_error("Scene not found: " + action.scene)
@@ -342,7 +401,7 @@ func process_action(action: ActionRequest, character_context: Dictionary = {}) -
 	if action.actor == "player" and action.verb == "talk" and target_entity and target_entity.type_name == "npc":
 		var target_character = world_db.get_character(action.target)
 		if target_character:
-			var npc_messages = build_npc_prompt(action, scene, target_character)
+			var npc_messages = build_npc_prompt(action, scene, target_character, images)
 			var npc_response = await _make_llm_request(npc_messages, _resolution_envelope_schema(), {"source": "npc", "npc_id": action.target})
 			if npc_response != "":
 				var npc_envelope = _parse_response(npc_response)
@@ -356,7 +415,7 @@ func process_action(action: ActionRequest, character_context: Dictionary = {}) -
 	elif action.verb == "talk" and actor_entity and actor_entity.type_name == "npc":
 		var actor_character = world_db.get_character(action.actor)
 		if actor_character:
-			var npc_messages_actor = build_npc_prompt(action, scene, actor_character)
+			var npc_messages_actor = build_npc_prompt(action, scene, actor_character, images)
 			var npc_response_actor = await _make_llm_request(npc_messages_actor, _resolution_envelope_schema(), {"source": "npc", "npc_id": action.actor})
 			if npc_response_actor != "":
 				var npc_envelope_actor = _parse_response(npc_response_actor)
@@ -385,7 +444,7 @@ func process_action(action: ActionRequest, character_context: Dictionary = {}) -
 				if book_summary != "":
 					full_context["book_summary"] = book_summary
 	
-	var messages = build_director_prompt(action, scene, full_context)
+	var messages = build_director_prompt(action, scene, full_context, [])  # no transcript images for generic director actions yet
 	var response_text = await _make_llm_request(messages, _resolution_envelope_schema(), {"source": "director"})
 	
 	if response_text == "":
@@ -411,8 +470,8 @@ func _summarize_character_book(book: CharacterBook) -> String:
 		return "\n".join(summaries)
 	return ""
 
-func process_narrator_request(context: Dictionary, image: Image = null) -> String:
-	var messages = build_narrator_prompt(context, image)
+func process_narrator_request(context: Dictionary, images: Array[Image] = []) -> String:
+	var messages = build_narrator_prompt(context, images)
 	var response_text = await _make_llm_request(messages, {}, {"source": "narrator"})
 	return response_text
 
@@ -428,8 +487,8 @@ static func _apply_character_system_prompt(character: CharacterProfile, original
 func _make_llm_request(messages: Array[Dictionary], json_schema: Dictionary = {}, meta: Dictionary = {}) -> String:
 	return await llm_client.make_request(messages, "", json_schema, meta)
 
-func process_freeform_input(scene: SceneGraph, player_text: String) -> ResolutionEnvelope:
-	var messages = build_freeform_prompt(scene, player_text)
+func process_freeform_input(scene: SceneGraph, player_text: String, images: Array[Image] = []) -> ResolutionEnvelope:
+	var messages = build_freeform_prompt(scene, player_text, images)
 	var response_text = await _make_llm_request(messages, _resolution_envelope_schema(), {"source": "director", "npc_hint": world_db.flags.get("last_npc_speaker", "")})
 	if response_text == "":
 		return _create_error_envelope("LLM request failed")

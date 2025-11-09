@@ -11,6 +11,7 @@ signal closed()
 @onready var api_key_edit: LineEdit = $VBox/KeyBox/APIKeyEdit
 @onready var model_edit: LineEdit = $VBox/ModelBox/ModelEdit
 @onready var vision_check: CheckBox = $VBox/VisionBox/VisionSupportCheck
+@onready var optical_check: CheckBox = $VBox/OpticalBox/OpticalMemoryCheck
 @onready var save_button: Button = $VBox/SaveButton
 @onready var close_button: Button = $VBox/CloseButton
 
@@ -22,6 +23,7 @@ func _ready():
 	save_button.pressed.connect(_on_save_pressed)
 	close_button.pressed.connect(_on_close_pressed)
 	provider_option.item_selected.connect(_on_provider_selected)
+	vision_check.toggled.connect(_on_vision_toggled)
 	
 	# Populate provider dropdown
 	for provider_name in PROVIDER_NAMES:
@@ -52,6 +54,9 @@ func load_settings(p_settings: LLMSettings):
 	api_key_edit.text = settings.api_key
 	model_edit.text = settings.model
 	vision_check.button_pressed = settings.supports_vision
+	optical_check.button_pressed = settings.optical_memory and settings.supports_vision
+	# Optical memory only allowed if vision is supported
+	optical_check.disabled = not settings.supports_vision
 	
 	_update_url_edit_state()
 
@@ -76,6 +81,12 @@ func _update_url_edit_state():
 	api_url_edit.editable = true
 	api_url_edit.text = settings.get_api_url()
 
+func _on_vision_toggled(on: bool) -> void:
+	# Optical memory is only meaningful with vision models
+	optical_check.disabled = not on
+	if not on:
+		optical_check.button_pressed = false
+
 func _on_save_pressed():
 	if not settings:
 		return
@@ -84,6 +95,8 @@ func _on_save_pressed():
 	settings.api_key = api_key_edit.text
 	settings.model = model_edit.text
 	settings.supports_vision = vision_check.button_pressed
+	# Enforce backend rule: if vision is off, optical memory must be off
+	settings.optical_memory = settings.supports_vision and optical_check.button_pressed
 	
 	# Persist to user storage (works on Web via IndexedDB)
 	var cfg := ConfigFile.new()
@@ -93,6 +106,7 @@ func _on_save_pressed():
 	cfg.set_value("llm", "model", settings.model)
 	cfg.set_value("llm", "supports_vision", settings.supports_vision)
 	cfg.set_value("llm", "debug_trace", settings.debug_trace)
+	cfg.set_value("llm", "optical_memory", settings.optical_memory)
 	cfg.save("user://llm_settings.cfg")
 	
 	settings_saved.emit()

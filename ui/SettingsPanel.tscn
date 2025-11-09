@@ -105,6 +105,18 @@ text = "Model supports vision:"
 [node name="VisionSupportCheck" type="CheckBox" parent="VBox/VisionBox"]
 layout_mode = 2
 
+[node name="OpticalBox" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="OpticalLabel" type="Label" parent="VBox/OpticalBox"]
+layout_mode = 2
+size_flags_horizontal = 2
+text = "Optical Memory (use images):"
+
+[node name="OpticalMemoryCheck" type="CheckBox" parent="VBox/OpticalBox"]
+layout_mode = 2
+disabled = true
+
 [node name="SaveButton" type="Button" parent="VBox"]
 layout_mode = 2
 text = "Save"

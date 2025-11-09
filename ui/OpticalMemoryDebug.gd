@@ -22,6 +22,7 @@ func _ready() -> void:
 	mode_option.add_item("Relationships Only", 2)
 	mode_option.add_item("Timeline Only", 3)
 	mode_option.add_item("Portraits Only", 4)
+	mode_option.add_item("Chat Transcript Only", 5)
 	mode_option.selected = 0
 	status_label.text = "Ready. Click 'Generate' to render optical memory."
 
@@ -64,6 +65,8 @@ func _on_generate_pressed() -> void:
 			await _render_single_visual("timeline")
 		4:  # Portraits
 			await _render_single_visual("portraits")
+		5:  # Chat transcript
+			await _render_single_visual("chat")
 	
 	status_label.text = "Done! VBoxContainer updated."
 	generate_button.disabled = false
@@ -116,6 +119,19 @@ func _render_single_visual(visual_type: String) -> void:
 		"portraits":
 			var ents := _build_portrait_entities()
 			img = await optical_memory.render_entity_portraits_to_image(ents)
+		"chat":
+			# Build transcript pages with compressed mosaic; preview all
+			var images: Array[Image] = await optical_memory.render_chat_transcript_to_images(world_db.history, 1000)
+			for im in images:
+				var t := ImageTexture.create_from_image(im)
+				var r := TextureRect.new()
+				r.texture = t
+				r.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+				r.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				r.size_flags_vertical = Control.SIZE_EXPAND_FILL
+				vbox_container.add_child(r)
+			# We've already added all images; skip generic single add below
+			img = null
 	
 	if img:
 		var tex := ImageTexture.create_from_image(img)

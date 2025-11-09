@@ -36,6 +36,7 @@ var director: Node
 var autosave_timer: Timer
 var autosave_interval: float = 300.0  # 5 minutes
 var clipboard_manager: ClipboardManager
+var optical_memory_node: OpticalMemory
 
 func _enter_tree():
 	# Ensure the user's card repository is initialized with builtin cards
@@ -66,16 +67,17 @@ func _ready():
 	# Initialize prompt engine
 	prompt_engine = PromptEngine.new(llm_client, world_db)
 	
-	# Initialize director
+	# Initialize OpticalMemory (shared with Director and Debug)
+	optical_memory_node = OpticalMemory.new()
+	add_child(optical_memory_node)
+	# Initialize director (pass optical memory for optical packets)
 	var director_script = load("res://llm/Director.gd")
-	director = director_script.new(prompt_engine, world_db)
+	director = director_script.new(prompt_engine, world_db, optical_memory_node)
 	add_child(director)
 	director.action_resolved.connect(_on_action_resolved)
 	
 	# Setup OpticalMemory debug (deferred to ensure scene tree is ready)
-	var optical_memory := OpticalMemory.new()
-	add_child(optical_memory)
-	call_deferred("_setup_optical_debug", optical_memory)
+	call_deferred("_setup_optical_debug", optical_memory_node)
 	
 	# Connect UI signals
 	chat_window.entity_clicked.connect(_on_entity_clicked)
@@ -168,6 +170,10 @@ func _load_settings():
 		llm_settings.model = str(cfg.get_value("llm", "model", llm_settings.model))
 		llm_settings.debug_trace = bool(cfg.get_value("llm", "debug_trace", llm_settings.debug_trace))
 		llm_settings.supports_vision = bool(cfg.get_value("llm", "supports_vision", llm_settings.supports_vision))
+		llm_settings.optical_memory = bool(cfg.get_value("llm", "optical_memory", llm_settings.optical_memory))
+	# Enforce rule: optical memory only if vision supported
+	if not llm_settings.supports_vision:
+		llm_settings.optical_memory = false
 	
 	settings_panel.load_settings(llm_settings)
 
@@ -519,7 +525,7 @@ func _apply_world_db(new_world: WorldDB):
 	if director:
 		director.queue_free()
 	var director_script = load("res://llm/Director.gd")
-	director = director_script.new(prompt_engine, world_db)
+	director = director_script.new(prompt_engine, world_db, optical_memory_node)
 	add_child(director)
 	director.action_resolved.connect(_on_action_resolved)
 

@@ -8,6 +8,7 @@ class_name LLMSettings
 @export var model: String = "gpt-5-nano"
 @export var debug_trace: bool = false
 @export var supports_vision: bool = false
+@export var optical_memory: bool = false   # When true and vision is supported, attach optical pages and omit duplicate text sections
 
 const PROVIDER_URLS = {
 	"openai": "https://api.openai.com/v1",
