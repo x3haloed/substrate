@@ -134,9 +134,12 @@ func build_director_prompt(action: ActionRequest, scene: SceneGraph, character_c
 		"context": action.context
 	}
 	
+	# Sanitize payloads to avoid huge blobs or base64 text leaking into prompts
+	var sanitized_scene: Dictionary = _sanitize_for_prompt(scene_info)
+	var sanitized_action: Dictionary = _sanitize_for_prompt(action_info)
 	var user_sections: Array[String] = []
-	user_sections.append("Current Scene:\n" + JSON.stringify(scene_info, "\t"))
-	user_sections.append("Action Request:\n" + JSON.stringify(action_info, "\t"))
+	user_sections.append("Current Scene:\n" + JSON.stringify(sanitized_scene, "\t"))
+	user_sections.append("Action Request:\n" + JSON.stringify(sanitized_action, "\t"))
 	
 	# Add character context if actor is an NPC
 	if character_context.size() > 0:
@@ -674,14 +677,54 @@ func _parse_response(json_text: String) -> ResolutionEnvelope:
 func _serialize_entities(entities: Array[Entity]) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for entity in entities:
+		# Sanitize props to strip *_base64 and cap long strings/lists
+		var props_sanitized = _sanitize_for_prompt(entity.props)
 		result.append({
 			"id": entity.id,
 			"type_name": entity.type_name,
 			"verbs": entity.verbs,
 			"tags": entity.tags,
-			"props": entity.props
+			"props": props_sanitized
 		})
 	return result
+
+## Sanitize arbitrary values for inclusion in prompts:
+## - Strip keys ending with *_base64
+## - Cap strings to ~140 chars with ellipsis
+## - Truncate very large arrays (keep first 50 items, append summary)
+func _sanitize_for_prompt(value) -> Variant:
+	var MAX_STR := 140
+	var MAX_LIST := 50
+	match typeof(value):
+		TYPE_DICTIONARY:
+			var out := {}
+			for k in value.keys():
+				var ks := String(k)
+				# Skip *_base64 keys entirely
+				if ks.ends_with("_base64"):
+					continue
+				out[k] = _sanitize_for_prompt(value[k])
+			return out
+		TYPE_ARRAY:
+			var arr: Array = value
+			if arr.size() <= MAX_LIST:
+				var trimmed: Array = []
+				for item in arr:
+					trimmed.append(_sanitize_for_prompt(item))
+				return trimmed
+			else:
+				var trimmed2: Array = []
+				for i in range(min(arr.size(), MAX_LIST)):
+					trimmed2.append(_sanitize_for_prompt(arr[i]))
+				trimmed2.append("… +%d more" % (arr.size() - MAX_LIST))
+				return trimmed2
+		TYPE_STRING:
+			var s := String(value)
+			if s.length() > MAX_STR:
+				return s.substr(0, MAX_STR - 1) + "…"
+			return s
+		_:
+			return value
 
 func _create_error_envelope(message: String) -> ResolutionEnvelope:
 	var envelope = ResolutionEnvelope.new()
