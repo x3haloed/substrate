@@ -2,6 +2,8 @@
 
 This document describes the responsibilities, lifecycle, and decision boundaries of the runtime `Director` class and the conceptual “Director” prompt used by the LLM. It also proposes how companion/NPC actions should be integrated into the turn loop so NPCs can proactively affect the world.
 
+See also: `docs/EDITOR.md` for canon/continuity enforcement and constraint auditing.
+
 
 ## High-level goals
 
