@@ -274,6 +274,8 @@ func _create_optical_page() -> Array:
 	var viewport := SubViewport.new()
 	viewport.size = Vector2i(PAGE_WIDTH, PAGE_HEIGHT)
 	viewport.transparent_bg = false
+	# Ensure the viewport renders at least once so we can read back the image
+	viewport.set_update_mode(SubViewport.UPDATE_ONCE)
 	add_child(viewport)
 
 	# White background to maximize OCR contrast
