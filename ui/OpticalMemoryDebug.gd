@@ -3,7 +3,7 @@ class_name OpticalMemoryDebug
 
 ## Debug viewer for OpticalMemory rendering (live preview)
 
-@onready var viewport_container: SubViewportContainer = %ViewportContainer
+@onready var vbox_container: VBoxContainer = %VBoxContainer
 @onready var generate_button: Button = %GenerateButton
 @onready var close_button: Button = %CloseButton
 @onready var mode_option: OptionButton = %ModeOption
@@ -41,10 +41,7 @@ func _on_generate_pressed() -> void:
 	generate_button.disabled = true
 	status_label.text = "Generating..."
 	
-	# Clear existing viewport children
-	var viewport := _get_or_create_viewport()
-	for child in viewport.get_children():
-		child.queue_free()
+	_clear_vbox_content()
 	
 	# Build memory context (local equivalent of build_prompt_memory)
 	var memory_context: Dictionary = _build_prompt_memory_local([], "player")
@@ -58,77 +55,27 @@ func _on_generate_pressed() -> void:
 	var mode: int = mode_option.selected
 	match mode:
 		0:  # Full bundle
-			await _render_full_bundle(viewport, full_summary_text)
+			await _render_full_bundle(full_summary_text)
 		1:  # Minimap
-			await _render_single_visual(viewport, "minimap")
+			await _render_single_visual("minimap")
 		2:  # Relationships
-			await _render_single_visual(viewport, "relationships")
+			await _render_single_visual("relationships")
 		3:  # Timeline
-			await _render_single_visual(viewport, "timeline")
+			await _render_single_visual("timeline")
 		4:  # Portraits
-			await _render_single_visual(viewport, "portraits")
+			await _render_single_visual("portraits")
 	
-	status_label.text = "Done! Viewport updated."
+	status_label.text = "Done! VBoxContainer updated."
 	generate_button.disabled = false
 
-func _get_or_create_viewport() -> SubViewport:
-	if viewport_container.get_child_count() > 0:
-		var existing_vp := viewport_container.get_child(0)
-		if existing_vp is SubViewport:
-			# Ensure UI root exists
-			_ensure_viewport_ui_root(existing_vp)
-			return existing_vp
-	# Create new viewport
-	var new_vp := SubViewport.new()
-	new_vp.size = Vector2i(1536, 2048)
-	new_vp.transparent_bg = false
-	# Continuous update while visible
-	if new_vp.has_method("set_update_mode"):
-		new_vp.set_update_mode(SubViewport.UPDATE_ALWAYS)
-	viewport_container.add_child(new_vp)
-	_ensure_viewport_ui_root(new_vp)
-	return new_vp
-
-## Ensure a UI root inside the SubViewport so Controls can render with proper layout
-func _ensure_viewport_ui_root(vp: SubViewport) -> void:
-	if vp == null:
-		return
-	if vp.has_node("Root"):
-		return
-	var root := Control.new()
-	root.name = "Root"
-	root.anchors_preset = Control.PRESET_FULL_RECT
-	vp.add_child(root)
-	var sc := ScrollContainer.new()
-	sc.name = "Scroll"
-	sc.anchors_preset = Control.PRESET_FULL_RECT
-	root.add_child(sc)
-	var vbox := VBoxContainer.new()
-	vbox.name = "Content"
-	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	sc.add_child(vbox)
-
-func _get_content_root(vp: SubViewport) -> VBoxContainer:
-	if vp == null:
-		return null
-	_ensure_viewport_ui_root(vp)
-	var node := vp.get_node("Root/Scroll/Content")
-	if node and node is VBoxContainer:
-		return node
-	return null
-
-func _clear_viewport_content(vp: SubViewport) -> void:
-	var content := _get_content_root(vp)
-	if content == null:
-		return
-	for child in content.get_children():
+func _clear_vbox_content() -> void:
+	for child in vbox_container.get_children():
 		child.queue_free()
 
-func _render_full_bundle(viewport: SubViewport, summary_text: String) -> void:
+func _render_full_bundle(summary_text: String) -> void:
 	# Render a vertical stack: text pages + visuals
-	var vbox := _get_content_root(viewport)
-	_clear_viewport_content(viewport)
+	var vbox := vbox_container
+	_clear_vbox_content()
 	
 	# Generate images in memory
 	var visuals := _build_visuals_payload()
@@ -144,9 +91,9 @@ func _render_full_bundle(viewport: SubViewport, summary_text: String) -> void:
 	
 	status_label.text = "Rendered %d images in viewport" % images.size()
 
-func _render_single_visual(viewport: SubViewport, visual_type: String) -> void:
+func _render_single_visual(visual_type: String) -> void:
 	var img: Image
-	_clear_viewport_content(viewport)
+	_clear_vbox_content()
 	match visual_type:
 		"minimap":
 			var data := _build_minimap_entities()
@@ -177,11 +124,7 @@ func _render_single_visual(viewport: SubViewport, visual_type: String) -> void:
 		rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		rect.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		rect.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		var vbox := _get_content_root(viewport)
-		if vbox:
-			vbox.add_child(rect)
-		else:
-			viewport.add_child(rect) # Fallback
+		vbox_container.add_child(rect)
 		status_label.text = "Rendered %s" % visual_type
 
 func _build_visuals_payload() -> Dictionary:
