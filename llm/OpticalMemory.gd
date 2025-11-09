@@ -44,7 +44,8 @@ func _create_drawing_page() -> SubViewport:
 	return viewport
 
 ## --- 1) Scene Minimap: top-down spatial snapshot of entities
-func _render_scene_minimap_to_image() -> Image:
+## entities: Array[Dictionary] with { "id": String, "pos": Vector2 or [x, y] }
+func render_scene_minimap_to_image(entities: Array) -> Image:
 	var viewport := _create_drawing_page()
 	# Grid layer
 	var grid := Control.new()
@@ -72,14 +73,10 @@ func _render_scene_minimap_to_image() -> Image:
 	var nodes := Control.new()
 	nodes.custom_minimum_size = Vector2(PAGE_WIDTH, PAGE_HEIGHT)
 	nodes.draw.connect(func():
-		var scene_id = world_db.flags.get("current_scene", "")
-		var scene = world_db.get_scene(scene_id)
-		if scene == null:
-			return
-		for entity in scene.entities:
+		for entity in entities:
 			var pos := Vector2(PAGE_WIDTH/2, PAGE_HEIGHT/2) # default center
-			if entity.props.has("pos"):
-				var p = entity.props.get("pos")
+			if entity is Dictionary and entity.has("pos"):
+				var p = entity.get("pos")
 				if typeof(p) == TYPE_VECTOR2:
 					pos = Vector2(PAGE_MARGIN, PAGE_MARGIN) + p
 				elif typeof(p) == TYPE_ARRAY and p.size() >= 2:
@@ -91,7 +88,7 @@ func _render_scene_minimap_to_image() -> Image:
 			nodes.draw_circle(pos, NODE_RADIUS, COLOR_NODE_FILL)
 			nodes.draw_circle(pos, NODE_RADIUS, COLOR_NODE, EDGE_THICKNESS)
 			# Label under node (truncated to prevent overflow)
-			var label_text := _truncate_label(str(entity.id), 12)
+			var label_text := _truncate_label(str(entity.get("id", "")), 12)
 			nodes.draw_string(ThemeDB.fallback_font, pos + Vector2(-NODE_RADIUS, NODE_RADIUS + 16), label_text, HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE - 2)
 	)
 	viewport.add_child(nodes)
@@ -102,18 +99,20 @@ func _render_scene_minimap_to_image() -> Image:
 	return img
 
 ## --- 2) Relationship Graph: entities as nodes, edges by relationship type
-func _render_relationship_graph_to_image() -> Image:
+## relationships: Dictionary { id: { related_id: relationship_type } }
+func render_relationship_graph_to_image(relationships: Dictionary) -> Image:
 	var viewport := _create_drawing_page()
 	var center := Vector2(PAGE_WIDTH/2, PAGE_HEIGHT/2 + 40)
 	var radius := min(PAGE_WIDTH, PAGE_HEIGHT) * 0.35
 	var entities: Array[String] = []
-	for k in world_db.relationships.keys():
-		if not entities.has(k):
-			entities.append(k)
-		if world_db.relationships[k] is Dictionary:
-			for r in world_db.relationships[k].keys():
-				if not entities.has(r):
-					entities.append(r)
+	for k in relationships.keys():
+		if not entities.has(String(k)):
+			entities.append(String(k))
+		if relationships[k] is Dictionary:
+			for r in relationships[k].keys():
+				var rid := String(r)
+				if not entities.has(rid):
+					entities.append(rid)
 
 	# Node positions around a circle
 	var positions := {}
@@ -126,9 +125,9 @@ func _render_relationship_graph_to_image() -> Image:
 	canvas.custom_minimum_size = Vector2(PAGE_WIDTH, PAGE_HEIGHT)
 	canvas.draw.connect(func():
 		# Edges
-		for a in world_db.relationships.keys():
-			if world_db.relationships[a] is Dictionary:
-				for b in world_db.relationships[a].keys():
+		for a in relationships.keys():
+			if relationships[a] is Dictionary:
+				for b in relationships[a].keys():
 					var pa: Vector2 = positions.get(a, center)
 					var pb: Vector2 = positions.get(b, center)
 					canvas.draw_line(pa, pb, COLOR_EDGE, EDGE_THICKNESS)
@@ -160,7 +159,9 @@ func _render_relationship_graph_to_image() -> Image:
 	return img
 
 ## --- 3) Timeline Strip: recent history as spatial, iconized events
-func _render_timeline_strip_to_image() -> Image:
+## events: Array[Dictionary] with { "event": String, "ts": String, "glyph"?: String }
+## glyph_map: Dictionary mapping event kind -> glyph (e.g., { "scene_enter": "S" })
+func render_timeline_strip_to_image(events: Array, glyph_map: Dictionary = {}) -> Image:
 	var viewport := _create_drawing_page()
 	var left := PAGE_MARGIN
 	var right := PAGE_WIDTH - PAGE_MARGIN
@@ -174,22 +175,21 @@ func _render_timeline_strip_to_image() -> Image:
 	)
 	viewport.add_child(line)
 
-	# Collect recent history (reuse MAX_HISTORY)
-	var events: Array[Dictionary] = []
-	var cap: int = min(MAX_HISTORY, world_db.history.size())
-	for i in range(world_db.history.size() - cap, world_db.history.size()):
-		events.append(world_db.history[i])
-
-	var n: int = max(events.size(), 1)
+	var n: int = events.size()
 	for i in range(n):
 		var x: float = lerp(left, right, float(i) / float(max(n-1,1)))
-		var e := events[i]
-		var glyph := "•"
-		match e.get("event",""):
-			"scene_enter": glyph = "S"
-			"action": glyph = "A"
-			"entity_discovery": glyph = "D"
-			"entity_change": glyph = "C"
+		var e: Dictionary = events[i] if (i < events.size() and events[i] is Dictionary) else {}
+		# Choose glyph by priority:
+		# 1) explicit e["glyph"]; 2) glyph_map[event_kind]; 3) first letter of event; 4) bullet
+		var glyph := String(e.get("glyph", ""))
+		if glyph == "":
+			var kind := String(e.get("event",""))
+			if kind != "" and glyph_map.has(kind):
+				glyph = String(glyph_map.get(kind))
+			elif kind != "":
+				glyph = kind.substr(0, 1).to_upper()
+			else:
+				glyph = "•"
 		# tick mark
 		var tick := Label.new()
 		tick.text = glyph
@@ -200,7 +200,7 @@ func _render_timeline_strip_to_image() -> Image:
 		viewport.add_child(tick)
 		# caption
 		var caption := Label.new()
-		caption.text = e.get("ts","?")
+		caption.text = String(e.get("ts","?"))
 		if _load_optical_font():
 			caption.add_theme_font_override("font", _load_optical_font())
 			caption.add_theme_font_size_override("font_size", FONT_SIZE - 2)
@@ -224,18 +224,30 @@ func _render_timeline_strip_to_image() -> Image:
 ## Generate an expanded bundle IN MEMORY: text pages + spatial visualizations
 ## @param summary_text: Pre-generated summary text to render (ensures consistency with prompts)
 ## @return Array[Image]: ordered images ready to be encoded/sent to LLMs
-func generate_optical_memory_images(summary_text: String) -> Array[Image]:
+## visuals: {
+##   "minimap_entities": Array[Dictionary],
+##   "relationships": Dictionary,
+##   "timeline_events": Array[Dictionary],
+##   "portrait_entities": Array[Dictionary]
+## }
+func generate_optical_memory_images(summary_text: String, visuals: Dictionary = {}) -> Array[Image]:
 	var images: Array[Image] = []
 	# 1) Text pages (use provided summary text for consistency with prompts)
 	var page_images: Array[Image] = await generate_optical_memory_page_images(summary_text)
 	images.append_array(page_images)
 	# 2) Visual pages (minimap, relationships, timeline)
-	var mm := await _render_scene_minimap_to_image()
-	images.append(mm)
-	var rg := await _render_relationship_graph_to_image()
-	images.append(rg)
-	var tl := await _render_timeline_strip_to_image()
-	images.append(tl)
+	if visuals.has("minimap_entities"):
+		var mm := await render_scene_minimap_to_image(visuals.get("minimap_entities", []))
+		images.append(mm)
+	if visuals.has("relationships"):
+		var rg := await render_relationship_graph_to_image(visuals.get("relationships", {}))
+		images.append(rg)
+	if visuals.has("timeline_events"):
+		var tl := await render_timeline_strip_to_image(visuals.get("timeline_events", []))
+		images.append(tl)
+	if visuals.has("portrait_entities"):
+		var pf := await render_entity_portraits_to_image(visuals.get("portrait_entities", []))
+		images.append(pf)
 	return images
 
 # Optional high-contrast, mono font if present (cached to avoid repeated FS access)
@@ -255,90 +267,7 @@ func _truncate_label(text: String, max_length: int = 16) -> String:
 
 ## Generates rasterized summary pages (Images in memory) for VLM attachment (optical memory sheets)
 
-var world_db: WorldDB
 var _cached_font: Font = null  # Cached mono font to avoid repeated filesystem access
-
-func _init(p_world_db: WorldDB):
-	world_db = p_world_db
-
-## Generate a session summary as text (can be rasterized to PNG)
-func generate_session_summary(scene_id: String = "", max_length: int = 5000) -> String:
-	var summary = ""
-	
-	# Current scene context
-	var current_scene_id = scene_id if scene_id != "" else world_db.flags.get("current_scene", "")
-	var scene = world_db.get_scene(current_scene_id)
-	
-	summary += "[b]SESSION SUMMARY[/b]\n\n"
-	
-	if scene:
-		summary += "Current Scene: " + scene.scene_id + "\n"
-		summary += "Description: " + scene.description + "\n\n"
-		
-		summary += "[b]Entities in Scene[/b]\n"
-		for entity in scene.entities:
-			summary += "  • " + entity.id + " (" + entity.type_name + ")\n"
-			if entity.props.size() > 0:
-				for key in entity.props.keys():
-					summary += "    - " + key + ": " + str(entity.props[key]) + "\n"
-	
-	summary += "\n[b]RECENT HISTORY[/b]\n\n"
-	
-	# Get last N history entries
-	var recent_history: Array = []
-	var cap: int = min(MAX_HISTORY, world_db.history.size())
-	for i in range(world_db.history.size() - 1, world_db.history.size() - cap - 1, -1):
-		recent_history.append(world_db.history[i])
-	
-	for entry in recent_history:
-		var event_type = entry.get("event", "unknown")
-		var timestamp = entry.get("ts", "unknown")
-		summary += "[" + timestamp + "] " + event_type.upper() + "\n"
-		
-		match event_type:
-			"scene_enter":
-				summary += "  Entered: " + entry.get("scene", "") + "\n"
-			"action":
-				summary += "  Actor: " + entry.get("actor", "") + " | "
-				summary += "Verb: " + entry.get("verb", "") + " | "
-				summary += "Target: " + entry.get("target", "") + "\n"
-			"entity_discovery":
-				summary += "  Entity: " + entry.get("entity_id", "") + " discovered by " + entry.get("actor", "") + "\n"
-			"entity_change":
-				summary += "  Entity: " + entry.get("entity_id", "") + " | "
-				summary += "Change: " + entry.get("change_type", "") + " at " + entry.get("path", "") + "\n"
-		
-		summary += "\n"
-	
-	summary += "\n[b]ENTITY DISCOVERY TRACKING[/b]\n\n"
-	
-	# List discovered entities
-	var discovered_entities = world_db.get_entities_discovered_by("player")
-	if discovered_entities.size() > 0:
-		summary += "Discovered by Player:\n"
-		for entity_id in discovered_entities:
-			summary += "  • " + entity_id + "\n"
-			var entity_history = world_db.get_entity_history(entity_id)
-			if entity_history.size() > 0:
-				var first_discovery = entity_history[-1]  # Oldest entry
-				if first_discovery.get("type") == "discovery":
-					summary += "    First seen: " + first_discovery.get("timestamp", "unknown") + "\n"
-	
-	summary += "\n[b]RELATIONSHIPS[/b]\n\n"
-	
-	# Entity relationships
-	if world_db.relationships.size() > 0:
-		for entity_id in world_db.relationships.keys():
-			if world_db.relationships[entity_id] is Dictionary:
-				for related_id in world_db.relationships[entity_id].keys():
-					var rel_type = world_db.relationships[entity_id][related_id]
-					summary += "  " + entity_id + " → " + rel_type + " → " + related_id + "\n"
-	
-	# Truncate if too long
-	if summary.length() > max_length:
-		summary = summary.substr(0, max_length) + "\n\n...[truncated]"
-	
-	return summary
 
 ## Create a SubViewport page with high-contrast settings and return (viewport, label)
 func _create_optical_page() -> Array:
@@ -450,22 +379,9 @@ func _render_page_to_image(page_text: String) -> Image:
 	viewport.queue_free()
 	return img
 
-## Helper: load a portrait/icon for an entity.
-## Looks in props: `portrait` (path), `icon` (path), or `thumbnail` (path).
-## Returns Texture2D or null if not found.
-func _get_entity_texture(entity) -> Texture2D:
-	var keys := ["portrait", "icon", "thumbnail"]
-	for k in keys:
-		if entity.props.has(k):
-			var v = entity.props.get(k)
-			if typeof(v) == TYPE_STRING and v != "":
-				if ResourceLoader.exists(v):
-					var tex: Texture2D = load(v)
-					if tex: return tex
-	return null
-
 ## Render a grid of entity portrait cards (name + optional type + portrait)
-func _render_entity_portraits_to_image() -> Image:
+## entities: Array[Dictionary] with { "id": String, "type_name": String, "texture": Texture2D? }
+func render_entity_portraits_to_image(entities: Array) -> Image:
 	var viewport := _create_drawing_page()
 
 	# Title
@@ -478,25 +394,17 @@ func _render_entity_portraits_to_image() -> Image:
 	title.position = Vector2(PAGE_MARGIN, PAGE_MARGIN/2)
 	viewport.add_child(title)
 
-	var scene_id = world_db.flags.get("current_scene", "")
-	var scene = world_db.get_scene(scene_id)
-	if scene == null:
-		await RenderingServer.frame_post_draw
-		var empty_img: Image = viewport.get_texture().get_image()
-		title.queue_free(); viewport.queue_free()
-		return empty_img
-
 	# Grid origin (below title)
 	var origin := Vector2(PAGE_MARGIN, PAGE_MARGIN + 40)
-	var usable_w := PAGE_WIDTH - PAGE_MARGIN * 2
+	var _usable_w := PAGE_WIDTH - PAGE_MARGIN * 2
 	var cols: int = max(PORTRAIT_COLS, 1)
 	var col_w := PORTRAIT_SLOT_W
 	var row_h := PORTRAIT_SLOT_H
-	var x := 0
-	var y := 0
+	var _x := 0
+	var _y := 0
 
-	for i in range(scene.entities.size()):
-		var e = scene.entities[i]
+	for i in range(entities.size()):
+		var e = entities[i]
 		var cx := int(i % cols)
 		var cy := int(i / cols)
 		var card_pos := origin + Vector2(cx * (col_w + PORTRAIT_GAP), cy * (row_h + PORTRAIT_GAP))
@@ -512,8 +420,10 @@ func _render_entity_portraits_to_image() -> Image:
 		)
 		viewport.add_child(card)
 
-		# Portrait area (keep-aspect, centered)
-		var portrait_tex := _get_entity_texture(e)
+		# Portrait area (keep-aspect, centered). Expect a Texture2D in "texture" if provided.
+		var portrait_tex: Texture2D = null
+		if e is Dictionary and e.has("texture") and e.get("texture") is Texture2D:
+			portrait_tex = e.get("texture")
 		var texrect := TextureRect.new()
 		texrect.size = Vector2(col_w - 16, row_h - 80)
 		texrect.position = Vector2(8, 8)
@@ -525,7 +435,8 @@ func _render_entity_portraits_to_image() -> Image:
 		# If missing texture, show initials block
 		if portrait_tex == null:
 			var fallback := Label.new()
-			fallback.text = e.id.substr(0, 2).to_upper()
+			var eid := String(e.get("id",""))
+			fallback.text = eid.substr(0, 2).to_upper()
 			if f:
 				fallback.add_theme_font_override("font", f)
 				fallback.add_theme_font_size_override("font_size", FONT_SIZE + 12)
@@ -537,7 +448,7 @@ func _render_entity_portraits_to_image() -> Image:
 
 		# Name label
 		var name_lbl := Label.new()
-		name_lbl.text = e.id
+		name_lbl.text = String(e.get("id",""))
 		if f:
 			name_lbl.add_theme_font_override("font", f)
 			name_lbl.add_theme_font_size_override("font_size", FONT_SIZE)
@@ -546,7 +457,7 @@ func _render_entity_portraits_to_image() -> Image:
 
 		# Type label (muted)
 		var type_lbl := Label.new()
-		type_lbl.text = String(e.type_name)
+		type_lbl.text = String(e.get("type_name",""))
 		type_lbl.modulate = Color(0,0,0,0.65)
 		if f:
 			type_lbl.add_theme_font_override("font", f)
@@ -569,9 +480,6 @@ func generate_optical_memory_page_images(summary_text: String) -> Array[Image]:
 	for i in range(pages.size()):
 		var img := await _render_page_to_image(pages[i])
 		images.append(img)
-	# Also include a portraits page for quick visual recall
-	var pf := await _render_entity_portraits_to_image()
-	images.append(pf)
 	return images
 
 ## Generate a single optical memory Image by rendering text to a Viewport (no disk)
@@ -584,9 +492,7 @@ func generate_optical_memory_image(summary_text: String) -> Image:
 	return await _render_page_to_image(pages[0])
 
 ## Generate a lightweight text summary (for inclusion in prompts)
-func generate_prompt_summary(max_entities: int = 10) -> String:
-	var summary = generate_session_summary("", 2000)
-	return summary
+## Deprecated: prompt summary generation is handled by callers; keep a stub for back-compat if needed
 
 # Usage tip:
 #   var images: Array[Image] = await optical_memory.generate_optical_memory_images(summary_text)

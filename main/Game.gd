@@ -72,6 +72,11 @@ func _ready():
 	add_child(director)
 	director.action_resolved.connect(_on_action_resolved)
 	
+	# Setup OpticalMemory debug (deferred to ensure scene tree is ready)
+	var optical_memory := OpticalMemory.new()
+	add_child(optical_memory)
+	call_deferred("_setup_optical_debug", optical_memory)
+	
 	# Connect UI signals
 	chat_window.entity_clicked.connect(_on_entity_clicked)
 	chat_window.message_sent.connect(_on_message_sent)

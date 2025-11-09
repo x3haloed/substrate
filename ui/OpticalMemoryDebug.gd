@@ -46,10 +46,10 @@ func _on_generate_pressed() -> void:
 	for child in viewport.get_children():
 		child.queue_free()
 	
-	# Build memory context
-	var memory_context := world_db.build_prompt_memory([], "player")
-	var history_text: String = String(memory_context.get("history_text", ""))
-	var lore_text: String = String(memory_context.get("lore_text", ""))
+	# Build memory context (local equivalent of build_prompt_memory)
+	var memory_context: Dictionary = _build_prompt_memory_local([], "player")
+	var history_text: String = str(memory_context.get("history_text", ""))
+	var lore_text: String = str(memory_context.get("lore_text", ""))
 	var full_summary_text := history_text
 	if lore_text != "":
 		full_summary_text += "\n\n[b]LORE DATABASE[/b]\n\n" + lore_text
@@ -75,23 +75,64 @@ func _get_or_create_viewport() -> SubViewport:
 	if viewport_container.get_child_count() > 0:
 		var existing_vp := viewport_container.get_child(0)
 		if existing_vp is SubViewport:
+			# Ensure UI root exists
+			_ensure_viewport_ui_root(existing_vp)
 			return existing_vp
 	# Create new viewport
 	var new_vp := SubViewport.new()
 	new_vp.size = Vector2i(1536, 2048)
 	new_vp.transparent_bg = false
+	# Continuous update while visible
+	if new_vp.has_method("set_update_mode"):
+		new_vp.set_update_mode(SubViewport.UPDATE_ALWAYS)
 	viewport_container.add_child(new_vp)
+	_ensure_viewport_ui_root(new_vp)
 	return new_vp
+
+## Ensure a UI root inside the SubViewport so Controls can render with proper layout
+func _ensure_viewport_ui_root(vp: SubViewport) -> void:
+	if vp == null:
+		return
+	if vp.has_node("Root"):
+		return
+	var root := Control.new()
+	root.name = "Root"
+	root.anchors_preset = Control.PRESET_FULL_RECT
+	vp.add_child(root)
+	var sc := ScrollContainer.new()
+	sc.name = "Scroll"
+	sc.anchors_preset = Control.PRESET_FULL_RECT
+	root.add_child(sc)
+	var vbox := VBoxContainer.new()
+	vbox.name = "Content"
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	sc.add_child(vbox)
+
+func _get_content_root(vp: SubViewport) -> VBoxContainer:
+	if vp == null:
+		return null
+	_ensure_viewport_ui_root(vp)
+	var node := vp.get_node("Root/Scroll/Content")
+	if node and node is VBoxContainer:
+		return node
+	return null
+
+func _clear_viewport_content(vp: SubViewport) -> void:
+	var content := _get_content_root(vp)
+	if content == null:
+		return
+	for child in content.get_children():
+		child.queue_free()
 
 func _render_full_bundle(viewport: SubViewport, summary_text: String) -> void:
 	# Render a vertical stack: text pages + visuals
-	var vbox := VBoxContainer.new()
-	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	viewport.add_child(vbox)
+	var vbox := _get_content_root(viewport)
+	_clear_viewport_content(viewport)
 	
 	# Generate images in memory
-	var images: Array[Image] = await optical_memory.generate_optical_memory_images(summary_text)
+	var visuals := _build_visuals_payload()
+	var images: Array[Image] = await optical_memory.generate_optical_memory_images(summary_text, visuals)
 	
 	for img in images:
 		var tex := ImageTexture.create_from_image(img)
@@ -105,15 +146,29 @@ func _render_full_bundle(viewport: SubViewport, summary_text: String) -> void:
 
 func _render_single_visual(viewport: SubViewport, visual_type: String) -> void:
 	var img: Image
+	_clear_viewport_content(viewport)
 	match visual_type:
 		"minimap":
-			img = await optical_memory._render_scene_minimap_to_image()
+			var data := _build_minimap_entities()
+			img = await optical_memory.render_scene_minimap_to_image(data)
 		"relationships":
-			img = await optical_memory._render_relationship_graph_to_image()
+			var rel := _build_relationships()
+			img = await optical_memory.render_relationship_graph_to_image(rel)
 		"timeline":
-			img = await optical_memory._render_timeline_strip_to_image()
+			var events := _build_timeline_events()
+			# Provide a minimal glyph map for nicer visualization in debug
+			var glyphs := {
+				"scene_enter": "S",
+				"action": "A",
+				"entity_discovery": "D",
+				"entity_change": "C",
+				"freeform_input": "F",
+				"player_text": "F"
+			}
+			img = await optical_memory.render_timeline_strip_to_image(events, glyphs)
 		"portraits":
-			img = await optical_memory._render_entity_portraits_to_image()
+			var ents := _build_portrait_entities()
+			img = await optical_memory.render_entity_portraits_to_image(ents)
 	
 	if img:
 		var tex := ImageTexture.create_from_image(img)
@@ -122,5 +177,185 @@ func _render_single_visual(viewport: SubViewport, visual_type: String) -> void:
 		rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		rect.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		rect.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		viewport.add_child(rect)
+		var vbox := _get_content_root(viewport)
+		if vbox:
+			vbox.add_child(rect)
+		else:
+			viewport.add_child(rect) # Fallback
 		status_label.text = "Rendered %s" % visual_type
+
+func _build_visuals_payload() -> Dictionary:
+	var payload := {}
+	payload["minimap_entities"] = _build_minimap_entities()
+	payload["relationships"] = _build_relationships()
+	payload["timeline_events"] = _build_timeline_events()
+	payload["portrait_entities"] = _build_portrait_entities()
+	return payload
+
+func _build_minimap_entities() -> Array:
+	var out: Array = []
+	if world_db == null:
+		return out
+	var scene_id = world_db.flags.get("current_scene", "")
+	var scene = world_db.get_scene(scene_id)
+	if scene == null:
+		return out
+	for e in scene.entities:
+		var pos := Vector2(0, 0)
+		if e.props.has("pos"):
+			var p = e.props.get("pos")
+			if typeof(p) == TYPE_VECTOR2:
+				pos = p
+			elif typeof(p) == TYPE_ARRAY and p.size() >= 2:
+				pos = Vector2(float(p[0]), float(p[1]))
+		out.append({
+			"id": e.id,
+			"pos": pos
+		})
+	return out
+
+## Local equivalent of WorldDB.build_prompt_memory to decouple debug viewer
+func _build_prompt_memory_local(target_entity_ids: Array[String], actor_id: String = "player") -> Dictionary:
+	var ids: Array[String] = []
+	# Include party if available
+	if world_db and world_db.party is Array:
+		for p in world_db.party:
+			if typeof(p) == TYPE_STRING:
+				var pid := str(p)
+				if not ids.has(pid):
+					ids.append(pid)
+	# Include targets
+	for t in target_entity_ids:
+		if typeof(t) == TYPE_STRING and not ids.has(t):
+			ids.append(str(t))
+	return {
+		"history_text": _build_full_chat_log_text_local(1000),
+		"lore_text": _build_lore_corpus_text_local(actor_id),
+		"character_cards": _build_character_cards_local(ids)
+	}
+
+func _build_full_chat_log_text_local(max_events: int) -> String:
+	if world_db == null or not (world_db.history is Array):
+		return ""
+	var lines: Array[String] = []
+	var n: int = world_db.history.size()
+	var start: int = max(0, n - max_events)
+	for i in range(start, n):
+		var e := world_db.history[i]
+		if not (e is Dictionary):
+			continue
+		var ts: String = str(e.get("ts", ""))
+		var kind: String = str(e.get("event", ""))
+		if kind == "":
+			lines.append(ts)
+			continue
+		match kind:
+			"scene_enter":
+				lines.append("[b][%s][/b] Enter scene: %s" % [ts, e.get("scene", "?")])
+			"action":
+				lines.append("[b][%s][/b] %s → %s [%s]" % [ts, e.get("actor","?"), e.get("target","?"), e.get("verb","?")])
+			"freeform_input", "player_text":
+				lines.append("[b][%s][/b] Player: %s" % [ts, e.get("text","...")])
+			"character_stat_change":
+				lines.append("[b][%s][/b] %s.stat %s := %s" % [ts, e.get("character_id","?"), e.get("key", e.get("path","/stats")), str(e.get("value","?"))])
+			"entity_discovery":
+				lines.append("[b][%s][/b] Discovered %s by %s" % [ts, e.get("entity_id","?"), e.get("actor","?")])
+			"entity_change":
+				lines.append("[b][%s][/b] %s %s %s" % [ts, e.get("entity_id","?"), e.get("change_type",""), e.get("path","")])
+			"lore_unlock":
+				lines.append("[b][%s][/b] Lore unlocked: %s" % [ts, e.get("entry_id","?")])
+			_:
+				lines.append("[b][%s][/b] %s" % [ts, kind])
+	return "\n".join(lines)
+
+func _build_lore_corpus_text_local(actor_id: String) -> String:
+	# Try to use lore_db if available
+	if world_db == null or world_db.lore_db == null:
+		return ""
+	var out: Array[String] = []
+	var ldb = world_db.lore_db
+	if not ldb.has_method("list_entries"):
+		return ""
+	var entries = ldb.list_entries()
+	for entry in entries:
+		# Expectation: entry has fields title, category, summary, article and method is_unlocked(world_db, actor_id)
+		var unlocked := false
+		if entry and entry.has_method("is_unlocked"):
+			unlocked = entry.is_unlocked(world_db, actor_id)
+		if not unlocked:
+			continue
+		var title := str(entry.title) if "title" in entry else ""
+		var category := str(entry.category) if "category" in entry else ""
+		var summary := str(entry.summary) if "summary" in entry else ""
+		out.append("[b]%s[/b] (%s)\n%s" % [title, category, summary])
+		# Sections if present
+		if entry.has_method("get_unlocked_sections"):
+			var sections = entry.get_unlocked_sections(world_db, actor_id)
+			if sections is Array and sections.size() > 0:
+				for s in sections:
+					if s and "title" in s and "body" in s:
+						out.append("[i]%s[/i]\n%s" % [str(s.title), str(s.body)])
+				continue
+		# Otherwise article
+		if "article" in entry:
+			var article := str(entry.article)
+			if article.strip_edges() != "":
+				out.append(article)
+	return "\n\n".join(out)
+
+func _build_character_cards_local(ids: Array[String]) -> Array[Dictionary]:
+	var cards: Array[Dictionary] = []
+	if world_db == null:
+		return cards
+	for cid in ids:
+		var card := {}
+		card["id"] = str(cid)
+		if world_db.has_method("get_character"):
+			var ch = world_db.get_character(str(cid))
+			if ch:
+				card["name"] = ch.name if "name" in ch else ""
+				card["description"] = ch.description if "description" in ch else ""
+				card["personality"] = ch.personality if "personality" in ch else {}
+				card["style"] = ch.style.duplicate() if "style" in ch else {}
+				card["traits"] = ch.traits.duplicate() if "traits" in ch else {}
+				if world_db.has_method("get_character_stats"):
+					card["stats"] = world_db.get_character_stats(str(cid))
+				card["first_mes"] = ch.first_mes if "first_mes" in ch else ""
+				card["mes_example"] = ch.mes_example if "mes_example" in ch else ""
+		cards.append(card)
+	return cards
+
+func _build_relationships() -> Dictionary:
+	if world_db == null:
+		return {}
+	# Duplicate to avoid mutating world_db
+	var rel_out := {}
+	for a in world_db.relationships.keys():
+		if world_db.relationships[a] is Dictionary:
+			rel_out[a] = world_db.relationships[a].duplicate()
+	return rel_out
+
+func _build_timeline_events() -> Array:
+	var events: Array = []
+	if world_db == null:
+		return events
+	var cap: int = min(20, world_db.history.size())
+	for i in range(world_db.history.size() - cap, world_db.history.size()):
+		events.append(world_db.history[i])
+	return events
+
+func _build_portrait_entities() -> Array:
+	var out: Array = []
+	if world_db == null:
+		return out
+	var scene_id = world_db.flags.get("current_scene", "")
+	var scene = world_db.get_scene(scene_id)
+	if scene == null:
+		return out
+	for e in scene.entities:
+		out.append({
+			"id": e.id,
+			"type_name": e.type_name
+			# Optional: you can add "texture": Texture2D here if available
+		})
+	return out
