@@ -650,10 +650,3 @@ func generate_optical_memory_image(summary_text: String) -> Image:
 	if pages.size() == 0:
 		return await _render_page_to_image("")
 	return await _render_page_to_image(pages[0])
-
-## Generate a lightweight text summary (for inclusion in prompts)
-## Deprecated: prompt summary generation is handled by callers; keep a stub for back-compat if needed
-
-# Usage tip:
-#   var images: Array[Image] = await optical_memory.generate_optical_memory_images(summary_text)
-#   # images now contains paginated text images + minimap + relationships + timeline (all in memory)
