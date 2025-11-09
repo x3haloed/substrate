@@ -367,38 +367,44 @@ func _compose_mosaic_page(tiles: Array[Image], rows: int = 3, cols: int = 2, tit
 	viewport.queue_free()
 	return img
 
-## Render chat transcript into images; last page is a compressed mosaic of older pages.
-## Returns at most 2 images by default: 1 full-res + 1 mosaic of older pages (3x2).
-func render_chat_transcript_to_images(history: Array, max_events: int = 1000, full_pages: int = 1, mosaic_rows: int = 3, mosaic_cols: int = 2) -> Array[Image]:
-	var transcript := build_chat_transcript_text(history, max_events)
-	var all_pages: Array = _paginate_text(transcript)
+## Generic text+tiles renderer: render N full pages and 1 mosaic (rows x cols) of subsequent pages.
+## - kind: cache/prefix label, e.g., "ChatTranscript" or "LoreBook"
+## - text: already-assembled corpus (chat transcript, lore corpus, etc.)
+## - full_pages: number of full-size pages to render before tiling the next pages
+## - mosaic_rows, mosaic_cols: grid for compressed pages in the final tile
+## - cache_store, fiducials: pass-through to render_text_pages_with_cache for stable caching
+func render_text_with_mosaic(kind: String, text: String, full_pages: int = 1, mosaic_rows: int = 3, mosaic_cols: int = 2, cache_store: Dictionary = {}, fiducials: Dictionary = {}) -> Array[Image]:
+	var corpus := String(text)
+	var all_pages: Array = _paginate_text(corpus)
 	if all_pages.is_empty():
 		return [await _render_page_to_image("")]
-	# First: render newest 'full_pages' pages at full resolution
-	var fid := {"scene_id": ""}  # caller can extend later if needed
-	var full_images := await render_text_pages_with_cache("ChatTranscript", transcript, full_pages, {}, fid)
-	# If no more pages, return the full pages only
+	# Render newest 'full_pages' pages at full resolution
+	var full_images: Array[Image] = await render_text_pages_with_cache(kind, corpus, max(full_pages, 0), cache_store, fiducials)
+	# If there are no additional pages beyond full_pages, return the full pages only
 	if all_pages.size() <= full_pages:
 		return full_images
 	# Build images for the next chunk to tile
-	var tiles_needed := mosaic_rows * mosaic_cols
+	var tiles_needed: int = max(0, mosaic_rows * mosaic_cols)
 	var tile_pages: Array = []
 	for i in range(full_pages, min(all_pages.size(), full_pages + tiles_needed)):
 		tile_pages.append(all_pages[i])
 	# Render each tile page (with lightweight headers)
 	var tile_images: Array[Image] = []
+	var tile_kind := kind + "Tile"
 	for j in range(tile_pages.size()):
-		var header := "[[PAGE: ChatTranscript %d/%d (tile)]]\n" % [full_pages + j + 1, all_pages.size()]
-		var text := header + String(tile_pages[j])
-		var imgs := await render_text_pages_with_cache("ChatTranscriptTile", text, 1, {}, fid)
+		var header := "[[PAGE: %s %d/%d (tile)]]\n" % [kind, full_pages + j + 1, all_pages.size()]
+		var ptext := header + String(tile_pages[j])
+		var imgs := await render_text_pages_with_cache(tile_kind, ptext, 1, cache_store, fiducials)
 		if imgs.size() > 0:
 			tile_images.append(imgs[0])
 	# Compose mosaic final page
-	var mosaic := await _compose_mosaic_page(tile_images, mosaic_rows, mosaic_cols, "Compressed Transcript")
+	var title := "Compressed " + kind
+	var mosaic := await _compose_mosaic_page(tile_images, mosaic_rows, mosaic_cols, title)
 	var out: Array[Image] = []
 	out.append_array(full_images)
 	out.append(mosaic)
 	return out
+ 
 
 # Optional high-contrast, mono font if present (cached to avoid repeated FS access)
 func _load_optical_font() -> Font:
@@ -509,7 +515,7 @@ func _paginate_text(input_text: String) -> Array:
 					break
 			page_text = forced
 			# Keep the remainder of the paragraph for next page
-			paras[idx] = paras[idx].substr(forced.length()).lstrip() 
+			paras[idx] = paras[idx].substr(forced.length()).strip_edges(true, false)
 			added = 0
 		else:
 			idx += added

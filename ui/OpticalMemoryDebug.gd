@@ -23,6 +23,7 @@ func _ready() -> void:
 	mode_option.add_item("Timeline Only", 3)
 	mode_option.add_item("Portraits Only", 4)
 	mode_option.add_item("Chat Transcript Only", 5)
+	mode_option.add_item("Lorebook Only", 6)
 	mode_option.selected = 0
 	status_label.text = "Ready. Click 'Generate' to render optical memory."
 
@@ -45,7 +46,7 @@ func _on_generate_pressed() -> void:
 	_clear_vbox_content()
 	
 	# Build memory context (local equivalent of build_prompt_memory)
-	var memory_context: Dictionary = _build_prompt_memory_local([], "player")
+	var memory_context: Dictionary = _build_prompt_memory_local([])
 	var history_text: String = str(memory_context.get("history_text", ""))
 	var lore_text: String = str(memory_context.get("lore_text", ""))
 	var full_summary_text := history_text
@@ -67,6 +68,8 @@ func _on_generate_pressed() -> void:
 			await _render_single_visual("portraits")
 		5:  # Chat transcript
 			await _render_single_visual("chat")
+		6:  # Lorebook
+			await _render_single_visual("lore")
 	
 	status_label.text = "Done! VBoxContainer updated."
 	generate_button.disabled = false
@@ -120,8 +123,10 @@ func _render_single_visual(visual_type: String) -> void:
 			var ents := _build_portrait_entities()
 			img = await optical_memory.render_entity_portraits_to_image(ents)
 		"chat":
-			# Build transcript pages with compressed mosaic; preview all
-			var images: Array[Image] = await optical_memory.render_chat_transcript_to_images(world_db.history, 1000)
+			# Build transcript and render pages with compressed mosaic; preview all
+			var transcript := optical_memory.build_chat_transcript_text(world_db.history, 1000)
+			var ctx := {"scene_id": world_db.flags.get("current_scene", "")}
+			var images: Array[Image] = await optical_memory.render_text_with_mosaic("ChatTranscript", transcript, 1, 3, 2, world_db.flags.get("om_cache", {}), ctx)
 			for im in images:
 				var t := ImageTexture.create_from_image(im)
 				var r := TextureRect.new()
@@ -132,6 +137,20 @@ func _render_single_visual(visual_type: String) -> void:
 				vbox_container.add_child(r)
 			# We've already added all images; skip generic single add below
 			img = null
+		"lore":
+			if world_db and world_db.lore_db:
+				var corpus_text := _build_lore_corpus_text_local()
+				var ctx2 := {"scene_id": world_db.flags.get("current_scene", "")}
+				var limages: Array[Image] = await optical_memory.render_text_with_mosaic("LoreBook", corpus_text, 1, 3, 2, world_db.flags.get("om_cache", {}), ctx2)
+				for limg in limages:
+					var lt := ImageTexture.create_from_image(limg)
+					var lr := TextureRect.new()
+					lr.texture = lt
+					lr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+					lr.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+					lr.size_flags_vertical = Control.SIZE_EXPAND_FILL
+					vbox_container.add_child(lr)
+				img = null
 	
 	if img:
 		var tex := ImageTexture.create_from_image(img)
@@ -174,7 +193,7 @@ func _build_minimap_entities() -> Array:
 	return out
 
 ## Local equivalent of WorldDB.build_prompt_memory to decouple debug viewer
-func _build_prompt_memory_local(target_entity_ids: Array[String], actor_id: String = "player") -> Dictionary:
+func _build_prompt_memory_local(target_entity_ids: Array[String]) -> Dictionary:
 	var ids: Array[String] = []
 	# Include party if available
 	if world_db and world_db.party is Array:
@@ -189,7 +208,7 @@ func _build_prompt_memory_local(target_entity_ids: Array[String], actor_id: Stri
 			ids.append(str(t))
 	return {
 		"history_text": _build_full_chat_log_text_local(1000),
-		"lore_text": _build_lore_corpus_text_local(actor_id),
+		"lore_text": _build_lore_corpus_text_local(),
 		"character_cards": _build_character_cards_local(ids)
 	}
 
@@ -227,7 +246,7 @@ func _build_full_chat_log_text_local(max_events: int) -> String:
 				lines.append("[b][%s][/b] %s" % [ts, kind])
 	return "\n".join(lines)
 
-func _build_lore_corpus_text_local(actor_id: String) -> String:
+func _build_lore_corpus_text_local() -> String:
 	# Try to use lore_db if available
 	if world_db == null or world_db.lore_db == null:
 		return ""
@@ -237,29 +256,30 @@ func _build_lore_corpus_text_local(actor_id: String) -> String:
 		return ""
 	var entries = ldb.list_entries()
 	for entry in entries:
-		# Expectation: entry has fields title, category, summary, article and method is_unlocked(world_db, actor_id)
-		var unlocked := false
-		if entry and entry.has_method("is_unlocked"):
-			unlocked = entry.is_unlocked(world_db, actor_id)
-		if not unlocked:
+		if entry == null:
 			continue
+		# Show ALL entries (ignore unlocks since this is the debugger)
 		var title := str(entry.title) if "title" in entry else ""
 		var category := str(entry.category) if "category" in entry else ""
 		var summary := str(entry.summary) if "summary" in entry else ""
-		out.append("[b]%s[/b] (%s)\n%s" % [title, category, summary])
-		# Sections if present
-		if entry.has_method("get_unlocked_sections"):
-			var sections = entry.get_unlocked_sections(world_db, actor_id)
-			if sections is Array and sections.size() > 0:
-				for s in sections:
-					if s and "title" in s and "body" in s:
-						out.append("[i]%s[/i]\n%s" % [str(s.title), str(s.body)])
-				continue
-		# Otherwise article
-		if "article" in entry:
-			var article := str(entry.article)
-			if article.strip_edges() != "":
-				out.append(article)
+		out.append("[b]%s[/b]%s%s" % [
+			title,
+			(" (" + category + ")") if category != "" else "",
+			("\n" + summary) if summary.strip_edges() != "" else ""
+		])
+		# Prefer sections if present; include all sections regardless of locks
+		if "sections" in entry and entry.sections is Array and entry.sections.size() > 0:
+			for s in entry.sections:
+				if s:
+					var stitle := str(s.title) if "title" in s else ""
+					var sbody := str(s.body) if "body" in s else ""
+					out.append("[i]%s[/i]\n%s" % [stitle, sbody])
+		else:
+			# Fallback to article
+			if "article" in entry:
+				var article := str(entry.article)
+				if article.strip_edges() != "":
+					out.append(article)
 	return "\n\n".join(out)
 
 func _build_character_cards_local(ids: Array[String]) -> Array[Dictionary]:

@@ -284,19 +284,21 @@ func build_npc_prompt(action: ActionRequest, scene: SceneGraph, character: Chara
 	var speaking_npc_id := str(action.actor)
 	if action.actor == "player":
 		speaking_npc_id = str(action.target)
-	var lore_injection := _build_lore_injection_for_actor(speaking_npc_id)
-	if lore_injection != "":
-		var L = PromptInjectionManagerScript.LayerDef
-		var P = PromptInjectionManagerScript.Position
-		var lb := L.new()
-		lb.id = "npc.lorebook:" + speaking_npc_id
-		lb.scope = "npc"
-		lb.position = P.IN_CHAT
-		lb.role = "system"
-		lb.priority = 40
-		lb.enabled = true
-		lb.content = "Lorebook context (unlocked only):\n" + lore_injection
-		layers.append(lb)
+	# If optical memory is OFF, include lorebook as text injection; otherwise we attach lore via images
+	if not use_optical:
+		var lore_injection := _build_lore_injection_for_actor(speaking_npc_id)
+		if lore_injection != "":
+			var L = PromptInjectionManagerScript.LayerDef
+			var P = PromptInjectionManagerScript.Position
+			var lb := L.new()
+			lb.id = "npc.lorebook:" + speaking_npc_id
+			lb.scope = "npc"
+			lb.position = P.IN_CHAT
+			lb.role = "system"
+			lb.priority = 40
+			lb.enabled = true
+			lb.content = "Lorebook context (unlocked only):\n" + lore_injection
+			layers.append(lb)
 	if typeof(character.post_history_instructions) == TYPE_STRING and character.post_history_instructions.strip_edges() != "":
 		var L = PromptInjectionManagerScript.LayerDef
 		var P = PromptInjectionManagerScript.Position
@@ -310,6 +312,52 @@ func build_npc_prompt(action: ActionRequest, scene: SceneGraph, character: Chara
 		ph.content = MacroExpander.expand(character.post_history_instructions.strip_edges(), macro_ctx)
 		layers.append(ph)
 	return injection_manager.apply_layers("npc", messages_npc, {"action": action, "scene": scene, "character": character}, layers)
+
+## Build a full lore corpus string filtered to unlocked sections for the given actor.
+## Used to render lore via Optical Memory instead of injecting large text when OM is enabled.
+func build_lore_corpus_for_actor(actor_id: String = "player") -> String:
+	if world_db == null or world_db.lore_db == null:
+		return ""
+	if not world_db.lore_db.has_method("list_entries"):
+		return ""
+	var entries = world_db.lore_db.list_entries()
+	if entries == null or not (entries is Array) or entries.is_empty():
+		return ""
+	# Sort by title for stability
+	entries.sort_custom(func(a, b):
+		var at: String = str(a.title) if ("title" in a) else ""
+		var bt: String = str(b.title) if ("title" in b) else ""
+		return at.nocasecmp_to(bt) < 0
+	)
+	var out: Array[String] = []
+	for entry in entries:
+		if entry == null:
+			continue
+		var visible: bool = entry.has_method("is_unlocked") and entry.is_unlocked(world_db, actor_id)
+		if not visible:
+			continue
+		var title := str(entry.title) if "title" in entry else ""
+		var category := str(entry.category) if "category" in entry else ""
+		var summary := str(entry.summary) if "summary" in entry else ""
+		if title != "":
+			out.append("[b]%s[/b]%s" % [title, (" (" + category + ")") if category != "" else ""])
+		if summary.strip_edges() != "":
+			out.append(summary)
+		# Prefer unlocked sections; fallback to article
+		var had_sections := false
+		if entry.has_method("get_unlocked_sections"):
+			var sections = entry.get_unlocked_sections(world_db, actor_id)
+			if sections is Array and sections.size() > 0:
+				had_sections = true
+				for s in sections:
+					if s and "title" in s and "body" in s:
+						out.append("[i]%s[/i]\n%s" % [str(s.title), str(s.body)])
+		if not had_sections and "article" in entry:
+			var article := str(entry.article)
+			if article.strip_edges() != "":
+				out.append(article)
+		out.append("")
+	return "\n".join(out).strip_edges()
 
 # Build a prompt to interpret freeform player input and resolve it
 func build_freeform_prompt(scene: SceneGraph, player_text: String, images: Array[Image] = []) -> Array[Dictionary]:

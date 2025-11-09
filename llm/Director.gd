@@ -202,7 +202,7 @@ func process_player_action(action: ActionRequest) -> ResolutionEnvelope:
 		character_context = companion_ai.get_character_influence(action.actor)
 	
 	# Process through PromptEngine with character context
-	# Optional: attach chat transcript images for dialog/freeform (cached). Skip for non-vision or disabled.
+	# Optional: attach chat transcript and lore images (cached). Skip for non-vision or disabled.
 	var images: Array[Image] = []
 	if prompt_engine and prompt_engine.llm_client and prompt_engine.llm_client.settings:
 		var stg := prompt_engine.llm_client.settings
@@ -210,9 +210,20 @@ func process_player_action(action: ActionRequest) -> ResolutionEnvelope:
 			if not (world_db.flags.has("om_cache") and world_db.flags["om_cache"] is Dictionary):
 				world_db.flags["om_cache"] = {}
 			var cache_dict: Dictionary = world_db.flags["om_cache"]
-			var transcript_text := optical_memory.build_chat_transcript_text(world_db.history, 1000)
 			var ctx := {"scene_id": current_scene_id}
-			images = await optical_memory.render_text_pages_with_cache("ChatTranscript", transcript_text, OM_BUDGET_NPC, cache_dict, ctx)
+			# 1) Chat transcript (newest page only)
+			var transcript_text := optical_memory.build_chat_transcript_text(world_db.history, 1000)
+			var chat_pages := await optical_memory.render_text_pages_with_cache("ChatTranscript", transcript_text, 1, cache_dict, ctx)
+			for im in chat_pages:
+				if images.size() < OM_BUDGET_NPC:
+					images.append(im)
+			# 2) Lorebook mosaic (filtered per speaking actor to avoid future knowledge)
+			var speaking_id := action.target if (action.actor == "player" and action.verb == "talk") else (action.actor if action.verb == "talk" else "player")
+			var lore_corpus := prompt_engine.build_lore_corpus_for_actor(speaking_id)
+			var lore_imgs := await optical_memory.render_text_with_mosaic("LoreBook", lore_corpus, 0, 3, 2, cache_dict, ctx)
+			for li in lore_imgs:
+				if images.size() < OM_BUDGET_NPC:
+					images.append(li)
 	var envelope = await prompt_engine.process_action(action, character_context, images)
 
 	# Ensure voice formatting for talk: speaker is target when player talks; otherwise it's the actor
